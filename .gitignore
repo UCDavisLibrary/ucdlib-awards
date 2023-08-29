@@ -1,0 +1,6 @@
+node_modules
+.env
+.DS_Store
+gc-writer-key.json
+gc-reader-key.json
+ucdlib-awards-local-dev

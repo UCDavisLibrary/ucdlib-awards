@@ -1,0 +1,27 @@
+{
+  "name": "ucdlib/simple-wp",
+  "description": "A simple Wordpress site for UCD Library",
+  "type":"wordpress-theme",
+  "license": "MIT",
+  "minimum-stability" : "dev",
+  "authors": [
+    {
+      "email": "spelkey@ucdavis.edu",
+      "name": "spelkey"
+    }
+  ],
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://wpackagist.org"
+    }
+  ],
+  "require": {
+    "timber/timber": "2.0.0-rc.1"
+  },
+  "config": {
+    "allow-plugins": {
+      "composer/installers":true
+    }
+  }
+}
