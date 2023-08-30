@@ -1,12 +1,12 @@
 <?php
-/**
- * Plugin Name: UC Davis Library OIDC Customizations
- * Description: Modifications to openid-connect-generic plugin to support our Keycloak instance
- * Author: UC Davis Library Online Strategy
- */
 
-class UcdlibOidc {
-  public function __construct(){
+/**
+ * @description Custom authentication on top of OpenID Connect Generic plugin.
+ */
+class UcdlibAwardsAuth {
+
+  public function __construct( $plugin ){
+    $this->plugin = $plugin;
 
     // if a user has these client roles, they will be given access to the site.
     $this->allowedClientRoles = [
@@ -22,9 +22,6 @@ class UcdlibOidc {
       'admin-access'
     ];
 
-    // If set to true, wp role will be set to
-    // - the first matching role in the allowedClientRoles array.
-    // - administrator if the user has the admin-access realm role.
     $this->setRoleFromClaim = true;
 
     $this->oidcIsActivated = in_array('openid-connect-generic/openid-connect-generic.php', apply_filters('active_plugins', get_option('active_plugins')));
@@ -33,38 +30,28 @@ class UcdlibOidc {
       add_action( 'openid-connect-generic-user-create', [$this, 'setAdvancedRole'], 10, 2 );
       add_action( 'openid-connect-generic-login-button-text', [$this, 'loginButtonText'], 10, 1);
       add_filter ( 'allow_password_reset', function (){return false;} );
-      add_filter('openid-connect-generic-user-login-test', [$this, 'authorizeUser'], 10, 2);
-      add_filter('openid-connect-generic-user-creation-test', [$this, 'authorizeUser'], 10, 2);
+    } else {
+      add_action(
+        'admin_notices',
+        function() {
+          echo '<div class="error"><p>OpenID Connect Generic plugin not activated, which is required for the UC Davis Library Awards platform. </p></div>';
+        }
+      );
     }
 
+    add_action('after_setup_theme', [$this, 'hideAdminBar']);
   }
 
   /**
-   * @description Authorize a user to view site based on their keycloak roles
-   * @param $authorize boolean
-   * @param $user_claim array - This is either the user id endpoint response or the id token. Depending on if the OIDC_ENDPOINT_USERINFO_URL env var is set.
+   * @description Hide the floating admin bar on front-end pages for "subscribers"
    */
-  public function authorizeUser( $authorize, $user_claim ){
-    $authorize = false;
-
-    // check realm roles
-    if ( isset( $user_claim['realm_access']['roles'] ) ) {
-      $intersect = array_intersect( $this->allowedRealmRoles, $user_claim['realm_access']['roles'] );
-      if ( count( $intersect ) > 0 ) {
-        return true;
-      }
+  public function hideAdminBar(){
+    $user = wp_get_current_user();
+    if ( !$user ) return;
+    $allowedRoles = array( 'editor', 'administrator', 'author' );
+    if (array_intersect( ['subscriber'], $user->roles ) && !is_admin()) {
+      show_admin_bar(false);
     }
-
-    // check client roles
-    $client_id = $this->client_id();
-    if ( !$client_id ) return $authorize;
-    if ( !isset( $user_claim['resource_access'][$client_id]['roles'] ) ) return $authorize;
-    $clientRoles = $user_claim['resource_access'][$client_id]['roles'];
-    $intersect = array_intersect( $this->allowedClientRoles, $clientRoles );
-    if ( count( $intersect ) > 0 ) {
-      return true;
-    }
-    return $authorize;
   }
 
   /**
@@ -131,5 +118,3 @@ class UcdlibOidc {
     return $client_id;
   }
 }
-
-new UcdlibOidc();

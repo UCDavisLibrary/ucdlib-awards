@@ -33,7 +33,10 @@ services:
     volumes:
       - uploads-data:{{WP_UPLOADS_DIR}}
       - wp-logs-data:{{WP_LOG_ROOT}}
-      - ../../src/plugins/ucdlib-oidc:{{WP_PLUGIN_DIR}}/ucdlib-oidc
+      - ../../src/plugins/aggie-open:{{WP_PLUGIN_DIR}}/aggie-open
+      - ../../src/plugins/graduate-student-prize:{{WP_PLUGIN_DIR}}/graduate-student-prize
+      - ../../src/plugins/lang-prize:{{WP_PLUGIN_DIR}}/lang-prize
+      - ../../src/plugins/ucdlib-awards:{{WP_PLUGIN_DIR}}/ucdlib-awards
 
   init:
     image: {{APP_UTILS_IMAGE_NAME_TAG}}

@@ -80,7 +80,14 @@ if [[ $DB_HAS_DATA = 0 ]]; then
   gcloud config set project $GC_PROJECT
 
   echo "Downloading: gs://${GC_BUCKET_BACKUPS}/${INIT_DATA_ENV}/${BACKUP_FILE_NAME}"
-  gsutil cp "gs://${GC_BUCKET_BACKUPS}/${INIT_DATA_ENV}/${BACKUP_FILE_NAME}" $DATA_DIR/$BACKUP_FILE_NAME
+  SOURCE_FILE="gs://${GC_BUCKET_BACKUPS}/${INIT_DATA_ENV}/${BACKUP_FILE_NAME}"
+  DESTINATION="$DATA_DIR/$BACKUP_FILE_NAME"
+  if gsutil stat "$SOURCE_FILE" >/dev/null 2>&1; then
+  gsutil cp "$SOURCE_FILE" "$DESTINATION"
+  else
+    echo "Error: $SOURCE_FILE does not exist"
+    exit 1
+  fi
 
   echo "Loading sql dump file"
   zcat $DATA_DIR/$BACKUP_FILE_NAME | mysql -f
@@ -105,11 +112,18 @@ if [[ $UPLOADS_FILE_COUNT == 0 ]]; then
   gcloud auth login --quiet --cred-file=${GOOGLE_APPLICATION_CREDENTIALS}
   gcloud config set project $GC_PROJECT
 
-  echo "Downloading: gs://${GC_BUCKET_BACKUPS}/${INIT_DATA_ENV}/${UPLOADS_FILE_NAME}"
-  gsutil cp "gs://${GC_BUCKET_BACKUPS}/${INIT_DATA_ENV}/${UPLOADS_FILE_NAME}" $UPLOADS_DIR/$UPLOADS_FILE_NAME
-  echo "Extracting: tar -zxvf $UPLOADS_DIR/$UPLOADS_FILE_NAME -C $UPLOADS_DIR"
+  SOURCE_FILE="gs://${GC_BUCKET_BACKUPS}/${INIT_DATA_ENV}/${UPLOADS_FILE_NAME}"
+  DESTINATION="$UPLOADS_DIR/$UPLOADS_FILE_NAME"
+  if gsutil stat "$SOURCE_FILE" >/dev/null 2>&1; then
+    echo "Downloading: $SOURCE_FILE"
+    gsutil cp "$SOURCE_FILE" "$DESTINATION"
+  else
+    echo "Error: $SOURCE_FILE does not exist"
+    exit 1
+  fi
+  echo "Extracting: tar -zxvf $DESTINATION -C $UPLOADS_DIR"
   cd $UPLOADS_DIR
-  tar -zxvf $UPLOADS_DIR/$UPLOADS_FILE_NAME -C .
+  tar -zxvf $DESTINATION -C .
   rm $UPLOADS_DIR/$UPLOADS_FILE_NAME
 
   # Check if zip file contained a 'uploads' folder, if so move up one directory

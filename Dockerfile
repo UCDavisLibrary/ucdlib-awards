@@ -24,7 +24,7 @@ COPY deploy/gc-reader-key.json gc-reader-key.json
 RUN gcloud auth activate-service-account --key-file=./gc-reader-key.json \
 && gsutil cp gs://${GC_BUCKET_PLUGINS}/openid-connect-generic/${OPENID_CONNECT_GENERIC_ZIP_FILE} . \
 && gsutil cp gs://${GC_BUCKET_PLUGINS}/smtp-mailer/${SMTP_MAILER_ZIP_FILE} . \
-&& gsutil cp gs://${GC_BUCKET_PLUGINS}/forminator/${FORMINATOR_ZIP_FILE} . \
+&& gsutil cp gs://${GC_BUCKET_PLUGINS}/forminator-pro/${FORMINATOR_ZIP_FILE} . \
 && gsutil cp gs://${GC_BUCKET_PLUGINS}/redirection/${REDIRECTION_ZIP_FILE} .
 RUN rm gc-reader-key.json
 
@@ -103,7 +103,10 @@ RUN unzip ${OPENID_CONNECT_GENERIC_ZIP_FILE} && rm ${OPENID_CONNECT_GENERIC_ZIP_
 RUN mv $OPENID_CONNECT_GENERIC_DIR openid-connect-generic
 
 # Copy our custom plugins
-COPY src/plugins/ucdlib-oidc ucdlib-oidc
+COPY src/plugins/aggie-open aggie-open
+COPY src/plugins/graduate-student-prize graduate-student-prize
+COPY src/plugins/lang-prize lang-prize
+COPY src/plugins/ucdlib-awards ucdlib-awards
 
 # Back to site root so wordpress can do the rest of its thing
 WORKDIR $WP_SRC_ROOT

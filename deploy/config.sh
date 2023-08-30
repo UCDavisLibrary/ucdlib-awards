@@ -11,8 +11,6 @@ else
   BUILD_NUM=-1
 fi
 
-# This will be used to name the container image among other things
-# So make it descriptive and unique
 APP_SLUG=ucdlib-awards
 
 # Main version number we are tagging the app with. Always update
@@ -26,7 +24,7 @@ REPO_TAG=main
 
 # Dependency tags/branches
 THEME_TAG='v3.5.0'
-WP_CORE_VERSION='6.3.0'
+WP_CORE_VERSION='6.3.1'
 MYSQL_TAG=5.7
 ADMINER_TAG=4
 
@@ -39,9 +37,9 @@ FORMINATOR_VERSION='1.25.1'
 
 # TODO: Set up auth
 # Auth Defaults ( can also be overriden in .env file )
-OIDC_PROVIDER_URL='https://sandbox.auth.library.ucdavis.edu/realms/internal'
-# OIDC_PROVIDER_URL='https://auth.library.ucdavis.edu/realms/internal'
-OIDC_CLIENT_ID=$APP_SLUG
+OIDC_PROVIDER_URL=https://sandbox.auth.library.ucdavis.edu/realms/$APP_SLUG
+# OIDC_PROVIDER_URL=https://auth.library.ucdavis.edu/realms/$APP_SLUG
+#OIDC_CLIENT_ID='set this in your .env file'
 #OIDC_CLIENT_SECRET='set this in your .env file'
 OIDC_PROTOCOL_URL=$OIDC_PROVIDER_URL/protocol/openid-connect
 OIDC_ENDPOINT_LOGIN_URL=$OIDC_PROTOCOL_URL/auth
