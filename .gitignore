@@ -4,3 +4,4 @@ node_modules
 gc-writer-key.json
 gc-reader-key.json
 ucdlib-awards-local-dev
+src/plugins/ucdlib-awards/assets/public/js

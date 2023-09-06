@@ -1,8 +1,10 @@
 <?php
 require_once( __DIR__ . '/admin/main.php' );
+require_once( __DIR__ . '/assets.php' );
 require_once( __DIR__ . '/auth.php' );
 require_once( __DIR__ . '/award-loader.php' );
-require_once( __DIR__ . '/users/users.php' );
+require_once( __DIR__ . '/models/cycles/cycles.php' );
+require_once( __DIR__ . '/models/users/users.php' );
 require_once( __DIR__ . '/utils/config.php' );
 require_once( __DIR__ . '/utils/db-tables.php' );
 require_once( __DIR__ . '/utils/icons.php' );
@@ -15,6 +17,7 @@ class UcdlibAwards {
 
   public function __construct(){
     $this->config = new UcdlibAwardsConfig();
+    $this->version = $this->config::$pluginVersion;
     $this->hookSlug = $this->config::$pluginHookSlug;
     $this->pluginSlug = $this->config::$pluginSlug;
     $this->twigNamespace = $this->config::$twigNamespace;
@@ -34,10 +37,14 @@ class UcdlibAwards {
   public function loadModules(){
     $this->loadAward();
 
+    // models
     $this->users = new UcdlibAwardsUsers( $this );
+    $this->cycles = new UcdlibAwardsCycles( $this );
 
+    // modules/controllers
     $this->auth = new UcdlibAwardsAuth( $this );
     $this->admin = new UcdlibAwardsAdmin( $this );
+    $this->assets = new UcdlibAwardsAssets( $this );
   }
 
   /**
@@ -64,5 +71,41 @@ class UcdlibAwards {
   public function add_timber_locations($paths){
     $paths[$this->twigNamespace] = array(WP_PLUGIN_DIR . "/" . $this->pluginSlug . '/views');
     return $paths;
+  }
+
+  /**
+   * @description Get the URL for this plugin
+   */
+  protected $url;
+  public function url(){
+    if ( !empty( $this->url ) ){
+      return $this->url;
+    }
+    $this->url = trailingslashit( plugins_url() ) . $this->pluginSlug;
+    return $this->url;
+  }
+
+  /**
+   * @description Get the URL for this plugin's public assets
+   */
+  protected $assetsUrl;
+  public function assetsUrl(){
+    if ( !empty( $this->assetsUrl ) ){
+      return $this->assetsUrl;
+    }
+    $this->assetsUrl = $this->url() . '/assets/public';
+    return $this->assetsUrl;
+  }
+
+  /**
+   * @description Get the URL for this plugin's js assets
+   */
+  protected $jsUrl;
+  public function jsUrl(){
+    if ( !empty( $this->jsUrl ) ){
+      return $this->jsUrl;
+    }
+    $this->jsUrl = $this->assetsUrl() . '/js';
+    return $this->jsUrl;
   }
 }

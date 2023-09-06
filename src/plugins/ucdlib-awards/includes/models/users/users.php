@@ -10,6 +10,7 @@ class UcdlibAwardsUsers {
   public function __construct( $plugin ){
     $this->plugin = $plugin;
 
+    // associative array of username => UcdlibAwardsUser object
     $this->userCache = [];
   }
 
