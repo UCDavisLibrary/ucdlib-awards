@@ -59,15 +59,21 @@ class UcdlibAwardsAdminMenu {
   public function renderCycles(){
     $context = $this->context();
     $activeCycle = null;
+    $forms = [];
     if ( $this->plugin->users->currentUser()->isAdmin() ){
       $activeCycle = $this->plugin->cycles->activeCycle();
+      $forms = $this->plugin->forms->getForms(null, 1, 100);
+      $forms = $this->plugin->forms->toBasicArray($forms);
     }
     if ( $activeCycle ){
       $activeCycle = $activeCycle->recordArray();
     }
     $context['pageProps'] = [
+      'wpAjax' => $context['wpAjax'],
       'requestedCycle' => $context['pageContainerProps']['requestedCycle'],
-      'activeCycle' => $activeCycle
+      'activeCycle' => $activeCycle,
+      'applicationForms' => $forms,
+      'formsLink' => admin_url( 'admin.php?page=' . $this->plugin->config::$forminatorSlugs['forms'] )
     ];
     UcdlibAwardsTimber::renderAdminPage( 'cycles', $context );
   }
@@ -84,6 +90,10 @@ class UcdlibAwardsAdminMenu {
 
     $this->context = [
       'currentUser' => $currentUser,
+      'wpAjax' => [
+        'url' => admin_url( 'admin-ajax.php' ),
+        'nonce' => wp_create_nonce( $this->plugin->config::$pluginHookSlug )
+      ],
       'pageContainerProps' => [
         'pageTitle' => $this->award->getAdminMenuPageTitle(),
         'siteLogo' => dirname( get_template_directory_uri() ) . "/assets/img/site-icon.png",

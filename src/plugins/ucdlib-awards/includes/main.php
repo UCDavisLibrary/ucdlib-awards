@@ -5,6 +5,7 @@ require_once( __DIR__ . '/auth.php' );
 require_once( __DIR__ . '/award-loader.php' );
 require_once( __DIR__ . '/models/cycles/cycles.php' );
 require_once( __DIR__ . '/models/users/users.php' );
+require_once( __DIR__ . '/models/forms.php' );
 require_once( __DIR__ . '/utils/config.php' );
 require_once( __DIR__ . '/utils/db-tables.php' );
 require_once( __DIR__ . '/utils/icons.php' );
@@ -40,6 +41,7 @@ class UcdlibAwards {
     // models
     $this->users = new UcdlibAwardsUsers( $this );
     $this->cycles = new UcdlibAwardsCycles( $this );
+    $this->forms = new UcdlibAwardsForms( $this );
 
     // modules/controllers
     $this->auth = new UcdlibAwardsAuth( $this );
@@ -107,5 +109,14 @@ class UcdlibAwards {
     }
     $this->jsUrl = $this->assetsUrl() . '/js';
     return $this->jsUrl;
+  }
+
+  protected $cssUrl;
+  public function cssUrl(){
+    if ( !empty( $this->cssUrl ) ){
+      return $this->cssUrl;
+    }
+    $this->cssUrl = $this->assetsUrl() . '/css';
+    return $this->cssUrl;
   }
 }

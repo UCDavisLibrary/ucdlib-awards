@@ -11,6 +11,13 @@ class UcdlibAwardsAssets {
     }
 
     public function enqueueAdminScripts(){
+
+      // Only load assets on our admin pages
+      $page = isset($_GET['page']) ? $_GET['page'] : '';
+      $adminSlugs = array_values($this->plugin->award->getAdminMenuSlugs());
+      if ( !in_array( $page, $adminSlugs ) ) return;
+
+      // main JS bundle
       $jsSlug = $this->plugin->config::$adminJsSlug;
       $jsUrl = $this->plugin->jsUrl() . ($this->plugin->config->appEnv() === 'prod' ? '/dist/' : '/dev/') . $jsSlug . '.js';
       wp_enqueue_script(
@@ -18,6 +25,16 @@ class UcdlibAwardsAssets {
         $jsUrl,
         [],
         $this->plugin->config->bundleVersion(),
-        true );
+        true
+      );
+
+      // load proximanova/font awesome fonts from theme assets folder
+      $fontsUrl = $this->plugin->cssUrl() . '/fonts.css';
+      wp_enqueue_style(
+        'ucdlib-awards-fonts',
+        $fontsUrl,
+        [],
+        $this->plugin->config->bundleVersion()
+      );
     }
 }

@@ -45,8 +45,28 @@ const customStyles = css`
 .pointer.pressed {
   cursor: default;
 }
+.focal-link.pressed {
+  color: rgb(0, 17, 36);
+  text-decoration: none;
+}
 .page-subtitle {
   margin: .5rem 0px 1rem 1rem;
+}
+input[type="text"] {
+  box-sizing: border-box;
+}
+input[type="date"] {
+  box-sizing: border-box;
+}
+select {
+  box-sizing: border-box;
+}
+.error > label {
+  color: #c10230;
+}
+.error > input {
+  border-color: #c10230;
+  background-color: #c102300d;
 }
 `;
 

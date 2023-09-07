@@ -13,6 +13,10 @@ class UcdlibAwardsConfig {
     'cycle' => 'cycle'
   ];
 
+  public static $forminatorSlugs = [
+    'forms' => 'forminator-cform'
+  ];
+
   /**
    * @description Get App env (dev or prod) - determines what assets to load
    */

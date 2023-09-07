@@ -170,6 +170,7 @@ class UcdlibAwardsDbTables {
       `support_end` datetime NULL,
       `has_support` TINYINT(1) NOT NULL DEFAULT 0,
       `is_active` TINYINT(1) NOT NULL DEFAULT 0,
+      `application_form_id` bigint(20) unsigned NOT NULL DEFAULT 0,
       `cycle_meta` LONGTEXT NULL,
       `date_created` datetime NOT NULL default '0000-00-00 00:00:00',
       `date_updated` datetime NOT NULL default '0000-00-00 00:00:00',

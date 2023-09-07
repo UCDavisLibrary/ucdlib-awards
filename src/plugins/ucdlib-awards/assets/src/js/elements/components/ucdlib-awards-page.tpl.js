@@ -1,7 +1,8 @@
 import { html } from 'lit';
 
-import headingStyles from "@ucd-lib/theme-sass/1_base_html/_headings.css.js";
-import headingClasses from "@ucd-lib/theme-sass/2_base_class/_headings.css.js";
+import normalize from "@ucd-lib/theme-sass/normalize.css.js";
+import baseHtml from "@ucd-lib/theme-sass/1_base_html/_index.css.js";
+import baseClass from "@ucd-lib/theme-sass/2_base_class/_index.css.js";
 import oBox from "@ucd-lib/theme-sass/3_objects/_index.css.js";
 import brandBox from "@ucd-lib/theme-sass/4_component/_brand-textbox.css.js";
 import panel from "@ucd-lib/theme-sass/4_component/_panel.css.js";
@@ -15,8 +16,9 @@ import customStyles from "../../styles/index.js";
 export function styles() {
 
   return [
-    headingStyles,
-    headingClasses,
+    normalize,
+    baseHtml,
+    baseClass,
     oBox,
     panel,
     brandBox,
