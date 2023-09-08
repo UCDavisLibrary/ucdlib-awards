@@ -1,5 +1,6 @@
 import { LitElement } from 'lit';
 import * as templates from "./ucdlib-awards-admin-cycles.tpl.js";
+import wpAjaxController from "../../controllers/wp-ajax.js";
 
 import Mixin from "@ucd-lib/theme-elements/utils/mixins/mixin.js";
 import { MainDomElement } from "@ucd-lib/theme-elements/utils/mixins/main-dom-element.js";
@@ -14,7 +15,7 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
       requestedCycle: {state: true},
       hasRequestedCycle: {state: true},
       activeCycle: {state: true},
-      applicationForms: {state: true},
+      siteForms: {state: true},
       formsLink: {type: String},
       page: {state: true},
       editFormData: {state: true},
@@ -31,12 +32,13 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
     this.activeCycle = {};
     this.editFormData = {};
     this.editFormErrors = {};
-    this.applicationForms = [];
+    this.siteForms = [];
     this.formsLink = '';
     this.page = 'view';
     this.editFormErrorMessages = [];
 
     this.mutationObserver = new MutationObserverController(this);
+    this.wpAjax = new wpAjaxController(this);
   }
 
   willUpdate(props){
@@ -48,12 +50,40 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
   _onEditFormInput(prop, value){
     if ( !this.editFormData ) this.editFormData = {};
     this.editFormData[prop] = value;
+    this.editFormErrors[prop] = false;
     this.requestUpdate();
   }
 
-  _onEditFormSubmit(e){
+  async _onEditFormSubmit(e){
     e.preventDefault();
+    this.editFormErrors = {};
+    this.editFormErrorMessages = [];
     console.log('submit', this.editFormData);
+    const subAction = this.page;
+    const response = await this.wpAjax.request(subAction, this.editFormData);
+    if ( response.success ) {
+      // TODO: emit event to parent so that it can update the cycles list
+
+      // this.activeCycle = response.data.activeCycle;
+
+      // set success message
+
+      if ( subAction === 'edit' ){
+        //this.requestedCycle = response.data.cycle;
+        //this.editFormData = response.data.cycle;
+        //this.page = 'view';
+      } else if ( subAction === 'add' ) {
+        //this.editFormData = response.data;
+        //this.page = 'view';
+      } else {
+        console.error('Unknown subAction', subAction);
+      }
+    } else {
+      window.scrollTo({top: 0, behavior: 'smooth'});
+      this.editFormErrors = response.errorFields;
+      this.editFormErrorMessages = response.messages;
+    }
+    console.log('response', response);
   }
 
   _onChildListMutation(){
@@ -79,7 +109,7 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
       this.editFormData.is_active = true;
     }
     if ( data.formsLink ) this.formsLink = data.formsLink;
-    if ( data.applicationForms ) this.applicationForms = data.applicationForms;
+    if ( data.siteForms ) this.siteForms = data.siteForms;
     if ( data.requestedCycle ) {
       this.requestedCycle = data.requestedCycle;
       this.page = 'view';

@@ -36,10 +36,12 @@ class UcdlibAwardsUser {
       return $this->isAdmin;
     }
     $this->isAdmin = false;
-    $siteAdmin = in_array( 'administrator', $this->wpUser()->roles );
-    if ( $siteAdmin ){
-      $this->isAdmin = true;
-      return $this->isAdmin;
+    if ( $this->wpUser() ){
+      $siteAdmin = in_array( 'administrator', $this->wpUser()->roles );
+      if ( $siteAdmin ){
+        $this->isAdmin = true;
+        return $this->isAdmin;
+      }
     }
     if ( $this->record() && $this->record()->is_admin ){
       $this->isAdmin = true;

@@ -9,6 +9,11 @@ class UcdlibAwardsConfig {
   public static $twigNamespace = 'ucdlib-awards';
   public static $adminJsSlug = 'ucdlib-awards';
 
+  public static $ajaxActions = [
+    'adminDashboard' => 'ucdlib_awards_admin_dashboard',
+    'adminCycles' => 'ucdlib_awards_admin_cycles',
+  ];
+
   public static $urlQueryParams = [
     'cycle' => 'cycle'
   ];

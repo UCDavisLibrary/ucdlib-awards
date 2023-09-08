@@ -68,6 +68,10 @@ select {
   border-color: #c10230;
   background-color: #c102300d;
 }
+.error > select {
+  border-color: #c10230;
+  background-color: #c102300d;
+}
 `;
 
 export default customStyles;

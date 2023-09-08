@@ -53,6 +53,30 @@ class UcdlibAwardsDbTables {
 		return isset( self::$tables[ $name ] ) ? self::$tables[ $name ] : false;
 	}
 
+  public static function get_table_column_labels( $table ) {
+    $labels = [
+      self::CYCLES => [
+        'cycle_id' => 'Cycle ID',
+        'title' => 'Cycle Title',
+        'application_start' => 'Application Start Date',
+        'application_end' => 'Application End Date',
+        'evaluation_start' => 'Evaluation Start Date',
+        'evaluation_end' => 'Evaluation End Date',
+        'support_start' => 'Support Start Date',
+        'support_end' => 'Support End Date',
+        'has_support' => 'Support Letters Enabled',
+        'is_active' => 'Cycle Is Active',
+        'application_form_id' => 'Application Form',
+        'support_form_id' => 'Support Letters Form',
+        'cycle_meta' => 'Cycle Meta',
+        'date_created' => 'Date Created',
+        'date_updated' => 'Date Updated'
+      ]
+      ];
+
+    return isset( $labels[ $table ] ) ? $labels[ $table ] : false;
+  }
+
   /**
    * @description Install database tables - Should be run on plugin activation
    */
@@ -171,6 +195,7 @@ class UcdlibAwardsDbTables {
       `has_support` TINYINT(1) NOT NULL DEFAULT 0,
       `is_active` TINYINT(1) NOT NULL DEFAULT 0,
       `application_form_id` bigint(20) unsigned NOT NULL DEFAULT 0,
+      `support_form_id` bigint(20) unsigned NOT NULL DEFAULT 0,
       `cycle_meta` LONGTEXT NULL,
       `date_created` datetime NOT NULL default '0000-00-00 00:00:00',
       `date_updated` datetime NOT NULL default '0000-00-00 00:00:00',

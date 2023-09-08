@@ -32,7 +32,10 @@ export function renderEditForm() {
   const isNew = this.page === 'add';
 
   let disableAppFormSelect = false;
-  if ( !this.applicationForms.length ) disableAppFormSelect = true;
+  if ( !this.siteForms.length ) disableAppFormSelect = true;
+
+  let disableSupportFormSelect = false;
+  if ( !this.siteForms.length ) disableSupportFormSelect = true;
 
   let showActiveCycleNotification = false;
   if (
@@ -44,12 +47,18 @@ export function renderEditForm() {
 
   return html`
     <form @submit=${this._onEditFormSubmit}>
+      <div
+        ?hidden=${!this.editFormErrorMessages.length}
+        class="brand-textbox category-brand__background category-brand--double-decker u-space-mb">
+        <ul class='u-space-mt--flush list--flush'>
+          ${this.editFormErrorMessages.map(msg => html`<li>${msg}</li>`)}
+        </ul>
+      </div>
       <div>
         <div class="field-container ${this.editFormErrors?.title ? 'error' : ''}">
           <label>Cycle Title <abbr title="Required">*</abbr></label>
           <input
             type="text"
-            required
             placeholder="e.g. Fall 2023"
             maxlength="200"
             @input=${e => this._onEditFormInput('title', e.target.value)}
@@ -81,7 +90,6 @@ export function renderEditForm() {
             <label>Start Date <abbr title="Required">*</abbr></label>
             <input
               type="date"
-              required
               @input=${e => this._onEditFormInput('application_start', e.target.value)}
               .value=${this.editFormData?.application_start || ''}>
           </div>
@@ -89,7 +97,6 @@ export function renderEditForm() {
             <label>End Date <abbr title="Required">*</abbr></label>
             <input
               type="date"
-              required
               @input=${e => this._onEditFormInput('application_end', e.target.value)}
               .value=${this.editFormData?.application_end || ''}>
           </div>
@@ -98,13 +105,14 @@ export function renderEditForm() {
           <label>Application Form</label>
           <select
             ?disabled=${disableAppFormSelect}
+            @input=${e => this._onEditFormInput('application_form_id', e.target.value)}
             .value=${this.editFormData?.application_form_id || ''}>
             <option value="" >Select a form</option>
-            ${this.applicationForms.map(form => html`
+            ${this.siteForms.map(form => html`
               <option value=${form.id} ?selected=${this.editFormData?.application_form_id == form.id}>${form.title}</option>
             `)}
           </select>
-          <div ?hidden=${this.applicationForms.length} class="basic-notification">
+          <div ?hidden=${this.siteForms.length} class="basic-notification">
             <ucdlib-icon class='double-decker u-space-mr' icon="ucd-public:fa-circle-exclamation"></ucdlib-icon>
             <div class='notification-text'>
               No forms have been created yet! <a href=${this.formsLink}>Make one with the form builder.</a>
@@ -119,7 +127,6 @@ export function renderEditForm() {
             <label>Start Date <abbr title="Required">*</abbr></label>
             <input
               type="date"
-              required
               @input=${e => this._onEditFormInput('evaluation_start', e.target.value)}
               .value=${this.editFormData?.evaluation_start || ''}>
           </div>
@@ -127,7 +134,6 @@ export function renderEditForm() {
             <label>End Date <abbr title="Required">*</abbr></label>
             <input
               type="date"
-              required
               @input=${e => this._onEditFormInput('evaluation_end', e.target.value)}
               .value=${this.editFormData?.evaluation_end || ''}>
           </div>
@@ -147,24 +153,42 @@ export function renderEditForm() {
             </li>
           </ul>
         </div>
-        <div class="l-2col" ?hidden=${!this.editFormData?.has_support}>
-          <div class="l-first field-container ${this.editFormErrors.support_start ? 'error' : ''}">
-            <label>Start Date <abbr title="Required">*</abbr></label>
-            <input
-              type="date"
-              required
-              @input=${e => this._onEditFormInput('support_start', e.target.value)}
-              .value=${this.editFormData?.support_start || ''}>
+        <div ?hidden=${!this.editFormData?.has_support}>
+          <div class="l-2col">
+            <div class="l-first field-container ${this.editFormErrors.support_start ? 'error' : ''}">
+              <label>Start Date <abbr title="Required">*</abbr></label>
+              <input
+                type="date"
+                @input=${e => this._onEditFormInput('support_start', e.target.value)}
+                .value=${this.editFormData?.support_start || ''}>
+            </div>
+            <div class="l-second field-container ${this.editFormErrors.support_end ? 'error' : ''}">
+              <label>End Date <abbr title="Required">*</abbr></label>
+              <input
+                type="date"
+                @input=${e => this._onEditFormInput('support_end', e.target.value)}
+                .value=${this.editFormData?.support_end || ''}>
+            </div>
           </div>
-          <div class="l-second field-container ${this.editFormErrors.support_end ? 'error' : ''}">
-            <label>End Date <abbr title="Required">*</abbr></label>
-            <input
-              type="date"
-              required
-              @input=${e => this._onEditFormInput('support_end', e.target.value)}
-              .value=${this.editFormData?.support_end || ''}>
+          <div class="field-container ${this.editFormErrors.support_form_id ? 'error' : ''}">
+            <label>Support Form</label>
+            <select
+              ?disabled=${disableSupportFormSelect}
+              .value=${this.editFormData?.support_form_id || ''}>
+              <option value="" >Select a form</option>
+              ${this.siteForms.map(form => html`
+                <option value=${form.id} ?selected=${this.editFormData?.support_form_id == form.id}>${form.title}</option>
+              `)}
+            </select>
+            <div ?hidden=${this.siteForms.length} class="basic-notification">
+              <ucdlib-icon class='double-decker u-space-mr' icon="ucd-public:fa-circle-exclamation"></ucdlib-icon>
+              <div class='notification-text'>
+                No forms have been created yet! <a href=${this.formsLink}>Make one with the form builder.</a>
+              </div>
+            </div>
           </div>
         </div>
+
       </fieldset>
       <div>
         <button type="submit" class="btn--primary">${isNew ? 'Create' : 'Edit'}</button>

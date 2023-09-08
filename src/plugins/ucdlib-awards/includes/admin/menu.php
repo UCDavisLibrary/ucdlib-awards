@@ -10,6 +10,7 @@ class UcdlibAwardsAdminMenu {
     $this->plugin = $admin->plugin;
     $this->slugs = $this->plugin->award->getAdminMenuSlugs();
     $this->award = $this->plugin->award;
+    $this->ajaxUtils = new UcdlibAwardsAjaxUtils();
 
     add_action( 'admin_menu', [$this, 'add_menu_pages'] );
   }
@@ -69,10 +70,10 @@ class UcdlibAwardsAdminMenu {
       $activeCycle = $activeCycle->recordArray();
     }
     $context['pageProps'] = [
-      'wpAjax' => $context['wpAjax'],
+      'wpAjax' => $this->ajaxUtils->getAjaxElementProperty('adminCycles'),
       'requestedCycle' => $context['pageContainerProps']['requestedCycle'],
       'activeCycle' => $activeCycle,
-      'applicationForms' => $forms,
+      'siteForms' => $forms,
       'formsLink' => admin_url( 'admin.php?page=' . $this->plugin->config::$forminatorSlugs['forms'] )
     ];
     UcdlibAwardsTimber::renderAdminPage( 'cycles', $context );
@@ -90,10 +91,6 @@ class UcdlibAwardsAdminMenu {
 
     $this->context = [
       'currentUser' => $currentUser,
-      'wpAjax' => [
-        'url' => admin_url( 'admin-ajax.php' ),
-        'nonce' => wp_create_nonce( $this->plugin->config::$pluginHookSlug )
-      ],
       'pageContainerProps' => [
         'pageTitle' => $this->award->getAdminMenuPageTitle(),
         'siteLogo' => dirname( get_template_directory_uri() ) . "/assets/img/site-icon.png",

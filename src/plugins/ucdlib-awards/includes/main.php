@@ -6,6 +6,7 @@ require_once( __DIR__ . '/award-loader.php' );
 require_once( __DIR__ . '/models/cycles/cycles.php' );
 require_once( __DIR__ . '/models/users/users.php' );
 require_once( __DIR__ . '/models/forms.php' );
+require_once( __DIR__ . '/utils/ajax.php' );
 require_once( __DIR__ . '/utils/config.php' );
 require_once( __DIR__ . '/utils/db-tables.php' );
 require_once( __DIR__ . '/utils/icons.php' );
