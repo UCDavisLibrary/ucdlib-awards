@@ -21,6 +21,27 @@ const customStyles = css`
   height: 4rem;
   width: auto;
 }
+.page-title-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.page-cycle-select {
+  padding: 1rem;
+  background-color: #fff9e6;
+  width: 100%;
+  margin-bottom: 1rem;
+  margin-top: .5rem;
+}
+@media (min-width: 768px) {
+  .page-cycle-select {
+    width: auto;
+    margin-bottom: 0;
+    margin-top: 0;
+  }
+}
+
 [hidden] {
   display: none !important;
 }
@@ -71,6 +92,12 @@ select {
 .error > select {
   border-color: #c10230;
   background-color: #c102300d;
+}
+.button-row {
+  display: flex;
+}
+.button-row > button {
+  margin-right: 1rem;
 }
 `;
 

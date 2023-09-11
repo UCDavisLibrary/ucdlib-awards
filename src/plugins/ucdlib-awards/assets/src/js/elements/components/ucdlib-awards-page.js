@@ -1,5 +1,6 @@
 import { LitElement } from 'lit';
 import {render, styles} from "./ucdlib-awards-page.tpl.js";
+import wpAjaxController from "../../controllers/wp-ajax.js";
 
 import { MutationObserverController } from '@ucd-lib/theme-elements/utils/controllers/index.js';
 
@@ -19,7 +20,9 @@ export default class UcdlibAwardsPage extends LitElement {
       notAuthorized: {state: true},
       propsParsed: {state: true},
       hideCycleNotification: {state: true},
-      isCyclesAdminPage: {state: true}
+      isCyclesAdminPage: {state: true},
+      selectedCycle: {state: true},
+      activeCycle: {state: true}
     }
   }
 
@@ -37,8 +40,11 @@ export default class UcdlibAwardsPage extends LitElement {
     this.isAdminPage = false;
     this.cyclesLink = '';
     this.isCyclesAdminPage = false;
+    this.selectedCycle = {};
+    this.activeCycle = {};
 
     this.mutationObserver = new MutationObserverController(this);
+    this.wpAjax = new wpAjaxController(this);
     this.notAuthorized = false;
   }
 
@@ -46,7 +52,7 @@ export default class UcdlibAwardsPage extends LitElement {
     this._onChildListMutation();
   }
 
-  willUpdate(){
+  willUpdate(props){
 
     if ( !this.isAdminPage ){
       this.hideCycleNotification = true;
@@ -57,6 +63,34 @@ export default class UcdlibAwardsPage extends LitElement {
     } else {
       this.hideCycleNotification = false;
     }
+
+    if ( props.has('cycles') ){
+      this.hasCycles = this.cycles.length > 0;
+
+      let selectedCycleSet = false;
+      this.cycles.forEach(cycle => {
+        if ( cycle.is_active ) this.activeCycle = cycle;
+        const cycleId = this.getUrlParam('cycle');
+        if ( cycleId && cycleId === cycle.cycle_id ) {
+          this.selectedCycle = cycle;
+          selectedCycleSet = true;
+        }
+      });
+      if ( !selectedCycleSet ) this.selectedCycle = {...this.activeCycle};
+    }
+  }
+
+  async refreshCyclesArray(){
+    const response = await this.wpAjax.request('getCycles');
+    if ( !response.success ) {
+      console.error('Error fetching cycles', response);
+      return;
+    }
+    this.cycles = response.data.cycles;
+  }
+
+  _onCycleUpdate(){
+    this.refreshCyclesArray();
   }
 
   /**
@@ -102,6 +136,11 @@ export default class UcdlibAwardsPage extends LitElement {
       }
     }
 
+  }
+
+  getUrlParam(param){
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(param);
   }
 
   _parsePropsScript(script){

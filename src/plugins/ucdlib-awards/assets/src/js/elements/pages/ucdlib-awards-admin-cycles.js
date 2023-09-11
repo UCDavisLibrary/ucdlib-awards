@@ -45,6 +45,9 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
     if ( props.has('requestedCycle') ) {
       this.hasRequestedCycle = Object.keys(this.requestedCycle).length > 0;
     }
+    if ( props.has('activeCycle') ) {
+      this.hasActiveCycle = Object.keys(this.activeCycle).length > 0;
+    }
   }
 
   _onEditFormInput(prop, value){
@@ -62,19 +65,25 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
     const subAction = this.page;
     const response = await this.wpAjax.request(subAction, this.editFormData);
     if ( response.success ) {
-      // TODO: emit event to parent so that it can update the cycles list
+      // emit event to parent so that it can update the cycles list
+      this.dispatchEvent(new CustomEvent('cycle-update', {
+        bubbles: true,
+        composed: true
+      }));
 
-      // this.activeCycle = response.data.activeCycle;
-
-      // set success message
+      if ( this.editFormData.is_active ) {
+        this.activeCycle = response.data.cycle;
+      }
 
       if ( subAction === 'edit' ){
-        //this.requestedCycle = response.data.cycle;
-        //this.editFormData = response.data.cycle;
-        //this.page = 'view';
+        this.requestedCycle = response.data.cycle;
+        this.editFormData = {};
+        this.page = 'view';
+        // emit toast event
       } else if ( subAction === 'add' ) {
-        //this.editFormData = response.data;
-        //this.page = 'view';
+        this.editFormData = {};
+        this.page = 'view';
+        // emit toast event
       } else {
         console.error('Unknown subAction', subAction);
       }
@@ -93,6 +102,42 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
         return;
       }
     });
+  }
+
+  _onEditFormCancel(){
+    this.editFormData = {};
+    this.page = 'view';
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }
+
+  _onEditFormClick(){
+    if ( this.page === 'edit' ) return;
+    this._setFormDataFromCycle();
+    this.page = 'edit';
+  }
+
+  _onAddFormClick(){
+    if ( this.page === 'add' ) return;
+    this.editFormData = {};
+    this.page = 'add';
+  }
+
+  _setFormDataFromCycle(cycle){
+    if ( !cycle ) cycle = {...this.requestedCycle};
+    const dates = [
+      'application_start',
+      'application_end',
+      'evaluation_start',
+      'evaluation_end',
+      'support_start',
+      'support_end'
+    ]
+    dates.forEach(date => {
+      if ( cycle[date] ) {
+        cycle[date] = cycle[date].split(' ')[0];
+      }
+    });
+    this.editFormData = {...cycle};
   }
 
   _parsePropsScript(script){

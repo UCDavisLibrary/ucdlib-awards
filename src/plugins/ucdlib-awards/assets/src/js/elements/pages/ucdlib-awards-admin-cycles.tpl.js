@@ -5,13 +5,19 @@ return html`
   <h3 class='page-subtitle'>Application Cycles</h3>
   <div class="l-2col l-2col--67-33">
     <div class="l-second panel o-box">
-      <a ?hidden=${!this.hasRequestedCycle} class="focal-link category-brand--putah-creek pointer u-space-mb ${this.page == 'edit' ? 'pressed' : ''}">
+      <a
+        @click=${this._onEditFormClick}
+        ?hidden=${!this.hasRequestedCycle}
+        class="focal-link category-brand--putah-creek pointer u-space-mb ${this.page == 'edit' ? 'pressed' : ''}">
         <div class="focal-link__figure focal-link__icon">
           <ucdlib-icon icon="ucd-public:fa-pen"></ucdlib-icon>
         </div>
         <div class="focal-link__body"><strong>Edit Cycle</strong></div>
       </a>
-      <a class="focal-link category-brand--sage pointer u-space-mb ${this.page == 'add' ? 'pressed' : ''}">
+      <a
+        class="focal-link category-brand--sage pointer u-space-mb ${this.page == 'add' ? 'pressed' : ''}"
+        @click=${this._onAddFormClick}
+        >
         <div class="focal-link__figure focal-link__icon">
           <ucdlib-icon icon="ucd-public:fa-plus"></ucdlib-icon>
         </div>
@@ -19,7 +25,7 @@ return html`
       </a>
     </div>
     <div class="l-first panel o-box">
-      <div ?hidden=${this.page != 'edit'}>Edit</div>
+      <div ?hidden=${this.page != 'edit'}>${this.renderEditForm()}</div>
       <div ?hidden=${this.page != 'view'}>View</div>
       <div ?hidden=${this.page != 'add'}>${this.renderEditForm()}</div>
     </div>
@@ -174,6 +180,7 @@ export function renderEditForm() {
             <label>Support Form</label>
             <select
               ?disabled=${disableSupportFormSelect}
+              @input=${e => this._onEditFormInput('support_form_id', e.target.value)}
               .value=${this.editFormData?.support_form_id || ''}>
               <option value="" >Select a form</option>
               ${this.siteForms.map(form => html`
@@ -190,8 +197,12 @@ export function renderEditForm() {
         </div>
 
       </fieldset>
-      <div>
+      <div class="button-row">
         <button type="submit" class="btn--primary">${isNew ? 'Create' : 'Edit'}</button>
+        <button
+          ?hidden=${!this.hasActiveCycle}
+          type="button" @click=${this._onEditFormCancel}
+          class="btn">Cancel</button>
       </div>
     </form>
   `;

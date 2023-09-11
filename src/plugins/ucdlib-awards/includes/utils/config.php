@@ -10,6 +10,7 @@ class UcdlibAwardsConfig {
   public static $adminJsSlug = 'ucdlib-awards';
 
   public static $ajaxActions = [
+    'adminGeneral' => 'ucdlib_awards_admin_general',
     'adminDashboard' => 'ucdlib_awards_admin_dashboard',
     'adminCycles' => 'ucdlib_awards_admin_cycles',
   ];

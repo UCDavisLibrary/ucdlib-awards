@@ -98,7 +98,8 @@ class UcdlibAwardsAdminMenu {
         'cycles' => [],
         'cyclesLink' => admin_url( 'admin.php?page=' . $this->slugs['cycles'] ),
         'cycleQueryParam' => $cycleQueryParam,
-        'requestedCycle' => null
+        'requestedCycle' => null,
+        'wpAjax' => $this->ajaxUtils->getAjaxElementProperty('adminGeneral')
       ],
       'award' => $this->award
     ];

@@ -72,9 +72,23 @@ class UcdlibAwardsCycles {
     return $out;
   }
 
+  public function create( $data ){
+    global $wpdb;
+    $cyclesTable = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::CYCLES );
+    $data['date_created'] = date('Y-m-d H:i:s');
+    $data['date_updated'] = $data['date_created'];
+    $wpdb->insert( $cyclesTable, $data );
+    $cycleId = $wpdb->insert_id;
+    $this->cycleCache = [];
+    return $cycleId;
+  }
+
+  /**
+   * @description Validate form submission data for a cycle
+   */
   public function validateCycle($cycle){
     $out = [
-      false,
+      false, // isValid
       [
         'errorMessages' => [],
         'errorFields' => []
@@ -147,23 +161,64 @@ class UcdlibAwardsCycles {
     }
 
     // Form validation
-    $formIds = [
+    $formColumns = [
       'application_form_id',
       'support_form_id'
     ];
-    foreach( $formIds as $formId ){
-      if ( empty($cycle[$formId]) ) continue;
-      $form = $this->plugin->forms->getForms( [$cycle[$formId]] );
+
+    // make sure forms exist
+    foreach( $formColumns as $formColumn ){
+      if ( empty($cycle[$formColumn]) ) continue;
+      $form = $this->plugin->forms->getForms( [$cycle[$formColumn]] );
       if ( empty($form) ){
-        $label = $fieldLabels[$formId];
+        $label = $fieldLabels[$formColumn];
         $out[1]['errorMessages'][] = "The '$label' field is not a valid form.";
-        $out[1]['errorFields'][$formId] = true;
+        $out[1]['errorFields'][$formColumn] = true;
+      }
+
+      // make sure forms don't have the same id
+      foreach ( $formColumns as $comparisonFormColumn ) {
+        if ( $formColumn == $comparisonFormColumn ) continue;
+        if ( empty($cycle[$comparisonFormColumn]) ) continue;
+        if ( $cycle[$formColumn] == $cycle[$comparisonFormColumn] ){
+          $label = $fieldLabels[$formColumn];
+          $labelComparison = $fieldLabels[$comparisonFormColumn];
+          $out[1]['errorMessages'][] = "The '$label' field cannot be the same as the '$labelComparison' field.";
+          $out[1]['errorFields'][$formColumn] = true;
+          $out[1]['errorFields'][$comparisonFormColumn] = true;
+        }
       }
     }
 
-    // make sure forms don't have the same id
-
     // make sure another cycle doesnt use the same forms
+    $cycles = $this->getAll();
+    foreach( $cycles as $comparisonCycle ){
+      if ( isset($cycle['cycle_id']) && $cycle['cycle_id'] == $comparisonCycle->cycleId ) continue;
+      foreach( $formColumns as $formColumn ){
+        if ( empty($cycle[$formColumn]) ) continue;
+        if ( $cycle[$formColumn] == $comparisonCycle->$formColumn ){
+          $label = $fieldLabels[$formColumn];
+          $out[1]['errorMessages'][] = "The '$label' field is already in use by another cycle.";
+          $out[1]['errorFields'][$formColumn] = true;
+        }
+      }
+    }
+
+    // ensure at least one cycle is active
+    if ( empty($cycle['is_active']) ){
+      $hasActiveCycle = false;
+      foreach( $cycles as $comparisonCycle ){
+        if ( isset($cycle['cycle_id']) && $cycle['cycle_id'] == $comparisonCycle->cycleId ) continue;
+        if ( $comparisonCycle->isActive() ){
+          $hasActiveCycle = true;
+          break;
+        }
+      }
+      if ( !$hasActiveCycle ){
+        $out[1]['errorMessages'][] = "At least one cycle must be active.";
+        $out[1]['errorFields']['is_active'] = true;
+      }
+    }
 
 
     $out[0] = count($out[1]['errorMessages']) == 0;

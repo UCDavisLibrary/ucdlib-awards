@@ -32,9 +32,22 @@ export function styles() {
 
 export function render() {
 return html`
-  <div id='page-title' ?hidden=${!this.pageTitle}>
-    ${this.siteLogo ? html`<img src=${this.siteLogo}>` : ''}
-    <h2 class='heading--weighted-underline'><span class='heading--weighted--weighted'>${this.pageTitle}</span></h2>
+  <div class='page-title-container ${this.hasCycles ? 'u-space-mb' : ''}'>
+    <div id='page-title' ?hidden=${!this.pageTitle}>
+      ${this.siteLogo ? html`<img src=${this.siteLogo}>` : ''}
+      <h2 class='heading--weighted-underline'><span class='heading--weighted--weighted'>${this.pageTitle}</span></h2>
+    </div>
+    <div ?hidden=${!this.hasCycles} class='page-cycle-select'>
+      <label>Application Cycle</label>
+      <select
+        @change=${this._onCycleSelect}>
+        ${this.cycles.map(cycle => html`
+          <option
+            ?selected=${cycle.cycle_id == this.selectedCycle.cycle_id}
+            value=${cycle.cycle_id}>${cycle.title}${cycle.cycle_id == this.activeCycle.cycle_id ? ' - ACTIVE' : ''}</option>
+        `)}
+      </select>
+    </div>
   </div>
   <div ?hidden=${this.hideCycleNotification} class="basic-notification">
     <ucdlib-icon class='double-decker u-space-mr' icon="ucd-public:fa-circle-exclamation"></ucdlib-icon>
@@ -43,5 +56,9 @@ return html`
       <span ?hidden=${!this.cyclesLink}><a href=${this.cyclesLink}>Create one.</a></span>
     </div>
   </div>
-  <div id='content'></div>
+  <div id='content' @cycle-update=${this._onCycleUpdate}></div>
+  <div id='toast-container'>
+    <div id='toast'>toast</div>
+  </div>
+
 `;}
