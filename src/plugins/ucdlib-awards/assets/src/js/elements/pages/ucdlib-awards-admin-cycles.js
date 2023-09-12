@@ -28,6 +28,8 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
     super();
     this.render = templates.render.bind(this);
     this.renderEditForm = templates.renderEditForm.bind(this);
+    this.renderOverview = templates.renderOverview.bind(this);
+    this.renderDeleteForm = templates.renderDeleteForm.bind(this);
     this.requestedCycle = {};
     this.activeCycle = {};
     this.editFormData = {};
@@ -61,9 +63,15 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
     e.preventDefault();
     this.editFormErrors = {};
     this.editFormErrorMessages = [];
-    console.log('submit', this.editFormData);
     const subAction = this.page;
-    const response = await this.wpAjax.request(subAction, this.editFormData);
+
+    const payload = {};
+    Object.keys(this.editFormData).forEach(key => {
+      if ( this.editFormData[key] !== null || this.editFormData[key] !== undefined ) {
+        payload[key] = this.editFormData[key];
+      }
+    });
+    const response = await this.wpAjax.request(subAction, payload);
     if ( response.success ) {
       // emit event to parent so that it can update the cycles list
       this.dispatchEvent(new CustomEvent('cycle-update', {
@@ -79,11 +87,25 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
         this.requestedCycle = response.data.cycle;
         this.editFormData = {};
         this.page = 'view';
-        // emit toast event
+        this.dispatchEvent(new CustomEvent('toast-request', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            message: 'Cycle updated',
+            type: 'success'
+          }
+        }));
       } else if ( subAction === 'add' ) {
         this.editFormData = {};
         this.page = 'view';
-        // emit toast event
+        this.dispatchEvent(new CustomEvent('toast-request', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            message: 'Cycle created',
+            type: 'success'
+          }
+        }));
       } else {
         console.error('Unknown subAction', subAction);
       }
@@ -92,7 +114,6 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
       this.editFormErrors = response.errorFields;
       this.editFormErrorMessages = response.messages;
     }
-    console.log('response', response);
   }
 
   _onChildListMutation(){
@@ -102,6 +123,17 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
         return;
       }
     });
+  }
+
+  _fmtDate(date){
+    if ( !date ) return '';
+    try {
+      date = date.split(' ')[0];
+      return date;
+    } catch(e) {
+      console.error('Error formatting date', date);
+      return '';
+    }
   }
 
   _onEditFormCancel(){
@@ -122,6 +154,11 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
     this.page = 'add';
   }
 
+  _onDeleteFormClick(){
+    if ( this.page === 'delete' ) return;
+    this.page = 'delete';
+  }
+
   _setFormDataFromCycle(cycle){
     if ( !cycle ) cycle = {...this.requestedCycle};
     const dates = [
@@ -135,6 +172,16 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
     dates.forEach(date => {
       if ( cycle[date] ) {
         cycle[date] = cycle[date].split(' ')[0];
+      }
+    });
+    const ints = [
+      'cycle_id',
+      'has_support',
+      'is_active',
+    ];
+    ints.forEach(int => {
+      if ( cycle[int] ) {
+        cycle[int] = parseInt(cycle[int]);
       }
     });
     this.editFormData = {...cycle};

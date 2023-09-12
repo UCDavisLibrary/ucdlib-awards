@@ -23,11 +23,21 @@ return html`
         </div>
         <div class="focal-link__body"><strong>Add a Cycle</strong></div>
       </a>
+      <a
+        class="focal-link category-brand--double-decker pointer u-space-mb ${this.page == 'delete' ? 'pressed' : ''}"
+        @click=${this._onDeleteFormClick}
+        >
+        <div class="focal-link__figure focal-link__icon">
+          <ucdlib-icon icon="ucd-public:fa-trash"></ucdlib-icon>
+        </div>
+        <div class="focal-link__body"><strong>Delete Cycle</strong></div>
+      </a>
     </div>
     <div class="l-first panel o-box">
       <div ?hidden=${this.page != 'edit'}>${this.renderEditForm()}</div>
-      <div ?hidden=${this.page != 'view'}>View</div>
+      <div ?hidden=${this.page != 'view'}>${this.renderOverview()}</div>
       <div ?hidden=${this.page != 'add'}>${this.renderEditForm()}</div>
+      <div ?hidden=${this.page != 'delete'}>${this.renderDeleteForm()}</div>
     </div>
   </div>
 
@@ -47,7 +57,7 @@ export function renderEditForm() {
   if (
     this.activeCycle &&
     this.editFormData?.is_active &&
-    this.activeCycle.id != this.editFormData.id ) {
+    this.activeCycle.cycle_id != this.editFormData.cycle_id ) {
     showActiveCycleNotification = true;
   }
 
@@ -76,7 +86,7 @@ export function renderEditForm() {
               <input
                 id="cycle-input-active"
                 type="checkbox"
-                @input=${() => this._onEditFormInput('is_active', !this.editFormData?.is_active)}
+                @input=${() => this._onEditFormInput('is_active', !this.editFormData?.is_active ? 1 : 0)}
                 .checked=${this.editFormData?.is_active}>
               <label for="cycle-input-active">Active Cycle</label>
             </li>
@@ -153,7 +163,7 @@ export function renderEditForm() {
               <input
                 id="cycle-input-support"
                 type="checkbox"
-                @input=${() => this._onEditFormInput('has_support', !this.editFormData?.has_support)}
+                @input=${() => this._onEditFormInput('has_support', !this.editFormData?.has_support ? 1 : 0)}
                 .checked=${this.editFormData?.has_support}>
               <label for="cycle-input-support">Enable Letters of Support Functionality</label>
             </li>
@@ -206,4 +216,77 @@ export function renderEditForm() {
       </div>
     </form>
   `;
+}
+
+export function renderOverview(){
+  if ( !this.hasRequestedCycle ) return html``;
+  const cycle = this.requestedCycle;
+  const hasSupport = parseInt(cycle.has_support);
+  let supportStart = 'NA';
+  let supportEnd = 'NA';
+  if ( hasSupport ) {
+    supportStart = this._fmtDate(cycle.support_start);
+    supportEnd = this._fmtDate(cycle.support_end);
+  }
+
+  const applicationForm = this.siteForms.find(form => form.id == cycle.application_form_id);
+  const supportForm = this.siteForms.find(form => form.id == cycle.support_form_id);
+
+  return html`
+    <div class='u-space-mb'>
+      <h4 class='u-space-mb'>Dates</h4>
+      <div>
+        <div class='dates-row dates-column-labels'>
+          <div><label>Window</label></div>
+          <div><label>Start</label></div>
+          <div><label>End</label></div>
+        </div>
+        <div class='dates-row'>
+          <div>Application Submission</div>
+          <div><div class='dates-label'>Start: </div>${this._fmtDate(cycle.application_start)}</div>
+          <div><div class='dates-label'>End: </div>${this._fmtDate(cycle.application_end)}</div>
+        </div>
+        <div class='dates-row'>
+          <div>Letters of Support</div>
+          <div><div class='dates-label'>Start: </div>${supportStart}</div>
+          <div><div class='dates-label'>End: </div>${supportEnd}</div>
+        </div>
+        <div class='dates-row'>
+          <div>Evaluation Period</div>
+          <div><div class='dates-label'>Start: </div>${this._fmtDate(cycle.evaluation_start)}</div>
+          <div><div class='dates-label'>End: </div>${this._fmtDate(cycle.evaluation_end)}</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <h4 class='u-space-mb'>Forms</h4>
+      <div class='u-space-mb'>
+        <label>Application Form</label>
+        <div class='form-row'>
+          <div>${applicationForm.title}</div>
+          <div class='u-space-ml--small'>
+            <a href=${this.formsLink + '-wizard&id=' + applicationForm.id} target='_blank'><ucdlib-icon icon='ucd-public:fa-pen-to-square'></ucdlib-icon></a>
+          </div>
+        </div>
+      </div>
+      <div class='u-space-mb'>
+        <label>Letters of Support Form</label>
+        ${hasSupport ? html`
+          <div class='form-row'>
+            <div>${supportForm.title}</div>
+            <div class='u-space-ml--small'>
+              <a href=${this.formsLink + '-wizard&id=' + supportForm.id} target='_blank'><ucdlib-icon icon='ucd-public:fa-pen-to-square'></ucdlib-icon></a>
+            </div>
+          </div>
+        ` : html`
+          <div>Not Enabled</div>
+        `}
+      </div>
+    </div>
+
+  `;
+}
+
+export function renderDeleteForm(){
+  return html`<p>delete</p>`;
 }

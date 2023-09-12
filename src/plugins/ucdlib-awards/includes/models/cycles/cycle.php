@@ -21,6 +21,26 @@ class UcdlibAwardsCycle {
     }
   }
 
+  public function update($data){
+    if ( isset($data['cycle_id']) ) unset($data['cycle_id']);
+    if ( isset($data['date_created']) ) unset($data['date_created']);
+    $data['date_updated'] = date('Y-m-d H:i:s');
+    global $wpdb;
+    $cyclesTable = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::CYCLES );
+    $wpdb->update(
+      $cyclesTable,
+      $data,
+      ['cycle_id' => $this->cycleId]
+    );
+    $this->clearCache();
+  }
+
+  public function clearCache(){
+    $this->record = null;
+    $this->recordArray = null;
+    $this->isActive = null;
+  }
+
   /**
    * @description Get the basic cycle record from the db table
    */

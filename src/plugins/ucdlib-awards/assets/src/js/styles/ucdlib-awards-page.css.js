@@ -28,7 +28,7 @@ const customStyles = css`
   flex-wrap: wrap;
 }
 .page-cycle-select {
-  padding: 1rem;
+  padding: 1.5rem;
   background-color: #fff9e6;
   width: 100%;
   margin-bottom: 1rem;
@@ -39,6 +39,7 @@ const customStyles = css`
     width: auto;
     margin-bottom: 0;
     margin-top: 0;
+    max-width: 300px;
   }
 }
 
@@ -98,6 +99,13 @@ select {
 }
 .button-row > button {
   margin-right: 1rem;
+}
+#toast {
+  position: fixed;
+  z-index: 1000;
+  display: none;
+  transition: all .5s ease-out;
+  align-items: center;
 }
 `;
 

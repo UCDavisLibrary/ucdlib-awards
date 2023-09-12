@@ -79,8 +79,19 @@ class UcdlibAwardsCycles {
     $data['date_updated'] = $data['date_created'];
     $wpdb->insert( $cyclesTable, $data );
     $cycleId = $wpdb->insert_id;
-    $this->cycleCache = [];
+    $this->clearCache();
     return $cycleId;
+  }
+
+  public function deactivateAll(){
+    global $wpdb;
+    $cyclesTable = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::CYCLES );
+    $wpdb->update( $cyclesTable, ['is_active' => 0], ['is_active' => 1] );
+    $this->clearCache();
+  }
+
+  public function clearCache(){
+    $this->cycleCache = [];
   }
 
   /**
@@ -196,7 +207,7 @@ class UcdlibAwardsCycles {
       if ( isset($cycle['cycle_id']) && $cycle['cycle_id'] == $comparisonCycle->cycleId ) continue;
       foreach( $formColumns as $formColumn ){
         if ( empty($cycle[$formColumn]) ) continue;
-        if ( $cycle[$formColumn] == $comparisonCycle->$formColumn ){
+        if ( $cycle[$formColumn] == $comparisonCycle->record()->$formColumn ){
           $label = $fieldLabels[$formColumn];
           $out[1]['errorMessages'][] = "The '$label' field is already in use by another cycle.";
           $out[1]['errorFields'][$formColumn] = true;

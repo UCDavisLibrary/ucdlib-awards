@@ -1,4 +1,5 @@
 import { html } from 'lit';
+import { styleMap } from 'lit/directives/style-map.js';
 
 import normalize from "@ucd-lib/theme-sass/normalize.css.js";
 import baseHtml from "@ucd-lib/theme-sass/1_base_html/_index.css.js";
@@ -56,9 +57,17 @@ return html`
       <span ?hidden=${!this.cyclesLink}><a href=${this.cyclesLink}>Create one.</a></span>
     </div>
   </div>
-  <div id='content' @cycle-update=${this._onCycleUpdate}></div>
-  <div id='toast-container'>
-    <div id='toast'>toast</div>
+  <div
+    id='content'
+    @toast-request=${this._onToastRequest}
+    @cycle-update=${this._onCycleUpdate}>
+  </div>
+  <div
+    id='toast'
+    class='brand-textbox category-brand__background category-brand--${this.toastState?.color || ''}'
+    style=${styleMap(this.toastState?.style || {})}>
+    <ucdlib-icon icon=${this.toastState?.icon || ''} class='u-space-mr--small'></ucdlib-icon>
+    <span>${this.toastState?.message || ''}</span>
   </div>
 
 `;}

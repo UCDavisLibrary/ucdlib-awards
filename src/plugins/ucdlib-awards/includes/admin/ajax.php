@@ -55,8 +55,18 @@ class UcdlibAwardsAdminAjax {
           return;
         }
         if ( $action == 'edit' ){
-          //$cycle = $this->plugin->cycles->updateCycle($data);
+          $cycleId = $data['cycle_id'];
+          $cycle = $this->plugin->cycles->getById($cycleId);
+          if ( !$cycle->isActive() && $data['is_active'] ){
+            $this->plugin->cycles->deactivateAll();
+          }
+          $cycle->update($data);
+          $response['messages'][] = 'Cycle updated successfully.';
+          $response['data'] = ['cycle' => $cycle->recordArray()];
         } else {
+          if ( $data['is_active'] ){
+            $this->plugin->cycles->deactivateAll();
+          }
           $cycleId = $this->plugin->cycles->create($data);
           $response['messages'][] = 'Cycle added successfully.';
           $cycle = $this->plugin->cycles->getById($cycleId);
