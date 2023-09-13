@@ -92,8 +92,7 @@ class UcdlibAwardsDbTables {
 
     /**
      * Logs table
-     * Not integral to the plugin, but useful for debugging
-     * Data can be deleted at any time
+     * For activity feed, and helpful for debugging
      */
     $table_name = self::get_table_name( self::LOGS );
     $sql = "CREATE TABLE {$table_name} (
@@ -102,11 +101,16 @@ class UcdlibAwardsDbTables {
       `log_subtype` VARCHAR(191) NOT NULL,
       `log_value` LONGTEXT NULL,
       `cycle_id` bigint(20) unsigned NOT NULL DEFAULT 0,
+      `user_id_subject` bigint(20) unsigned NOT NULL DEFAULT 0,
+      `user_id_object` bigint(20) unsigned NOT NULL DEFAULT 0,
+      `is_error` TINYINT(1) NOT NULL DEFAULT 0,
       `date_created` datetime NOT NULL default '0000-00-00 00:00:00',
       PRIMARY KEY (`log_id`),
       KEY `log_type` (`log_type`($max_index_length)),
       KEY `log_subtype` (`log_subtype`($max_index_length)),
-      KEY `log_cycle_id` (`cycle_id`))
+      KEY `log_cycle_id` (`cycle_id`),
+      KEY `log_user_id_object` (`user_id_object`),
+      KEY `log_user_id_subject` (`user_id_subject`))
       $charset_collate;";
     dbDelta( $sql );
 

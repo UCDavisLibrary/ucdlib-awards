@@ -6,6 +6,7 @@ class UcdlibAwardsAdminAjax {
     $this->admin = $admin;
     $this->plugin = $admin->plugin;
     $this->actions = $this->plugin->config::$ajaxActions;
+    $this->logger = $this->plugin->logs;
     $this->utils = new UcdlibAwardsAjaxUtils();
 
     add_action( 'wp_ajax_' . $this->actions['adminCycles'], [$this, 'cycles'] );
@@ -61,6 +62,7 @@ class UcdlibAwardsAdminAjax {
             $this->plugin->cycles->deactivateAll();
           }
           $cycle->update($data);
+          $this->logger->logCycleEvent($cycleId, 'update');
           $response['messages'][] = 'Cycle updated successfully.';
           $response['data'] = ['cycle' => $cycle->recordArray()];
         } else {
@@ -68,6 +70,7 @@ class UcdlibAwardsAdminAjax {
             $this->plugin->cycles->deactivateAll();
           }
           $cycleId = $this->plugin->cycles->create($data);
+          $this->logger->logCycleEvent($cycleId, 'create');
           $response['messages'][] = 'Cycle added successfully.';
           $cycle = $this->plugin->cycles->getById($cycleId);
           $cycle = $cycle->recordArray();
@@ -99,6 +102,7 @@ class UcdlibAwardsAdminAjax {
           return;
         }
         $cycle->delete();
+        $this->logger->logCycleEvent($cycle->cycleId, 'delete');
 
         $response['success'] = true;
       }

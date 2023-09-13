@@ -6,6 +6,7 @@ require_once( __DIR__ . '/award-loader.php' );
 require_once( __DIR__ . '/models/cycles/cycles.php' );
 require_once( __DIR__ . '/models/users/users.php' );
 require_once( __DIR__ . '/models/forms.php' );
+require_once( __DIR__ . '/models/logs.php' );
 require_once( __DIR__ . '/utils/ajax.php' );
 require_once( __DIR__ . '/utils/config.php' );
 require_once( __DIR__ . '/utils/db-tables.php' );
@@ -35,6 +36,7 @@ class UcdlibAwards {
 
   /**
    * @description Loads the various modules of the plugin.
+   * Hooked onto the plugins_loaded action, since this depends on several other plugins.
    */
   public function loadModules(){
     $this->loadAward();
@@ -43,6 +45,7 @@ class UcdlibAwards {
     $this->users = new UcdlibAwardsUsers( $this );
     $this->cycles = new UcdlibAwardsCycles( $this );
     $this->forms = new UcdlibAwardsForms( $this );
+    $this->logs = new UcdlibAwardsLogs( $this );
 
     // modules/controllers
     $this->auth = new UcdlibAwardsAuth( $this );
