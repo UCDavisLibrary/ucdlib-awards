@@ -107,6 +107,47 @@ select {
   transition: all .5s ease-out;
   align-items: center;
 }
+a.icon-ucdlib, span.icon-ucdlib {
+  display: flex;
+  align-items: center;
+}
+.panel a.icon-ucdlib ucdlib-icon {
+  color: var(--category-brand, #73abdd);
+  margin-right: .5rem;
+  min-width: .9rem;
+  min-height: .9rem;
+  width: .9rem;
+  height: .9rem;
+}
+.panel__title ucdlib-icon {
+  width: 1.6055rem;
+  height: 1.6055rem;
+  margin-right: .5rem;
+  min-width: 1.6055rem;
+}
+@media (min-width: 768px) {
+  .panel__title ucdlib-icon {
+    width: 2.47rem;
+    height: 2.47rem;
+    margin-right: 1rem;
+    min-width: 2.47rem;
+  }
+}
+ucdlib-icon.panel__custom-icon {
+  color: var(--category-brand, #022851);
+}
+.panel--icon .panel__title {
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.panel--icon .panel__title {
+  display: flex;
+  margin-left: calc(-1*var(--o-box-spacer, 0));
+}
+.flex-center {
+  display: flex;
+  align-items: center;
+}
 `;
 
 export default customStyles;

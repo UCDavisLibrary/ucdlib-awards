@@ -7,6 +7,9 @@ class UcdlibAwardsAjaxUtils {
     if ( !$response['success'] && empty($response['messages']) ){
       $response['messages'][] = 'An unknown error occurred. Please try again.';
     }
+    if ( !count($response['errorFields']) ) {
+      $response['errorFields'] = new stdClass();
+    }
     wp_send_json( $response, $statusCode, $options);
   }
 
@@ -24,7 +27,7 @@ class UcdlibAwardsAjaxUtils {
       'success' => false,
       'data' => null,
       'messages' => [],
-      'errorFields' => (object) array()
+      'errorFields' => []
     ];
   }
 

@@ -7,6 +7,10 @@ import { MainDomElement } from "@ucd-lib/theme-elements/utils/mixins/main-dom-el
 import { MutationObserverController } from '@ucd-lib/theme-elements/utils/controllers/index.js';
 
 
+/**
+ * @class UcdlibAwardsAdminCycles
+ * @description Admin page for managing cycles.
+ */
 export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
   .with(MainDomElement) {
 
@@ -19,8 +23,10 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
       formsLink: {type: String},
       page: {state: true},
       editFormData: {state: true},
-      editFormErrors: {state: true},
-      editFormErrorMessages: {state: true}
+      deleteFormData: {state: true},
+      formErrors: {state: true},
+      formErrorMessages: {state: true},
+      dashboardLink: {type: String},
     }
   }
 
@@ -30,19 +36,26 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
     this.renderEditForm = templates.renderEditForm.bind(this);
     this.renderOverview = templates.renderOverview.bind(this);
     this.renderDeleteForm = templates.renderDeleteForm.bind(this);
+    this.renderFormErrorMessages = templates.renderFormErrorMessages.bind(this);
     this.requestedCycle = {};
     this.activeCycle = {};
     this.editFormData = {};
-    this.editFormErrors = {};
+    this.deleteFormData = {};
+    this.formErrors = {};
+    this.formErrorMessages = [];
     this.siteForms = [];
     this.formsLink = '';
     this.page = 'view';
-    this.editFormErrorMessages = [];
+    this.dashboardLink = '';
 
     this.mutationObserver = new MutationObserverController(this);
     this.wpAjax = new wpAjaxController(this);
   }
 
+  /**
+   * @description LitElement lifecycle called when element will update
+   * @param {*} props
+   */
   willUpdate(props){
     if ( props.has('requestedCycle') ) {
       this.hasRequestedCycle = Object.keys(this.requestedCycle).length > 0;
@@ -52,17 +65,28 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
     }
   }
 
+  /**
+   * @description Callback for when an input is changed in the edit/add form
+   * @param {String} prop - the property name
+   * @param {String|Boolean} value - the new value of the property
+   */
   _onEditFormInput(prop, value){
     if ( !this.editFormData ) this.editFormData = {};
     this.editFormData[prop] = value;
-    this.editFormErrors[prop] = false;
+    this.formErrors[prop] = false;
     this.requestUpdate();
   }
 
+  /**
+   * @description Callback for when the edit/add form is submitted
+   * Submits the form data to the wp-ajax endpoint
+   * All form validation is done server-side
+   * @param {Event} e - the form submit event
+   */
   async _onEditFormSubmit(e){
     e.preventDefault();
-    this.editFormErrors = {};
-    this.editFormErrorMessages = [];
+    this.formErrors = {};
+    this.formErrorMessages = [];
     const subAction = this.page;
 
     const payload = {};
@@ -111,11 +135,14 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
       }
     } else {
       window.scrollTo({top: 0, behavior: 'smooth'});
-      this.editFormErrors = response.errorFields;
-      this.editFormErrorMessages = response.messages;
+      this.formErrors = response.errorFields;
+      this.formErrorMessages = response.messages;
     }
   }
 
+  /**
+   * @description Callback for the mutation observer
+   */
   _onChildListMutation(){
     Array.from(this.children).forEach(child => {
       if ( child.nodeName === 'SCRIPT' && child.type === 'application/json' ) {
@@ -125,40 +152,120 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
     });
   }
 
-  _fmtDate(date){
-    if ( !date ) return '';
-    try {
-      date = date.split(' ')[0];
-      return date;
-    } catch(e) {
-      console.error('Error formatting date', date);
-      return '';
-    }
-  }
-
+  /**
+   * @description Callback for when the edit/add form is cancelled
+   */
   _onEditFormCancel(){
     this.editFormData = {};
+    this.formErrors = {};
+    this.formErrorMessages = [];
     this.page = 'view';
     window.scrollTo({top: 0, behavior: 'smooth'});
   }
 
+  /**
+   * @description Callback for when the edit button is clicked
+   * Displays the edit form
+   * @returns
+   */
   _onEditFormClick(){
-    if ( this.page === 'edit' ) return;
+    if ( this.page === 'edit' ) {
+      this._onEditFormCancel();
+      return;
+    }
     this._setFormDataFromCycle();
+    this.formErrors = {};
+    this.formErrorMessages = [];
     this.page = 'edit';
   }
 
+  /**
+   * @description Callback for when the add button is clicked
+   * Displays an empty edit form
+   * @returns
+   */
   _onAddFormClick(){
-    if ( this.page === 'add' ) return;
+    if ( this.page === 'add' ) {
+      if ( this.hasRequestedCycle ) {
+        this._onEditFormCancel();
+      }
+      return;
+    }
     this.editFormData = {};
+    this.formErrors = {};
+    this.formErrorMessages = [];
     this.page = 'add';
   }
 
+  /**
+   * @description Callback for when an input is changed in the delete form
+   * @param {String} prop - the property name
+   * @param {String} value - the new value of the property
+   */
+  _onDeleteFormInput(prop, value){
+    if ( !this.deleteFormData ) this.deleteFormData = {};
+    if ( !this.formErrors ) this.formErrors = {};
+    this.deleteFormData[prop] = value;
+    this.formErrors[prop] = false;
+    this.requestUpdate();
+  }
+
+  /**
+   * @description Callback for when the delete form is cancelled
+   */
+  _onDeleteFormCancel(){
+    this.deleteFormData = {};
+    this.formErrors = {};
+    this.formErrorMessages = [];
+    this.page = 'view';
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }
+
+  /**
+   * @description Callback for when the delete button is clicked
+   * Displays the delete form
+   * @returns
+   */
   _onDeleteFormClick(){
-    if ( this.page === 'delete' ) return;
+    if ( this.page === 'delete' ) {
+      this. _onDeleteFormCancel();
+      return;
+    }
+    this.deleteFormData = {
+      cycle_id: this.requestedCycle.cycle_id,
+      title: this.requestedCycle.title,
+      title_confirm: ''
+    };
+    this.formErrors = {};
+    this.formErrorMessages = [];
     this.page = 'delete';
   }
 
+  /**
+   * @description Callback for when the delete form is submitted
+   * Submits the form data to the wp-ajax endpoint
+   * All form validation is done server-side
+   * @param {Event} e - the form submit event
+   */
+  async _onDeleteFormSubmit(e){
+    e.preventDefault();
+    this.formErrors = {};
+    this.formErrorMessages = [];
+    const response = await this.wpAjax.request('delete', this.deleteFormData);
+
+    if ( response.success ) {
+      window.location.href = this.dashboardLink;
+    } else {
+      window.scrollTo({top: 0, behavior: 'smooth'});
+      this.formErrors = response.errorFields;
+      this.formErrorMessages = response.messages;
+    }
+  }
+
+  /**
+   * @description Sets the edit form data from cycle data
+   * @param {Object} cycle - Cycle record from the db
+   */
   _setFormDataFromCycle(cycle){
     if ( !cycle ) cycle = {...this.requestedCycle};
     const dates = [
@@ -187,6 +294,11 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
     this.editFormData = {...cycle};
   }
 
+  /**
+   * @description Parses the JSON script tag in the DOM and sets the element properties
+   * @param {*} script - the JSON script tag DOM element
+   * @returns
+   */
   _parsePropsScript(script){
     let data = {};
     try {
@@ -202,6 +314,7 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
     }
     if ( data.formsLink ) this.formsLink = data.formsLink;
     if ( data.siteForms ) this.siteForms = data.siteForms;
+    if ( data.dashboardLink ) this.dashboardLink = data.dashboardLink;
     if ( data.requestedCycle ) {
       this.requestedCycle = data.requestedCycle;
       this.page = 'view';

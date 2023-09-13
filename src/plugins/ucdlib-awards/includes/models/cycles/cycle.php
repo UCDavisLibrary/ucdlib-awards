@@ -35,10 +35,60 @@ class UcdlibAwardsCycle {
     $this->clearCache();
   }
 
+  public function delete(){
+    global $wpdb;
+
+    // delete cycle record
+    $cyclesTable = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::CYCLES );
+    $wpdb->delete(
+      $cyclesTable,
+      ['cycle_id' => $this->cycleId]
+    );
+
+    // delete logs
+    $logsTable = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::LOGS );
+    $wpdb->delete(
+      $logsTable,
+      ['cycle_id' => $this->cycleId]
+    );
+
+    // get rubric ids for cycle
+    $rubricItemsTable = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::RUBRIC_ITEMS );
+    $sql = "SELECT rubric_item_id FROM $rubricItemsTable WHERE cycle_id = %d";
+    $rubricItemIds = $wpdb->get_col( $wpdb->prepare( $sql, $this->cycleId ) );
+
+    // delete rubric items
+    $wpdb->delete(
+      $rubricItemsTable,
+      ['cycle_id' => $this->cycleId]
+    );
+
+    // delete scores for cycle rubric items
+    if ( count($rubricItemIds) ){
+      $scoresTable = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::SCORES );
+      $sql = "DELETE FROM $scoresTable WHERE rubric_id IN (" . implode(',', $rubricItemIds) . ")";
+      $wpdb->query( $sql );
+    }
+
+    // delete user meta
+    $userMetaTable = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USER_META );
+    $wpdb->delete(
+      $userMetaTable,
+      ['cycle_id' => $this->cycleId]
+    );
+
+    $this->clearCache();
+  }
+
   public function clearCache(){
     $this->record = null;
     $this->recordArray = null;
     $this->isActive = null;
+  }
+
+  public function title(){
+    $record = $this->record();
+    return $record->title;
   }
 
   /**

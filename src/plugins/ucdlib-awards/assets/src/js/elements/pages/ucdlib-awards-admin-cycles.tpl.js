@@ -1,4 +1,5 @@
 import { html } from 'lit';
+import datetimeUtils from "../../utils/datetime.js"
 
 export function render() {
 return html`
@@ -21,10 +22,11 @@ return html`
         <div class="focal-link__figure focal-link__icon">
           <ucdlib-icon icon="ucd-public:fa-plus"></ucdlib-icon>
         </div>
-        <div class="focal-link__body"><strong>Add a Cycle</strong></div>
+        <div class="focal-link__body"><strong>Add a New Cycle</strong></div>
       </a>
       <a
         class="focal-link category-brand--double-decker pointer u-space-mb ${this.page == 'delete' ? 'pressed' : ''}"
+        ?hidden=${!this.hasRequestedCycle}
         @click=${this._onDeleteFormClick}
         >
         <div class="focal-link__figure focal-link__icon">
@@ -63,15 +65,9 @@ export function renderEditForm() {
 
   return html`
     <form @submit=${this._onEditFormSubmit}>
-      <div
-        ?hidden=${!this.editFormErrorMessages.length}
-        class="brand-textbox category-brand__background category-brand--double-decker u-space-mb">
-        <ul class='u-space-mt--flush list--flush'>
-          ${this.editFormErrorMessages.map(msg => html`<li>${msg}</li>`)}
-        </ul>
-      </div>
+      ${this.renderFormErrorMessages()}
       <div>
-        <div class="field-container ${this.editFormErrors?.title ? 'error' : ''}">
+        <div class="field-container ${this.formErrors?.title ? 'error' : ''}">
           <label>Cycle Title <abbr title="Required">*</abbr></label>
           <input
             type="text"
@@ -102,14 +98,14 @@ export function renderEditForm() {
       <fieldset>
         <legend>Application Period</legend>
         <div class="l-2col">
-          <div class="l-first field-container ${this.editFormErrors.application_start ? 'error' : ''}">
+          <div class="l-first field-container ${this.formErrors.application_start ? 'error' : ''}">
             <label>Start Date <abbr title="Required">*</abbr></label>
             <input
               type="date"
               @input=${e => this._onEditFormInput('application_start', e.target.value)}
               .value=${this.editFormData?.application_start || ''}>
           </div>
-          <div class="l-second field-container ${this.editFormErrors.application_end ? 'error' : ''}">
+          <div class="l-second field-container ${this.formErrors.application_end ? 'error' : ''}">
             <label>End Date <abbr title="Required">*</abbr></label>
             <input
               type="date"
@@ -117,7 +113,7 @@ export function renderEditForm() {
               .value=${this.editFormData?.application_end || ''}>
           </div>
         </div>
-        <div class="field-container ${this.editFormErrors.application_form_id ? 'error' : ''}">
+        <div class="field-container ${this.formErrors.application_form_id ? 'error' : ''}">
           <label>Application Form</label>
           <select
             ?disabled=${disableAppFormSelect}
@@ -139,14 +135,14 @@ export function renderEditForm() {
       <fieldset>
         <legend>Evaluation Period</legend>
         <div class="l-2col">
-          <div class="l-first field-container ${this.editFormErrors.evaluation_start ? 'error' : ''}">
+          <div class="l-first field-container ${this.formErrors.evaluation_start ? 'error' : ''}">
             <label>Start Date <abbr title="Required">*</abbr></label>
             <input
               type="date"
               @input=${e => this._onEditFormInput('evaluation_start', e.target.value)}
               .value=${this.editFormData?.evaluation_start || ''}>
           </div>
-          <div class="l-second field-container ${this.editFormErrors.evaluation_end ? 'error' : ''}">
+          <div class="l-second field-container ${this.formErrors.evaluation_end ? 'error' : ''}">
             <label>End Date <abbr title="Required">*</abbr></label>
             <input
               type="date"
@@ -171,14 +167,14 @@ export function renderEditForm() {
         </div>
         <div ?hidden=${!this.editFormData?.has_support}>
           <div class="l-2col">
-            <div class="l-first field-container ${this.editFormErrors.support_start ? 'error' : ''}">
+            <div class="l-first field-container ${this.formErrors.support_start ? 'error' : ''}">
               <label>Start Date <abbr title="Required">*</abbr></label>
               <input
                 type="date"
                 @input=${e => this._onEditFormInput('support_start', e.target.value)}
                 .value=${this.editFormData?.support_start || ''}>
             </div>
-            <div class="l-second field-container ${this.editFormErrors.support_end ? 'error' : ''}">
+            <div class="l-second field-container ${this.formErrors.support_end ? 'error' : ''}">
               <label>End Date <abbr title="Required">*</abbr></label>
               <input
                 type="date"
@@ -186,7 +182,7 @@ export function renderEditForm() {
                 .value=${this.editFormData?.support_end || ''}>
             </div>
           </div>
-          <div class="field-container ${this.editFormErrors.support_form_id ? 'error' : ''}">
+          <div class="field-container ${this.formErrors.support_form_id ? 'error' : ''}">
             <label>Support Form</label>
             <select
               ?disabled=${disableSupportFormSelect}
@@ -225,8 +221,8 @@ export function renderOverview(){
   let supportStart = 'NA';
   let supportEnd = 'NA';
   if ( hasSupport ) {
-    supportStart = this._fmtDate(cycle.support_start);
-    supportEnd = this._fmtDate(cycle.support_end);
+    supportStart = datetimeUtils.mysqlToDateString(cycle.support_start);
+    supportEnd = datetimeUtils.mysqlToDateString(cycle.support_end);
   }
 
   const applicationForm = this.siteForms.find(form => form.id == cycle.application_form_id);
@@ -243,8 +239,8 @@ export function renderOverview(){
         </div>
         <div class='dates-row'>
           <div>Application Submission</div>
-          <div><div class='dates-label'>Start: </div>${this._fmtDate(cycle.application_start)}</div>
-          <div><div class='dates-label'>End: </div>${this._fmtDate(cycle.application_end)}</div>
+          <div><div class='dates-label'>Start: </div>${datetimeUtils.mysqlToDateString(cycle.application_start)}</div>
+          <div><div class='dates-label'>End: </div>${datetimeUtils.mysqlToDateString(cycle.application_end)}</div>
         </div>
         <div class='dates-row'>
           <div>Letters of Support</div>
@@ -253,8 +249,8 @@ export function renderOverview(){
         </div>
         <div class='dates-row'>
           <div>Evaluation Period</div>
-          <div><div class='dates-label'>Start: </div>${this._fmtDate(cycle.evaluation_start)}</div>
-          <div><div class='dates-label'>End: </div>${this._fmtDate(cycle.evaluation_end)}</div>
+          <div><div class='dates-label'>Start: </div>${datetimeUtils.mysqlToDateString(cycle.evaluation_start)}</div>
+          <div><div class='dates-label'>End: </div>${datetimeUtils.mysqlToDateString(cycle.evaluation_end)}</div>
         </div>
       </div>
     </div>
@@ -288,5 +284,45 @@ export function renderOverview(){
 }
 
 export function renderDeleteForm(){
-  return html`<p>delete</p>`;
+  return html`
+  <form @submit=${this._onDeleteFormSubmit}>
+    ${this.renderFormErrorMessages()}
+    <div class='delete-confirm'>
+      <div class="panel panel--icon panel--icon-custom o-box category-brand--double-decker u-space-mb--flush">
+        <h2 class="panel__title">
+          <ucdlib-icon icon="ucd-public:fa-circle-exclamation" class="panel__custom-icon"></ucdlib-icon>
+          <span style='color:#022851;'>Confirm Deletion</span>
+        </h2>
+      </div>
+      <p>Are you sure you want to delete this cycle and its associated data?
+        In the box below, type the cycle title:</p>
+      <div style='font-weight:700;'>${this.deleteFormData.title}</div>
+      <div class="field-container ${this.formErrors.title_confirm ? 'error' : ''}">
+        <input
+            type="text"
+            @input=${e => this._onDeleteFormInput('title_confirm', e.target.value)}
+            .value=${this.deleteFormData?.title_confirm || ''}>
+      </div>
+      </div>
+    </div>
+    <div class="button-row">
+      <button type="submit" class="btn--primary">Delete</button>
+      <button
+        type="button" @click=${this._onEditFormCancel}
+        class="btn">Cancel</button>
+    </div>
+
+  </form>`;
+}
+
+export function renderFormErrorMessages(){
+  return html`
+    <div
+      ?hidden=${!this.formErrorMessages.length}
+      class="brand-textbox category-brand__background category-brand--double-decker u-space-mb">
+      <ul class='u-space-mt--flush list--flush'>
+        ${this.formErrorMessages.map(msg => html`<li>${msg}</li>`)}
+      </ul>
+    </div>
+  `
 }

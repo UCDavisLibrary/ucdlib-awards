@@ -56,6 +56,11 @@ ucdlib-awards-admin-cycles .form-row ucdlib-icon {
     display: none;
   }
 }
+ucdlib-awards-admin-cycles .delete-confirm {
+  border: 2px solid #c10230;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
 `;
 
 export default customStyles;

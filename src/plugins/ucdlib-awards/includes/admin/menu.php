@@ -51,6 +51,11 @@ class UcdlibAwardsAdminMenu {
    */
   public function renderMain(){
     $context = $this->context();
+    $context['pageProps'] = [
+      'wpAjax' => $this->ajaxUtils->getAjaxElementProperty('adminDashboard'),
+      'requestedCycle' => $context['pageContainerProps']['requestedCycle'],
+      'cyclesLink' => $context['pageContainerProps']['cyclesLink']
+    ];
     UcdlibAwardsTimber::renderAdminPage( 'main', $context );
   }
 
@@ -74,6 +79,7 @@ class UcdlibAwardsAdminMenu {
       'requestedCycle' => $context['pageContainerProps']['requestedCycle'],
       'activeCycle' => $activeCycle,
       'siteForms' => $forms,
+      'dashboardLink' => $context['links']['dashboard'],
       'formsLink' => admin_url( 'admin.php?page=' . $this->plugin->config::$forminatorSlugs['forms'] )
     ];
     UcdlibAwardsTimber::renderAdminPage( 'cycles', $context );
@@ -88,6 +94,10 @@ class UcdlibAwardsAdminMenu {
 
     $currentUser = $this->plugin->users->currentUser();
     $cycleQueryParam = $this->plugin->config::$urlQueryParams['cycle'];
+    $links = [
+      'cycles' => admin_url( 'admin.php?page=' . $this->slugs['cycles'] ),
+      'dashboard' => admin_url( 'admin.php?page=' . $this->slugs['main'] )
+    ];
 
     $this->context = [
       'currentUser' => $currentUser,
@@ -96,12 +106,13 @@ class UcdlibAwardsAdminMenu {
         'siteLogo' => dirname( get_template_directory_uri() ) . "/assets/img/site-icon.png",
         'isAdminPage' => true,
         'cycles' => [],
-        'cyclesLink' => admin_url( 'admin.php?page=' . $this->slugs['cycles'] ),
+        'cyclesLink' => $links['cycles'],
         'cycleQueryParam' => $cycleQueryParam,
         'requestedCycle' => null,
         'wpAjax' => $this->ajaxUtils->getAjaxElementProperty('adminGeneral')
       ],
-      'award' => $this->award
+      'award' => $this->award,
+      'links' => $links
     ];
 
     if ( $currentUser->isAdmin() ){

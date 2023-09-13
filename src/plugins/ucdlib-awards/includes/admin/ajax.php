@@ -74,6 +74,33 @@ class UcdlibAwardsAdminAjax {
           $response['data'] = ['cycle' => $cycle];
         }
         $response['success'] = true;
+      } else if ( $action == 'delete' ){
+        if ( empty($data['cycle_id']) ){
+          $response['messages'][] = 'No cycle specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+        $cycle = $this->plugin->cycles->getById($data['cycle_id']);
+        if ( !$cycle ){
+          $response['messages'][] = 'Cycle not found.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+        if ( $cycle->isActive() ){
+          $response['messages'][] = 'Cannot delete an active cycle. Make another cycle active, and then try again.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+        $titleConfirm = isset($data['title_confirm']) ? $data['title_confirm'] : '';
+        if ( $titleConfirm !== $cycle->title() ){
+          $response['messages'][] = 'The title you entered does not match the cycle title. Please try again.';
+          $response['errorFields']['title_confirm'] = true;
+          $this->utils->sendResponse($response);
+          return;
+        }
+        $cycle->delete();
+
+        $response['success'] = true;
       }
 
 
