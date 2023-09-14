@@ -24,9 +24,13 @@ class UcdlibAwardsAwardAbstract {
   protected $_adminMenuPageTitle = "UC Davis Library Award";
   protected $_adminMenuSlugs = [
     'main' => 'awards-admin',
-    'cycles' => 'awards-admin-cycles'
+    'cycles' => 'awards-admin-cycles',
+    'logs' => 'awards-admin-logs',
   ];
 
+  /**
+   * CUSTOMIZE END
+   */
 
   final public function getSlug() {
 		return $this->_slug;

@@ -148,6 +148,9 @@ ucdlib-icon.panel__custom-icon {
   display: flex;
   align-items: center;
 }
+.border-box {
+  box-sizing: border-box !important;
+}
 `;
 
 export default customStyles;

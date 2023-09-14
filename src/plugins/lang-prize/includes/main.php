@@ -9,7 +9,8 @@ class LangPrize extends UcdlibAwardsAwardAbstract {
   protected $_adminMenuPageTitle = "UC Davis Lang Prize";
   protected $_adminMenuSlugs = [
     'main' => 'lang-prize-admin',
-    'cycles' => 'lang-prize-admin-cycles'
+    'cycles' => 'lang-prize-admin-cycles',
+    'logs' => 'lang-prize-admin-logs',
   ];
 
 }

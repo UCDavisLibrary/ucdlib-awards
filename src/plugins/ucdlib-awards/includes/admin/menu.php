@@ -44,6 +44,15 @@ class UcdlibAwardsAdminMenu {
       [$this, 'renderCycles']
     );
 
+    add_submenu_page(
+      $this->slugs['main'],
+      $this->award->getAdminMenuPageTitle(),
+      "Activity Log",
+      "edit_posts",
+      $this->slugs['logs'],
+      [$this, 'renderLogs']
+    );
+
   }
 
   /**
@@ -83,6 +92,28 @@ class UcdlibAwardsAdminMenu {
       'formsLink' => admin_url( 'admin.php?page=' . $this->plugin->config::$forminatorSlugs['forms'] )
     ];
     UcdlibAwardsTimber::renderAdminPage( 'cycles', $context );
+  }
+
+  /**
+   * @description Render the admin Activity Logs page.
+   */
+  public function renderLogs(){
+    $context = $this->context();
+    $requestedCycle = $this->context['pageContainerProps']['requestedCycle'];
+    if ( $requestedCycle ){
+      $requestedCycle = $requestedCycle['cycle_id'];
+    }
+    $context['filterProps'] = [
+      'wpAjax' => $this->ajaxUtils->getAjaxElementProperty('adminLogs'),
+      'filters' => $this->plugin->logs->getFilters($requestedCycle)
+    ];
+    $context['resultsProps'] = [
+      'wpAjax' => $this->ajaxUtils->getAjaxElementProperty('adminLogs'),
+      'cycleId' => $requestedCycle,
+      'doQueryOnLoad' => true
+    ];
+    UcdlibAwardsTimber::renderAdminPage( 'logs', $context );
+
   }
 
   /**

@@ -91,6 +91,11 @@ class UcdlibAwardsCycle {
     return $record->title;
   }
 
+  public function supportIsEnabled(){
+    $record = $this->record();
+    return $record->has_support ? true : false;
+  }
+
   /**
    * @description Get the basic cycle record from the db table
    */

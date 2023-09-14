@@ -14,7 +14,7 @@ class UcdlibAwardsLogs {
     $this->logTypes = [
       'cycle' => [
         'slug' => 'cycle',
-        'label' => 'Cycle',
+        'label' => 'Cycle Modifications',
         'subTypes' => [
           'create' => [
             'slug' => 'create',
@@ -35,6 +35,59 @@ class UcdlibAwardsLogs {
       ]
     ];
 
+  }
+
+  /**
+   * @description Get list of allowable filters
+   */
+  public function getFilters($cycleId = null){
+    $filters = [];
+
+    $types = [];
+    foreach ( $this->logTypes as $typeKey => $type ){
+      $types[] = [
+        'value' => $type['slug'],
+        'label' => $type['label']
+      ];
+    }
+    $filters[] = [
+      'queryVar' => 'types',
+      'label' => 'Log Type',
+      'type' => 'multiSelect',
+      'options' => $types
+    ];
+
+    $filters[] = [
+      'queryVar' => 'applicant',
+      'label' => 'Applicant',
+      'type' => 'multiSelect',
+      'options' => []
+    ];
+
+    $filters[] = [
+      'queryVar' => 'judge',
+      'label' => 'Judge',
+      'type' => 'multiSelect',
+      'options' => []
+    ];
+
+    $showSupporters = false;
+    if ( $cycleId ){
+      $cycle = $this->plugin->cycles->getById($cycleId);
+      if ( $cycle && $cycle->supportIsEnabled() ){
+        $showSupporters = true;
+      }
+    }
+    if ( $showSupporters ){
+      $filters[] = [
+        'queryVar' => 'user',
+        'label' => 'Supporter',
+        'type' => 'multiSelect',
+        'options' => []
+      ];
+    }
+
+    return $filters;
   }
 
   /**
@@ -78,10 +131,17 @@ class UcdlibAwardsLogs {
   public function query($args){
     $page = isset($args['page']) ? $args['page'] : 1;
     $offset = ($page - 1) * $this->perPage;
+    $cycle = isset($args['cycle']) ? $args['cycle'] : null;
     $types = isset($args['types']) ? $args['types'] : [];
-    $user = isset($args['user']) ?  intval($args['user']) : 0;
+    $applicant = isset($args['applicant']) ?  $args['applicant'] : [];
+    $judge = isset($args['judge']) ?  $args['judge'] : [];
+    $supporter = isset($args['supporter']) ?  $args['supporter'] : [];
+    $users = isset($args['user']) ?  $args['user'] : [];
     $from = isset($args['from']) ? $args['from'] : '';
     $to = isset($args['to']) ? $args['to'] : '';
+    $errors = isset($args['errors']) ? $args['errors'] : 'exclude';
+
+    $users = array_merge($applicant, $judge, $supporter, $users);
 
     $sql = "
     SELECT
@@ -101,14 +161,20 @@ class UcdlibAwardsLogs {
       1 = 1
     ";
 
+    if ( $cycle !== null ) {
+      $sql .= " AND l.cycle_id = $cycle";
+      $countSql .= " AND l.cycle_id = $cycle";
+    }
+
     if ( count($types) > 0 ) {
       $s = " AND l.log_type IN ('" . implode("','", $types) . "')";
       $sql .= $s;
       $countSql .= $s;
     }
 
-    if ( $user > 0 ) {
-      $s = " AND l.user_id_subject = $user OR l.user_id_object = $user";
+    if ( count($users) > 0 ) {
+      $s = " AND (l.user_id_subject IN (" . implode(',', $users) . ")";
+      $s .= " OR l.user_id_object IN (" . implode(',', $users) . "))";
       $sql .= $s;
       $countSql .= $s;
     }
@@ -126,7 +192,16 @@ class UcdlibAwardsLogs {
       $countSql .= $s;
     }
 
+    if ( $errors == 'exclude' ) {
+      $sql .= " AND l.is_error = 0";
+      $countSql .= " AND l.is_error = 0";
+    } elseif ( $errors == 'only' ) {
+      $sql .= " AND l.is_error = 1";
+      $countSql .= " AND l.is_error = 1";
+    }
+
     $sql .= "
+    ORDER BY l.date_created DESC
     LIMIT {$this->perPage} OFFSET {$offset}
     ";
 
@@ -134,7 +209,8 @@ class UcdlibAwardsLogs {
     $totalResults = $wpdb->get_var( $countSql );
     $results = $wpdb->get_results( $sql );
     return [
-      'totalResults' => $totalResults,
+      'totalResults' => intval($totalResults),
+      'totalPages' => ceil($totalResults / $this->perPage),
       'results' => $results
     ];
   }

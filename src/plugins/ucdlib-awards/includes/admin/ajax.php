@@ -11,6 +11,30 @@ class UcdlibAwardsAdminAjax {
 
     add_action( 'wp_ajax_' . $this->actions['adminCycles'], [$this, 'cycles'] );
     add_action( 'wp_ajax_' . $this->actions['adminGeneral'], [$this, 'general'] );
+    add_action( 'wp_ajax_' . $this->actions['adminLogs'], [$this, 'logs'] );
+  }
+
+  public function logs(){
+    check_ajax_referer( $this->actions['adminLogs'] );
+    $response = $this->utils->getResponseTemplate();
+
+    try {
+      $this->validateRequest($response);
+      $action = $_POST['subAction'];
+      if ( $action === 'getFilters' ){
+        $filters = $this->logger->getFilters();
+        $response['data'] = ['filters' => $filters];
+        $response['success'] = true;
+      } else if ( $action === 'query' ){
+        $data = json_decode( stripslashes($_POST['data']), true );
+        $response['data'] = $this->logger->query($data['query']);
+        $response['success'] = true;
+      }
+    } catch (\Throwable $th) {
+      error_log('Error in UcdlibAwardsAdminAjax::logs(): ' . $th->getMessage());
+    }
+    $this->utils->sendResponse($response);
+
   }
 
   /**

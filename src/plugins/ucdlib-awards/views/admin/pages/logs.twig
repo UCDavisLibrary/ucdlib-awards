@@ -1,0 +1,20 @@
+<ucdlib-awards-page>
+  <script type="application/json"> {{pageContainerProps|json_encode()}}</script>
+  {% if not currentUser.isAdmin %}
+    <ucdlib-awards-forbidden></ucdlib-awards-forbidden>
+  {% endif %}
+  <div>
+    <div class="l-2col l-2col--67-33">
+      <div class="l-second panel o-box">
+        <ucdlib-awards-logs-filter>
+          <script type="application/json"> {{filterProps|json_encode()}}</script>
+        </ucdlib-awards-logs-filter>
+      </div>
+      <div class="l-first panel o-box">
+        <ucdlib-awards-logs>
+          <script type="application/json"> {{resultsProps|json_encode()}}</script>
+        </ucdlib-awards-logs>
+      </div>
+    </div>
+  </div>
+</ucdlib-awards-page>
