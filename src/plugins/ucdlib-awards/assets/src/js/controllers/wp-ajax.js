@@ -59,7 +59,7 @@ export default class wpAjax {
     } catch (error) {
       console.error('Error fetching data', error);
       const template = {...this.responseTemplate};
-      template.messages = ['An error occurred. Please try again.'];
+      template.messages = ['An unknown error occurred. Please try again.'];
       responseData = template;
     }
 

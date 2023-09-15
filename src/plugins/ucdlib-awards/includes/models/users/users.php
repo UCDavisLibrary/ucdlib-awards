@@ -12,6 +12,8 @@ class UcdlibAwardsUsers {
 
     // associative array of username => UcdlibAwardsUser object
     $this->userCache = [];
+
+    $this->table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USERS );
   }
 
   /**
@@ -35,6 +37,25 @@ class UcdlibAwardsUsers {
     $user = new UcdlibAwardsUser( $username );
     $this->userCache[ $username ] = $user;
     return $this->userCache[ $username ];
+  }
+
+  public function getByUserIds($userIds){
+    if ( !$userIds ) return [];
+    if ( !is_array($userIds) ) {
+      $userIds = [$userIds];
+    }
+    if ( empty($userIds) ) return [];
+
+    global $wpdb;
+    $sql = "SELECT * FROM $this->table WHERE user_id IN (" . implode(',', $userIds) . ")";
+    $results = $wpdb->get_results( $sql );
+    $users = [];
+    foreach ( $results as $result ){
+      $user = new UcdlibAwardsUser( $result->wp_user_login, $result );
+      $users[] = $user;
+      $this->userCache[ $user->username ] = $user;
+    }
+    return $users;
   }
 
 }

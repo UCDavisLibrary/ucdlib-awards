@@ -60,10 +60,22 @@ class UcdlibAwardsAdminMenu {
    */
   public function renderMain(){
     $context = $this->context();
+    $requestedCycle = $this->context['pageContainerProps']['requestedCycle'];
+    if ( $requestedCycle ){
+      $requestedCycle = $requestedCycle['cycle_id'];
+    }
+    $dashboardSettings = $this->award->getDashboardSettings();
     $context['pageProps'] = [
       'wpAjax' => $this->ajaxUtils->getAjaxElementProperty('adminDashboard'),
+      'logsProps' => [
+        'wpAjax' => $this->ajaxUtils->getAjaxElementProperty('adminLogs'),
+        'cycleId' => $requestedCycle,
+        'doQueryOnLoad' => true,
+        'filters' => ['types' => $dashboardSettings['logTypeFilter']]
+      ],
       'requestedCycle' => $context['pageContainerProps']['requestedCycle'],
-      'cyclesLink' => $context['pageContainerProps']['cyclesLink']
+      'cyclesLink' => $context['pageContainerProps']['cyclesLink'],
+      'logsLink' => $context['links']['logs']
     ];
     UcdlibAwardsTimber::renderAdminPage( 'main', $context );
   }
@@ -127,7 +139,8 @@ class UcdlibAwardsAdminMenu {
     $cycleQueryParam = $this->plugin->config::$urlQueryParams['cycle'];
     $links = [
       'cycles' => admin_url( 'admin.php?page=' . $this->slugs['cycles'] ),
-      'dashboard' => admin_url( 'admin.php?page=' . $this->slugs['main'] )
+      'dashboard' => admin_url( 'admin.php?page=' . $this->slugs['main'] ),
+      'logs' => admin_url( 'admin.php?page=' . $this->slugs['logs'] )
     ];
 
     $this->context = [

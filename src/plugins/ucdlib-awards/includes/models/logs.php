@@ -9,12 +9,12 @@ class UcdlibAwardsLogs {
     $this->plugin = $plugin;
     $this->table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::LOGS );
     $this->userTable = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USERS );
-    $this->perPage = 20;
+    $this->perPage = 15;
 
     $this->logTypes = [
       'cycle' => [
         'slug' => 'cycle',
-        'label' => 'Cycle Modifications',
+        'label' => 'Cycle Modification',
         'subTypes' => [
           'create' => [
             'slug' => 'create',
@@ -42,6 +42,17 @@ class UcdlibAwardsLogs {
    */
   public function getFilters($cycleId = null){
     $filters = [];
+
+    $filters[] = [
+      'queryVar' => 'from',
+      'label' => 'Log Date - From',
+      'type' => 'date'
+    ];
+    $filters[] = [
+      'queryVar' => 'to',
+      'label' => 'Log Date - To',
+      'type' => 'date'
+    ];
 
     $types = [];
     foreach ( $this->logTypes as $typeKey => $type ){
@@ -88,6 +99,37 @@ class UcdlibAwardsLogs {
     }
 
     return $filters;
+  }
+
+  /**
+   * @description Get a list of associated user ids for an array of log objects
+   */
+  public function extractUserIds($logs){
+    $users = [];
+    foreach( $logs as $log ){
+      if ( $log->user_id_subject ){
+        $users[] = $log->user_id_subject;
+      }
+      if ( $log->user_id_object ){
+        $users[] = $log->user_id_object;
+      }
+    }
+    return array_unique($users);
+  }
+
+  /**
+   * @description Populate the log_type_label field for an array of log objects
+   */
+  public function getLogTypeLabel( $records ){
+    $logTypes = $this->logTypes;
+    foreach( $records as &$record ){
+      if ( !$record->log_type || !isset($logTypes[$record->log_type]) ){
+        $record->log_type_label = '';
+        continue;
+      }
+      $record->log_type_label = $logTypes[$record->log_type]['label'];
+    }
+    return $records;
   }
 
   /**
@@ -211,6 +253,7 @@ class UcdlibAwardsLogs {
     return [
       'totalResults' => intval($totalResults),
       'totalPages' => ceil($totalResults / $this->perPage),
+      'currentPage' => $page,
       'results' => $results
     ];
   }

@@ -17,7 +17,36 @@ return html`
       </div>
     </div>
     <div id='logs-success'>
-        Here are some logs
+        ${this.logs.length ? html`
+          <div>
+            ${this.logs.map(log => html`
+              <div class='log'>
+                <div
+                  title="Log Type: ${log.log_type_label}"
+                  class='icon-container category-brand__background category-brand--${log.iconColor}'>
+                  <ucdlib-icon icon="${log.icon}"></ucdlib-icon>
+                </div>
+                <div class='log-content'>
+                  <div class='log-text'>${log.displayText}</div>
+                  <div class='log-date'>${log.displayDate}</div>
+                </div>
+              </div>
+            `)}
+          </div>
+          <ucd-theme-pagination
+            class='u-space-mt--large'
+            current-page=${this.logPage}
+            max-pages=${this.totalPages}
+            ellipses
+            xs-screen
+            @page-change=${e => this._onPageChange(e)}
+            >
+          </ucd-theme-pagination>
+        ` : html`
+          <div class="brand-textbox category-brand__background category-brand--admin-blue u-space-mb">
+            <p>No logs found!</p>
+          </div>
+        `}
     </div>
   </ucdlib-pages>
 `;}

@@ -28,6 +28,10 @@ class UcdlibAwardsAwardAbstract {
     'logs' => 'awards-admin-logs',
   ];
 
+  protected $_dashboardSettings = [
+    'logTypeFilter' => []
+  ];
+
   /**
    * CUSTOMIZE END
    */
@@ -50,6 +54,10 @@ class UcdlibAwardsAwardAbstract {
 
   final public function getAdminMenuSlugs() {
     return $this->_adminMenuSlugs;
+  }
+
+  final public function getDashboardSettings() {
+    return $this->_dashboardSettings;
   }
 
 }

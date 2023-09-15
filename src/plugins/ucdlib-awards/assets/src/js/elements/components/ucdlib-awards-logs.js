@@ -1,6 +1,7 @@
 import { LitElement } from 'lit';
 import * as templates from "./ucdlib-awards-logs.tpl.js";
 import wpAjaxController from "../../controllers/wp-ajax.js";
+import datetimeUtils from "../../utils/datetime.js";
 
 import Mixin from "@ucd-lib/theme-elements/utils/mixins/mixin.js";
 import { MainDomElement } from "@ucd-lib/theme-elements/utils/mixins/main-dom-element.js";
@@ -15,6 +16,7 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
       cycleId: { type: Number },
       filters: { type: Object },
       totalPages: { type: Number },
+      users: { type: Array },
       logPage: { type: Number },
       page: { type: String },
       errorMessages: { type: Array }
@@ -32,6 +34,7 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
     this.logPage = 1;
     this.page = 'logs-loading';
     this.errorMessages = [];
+    this.users = [];
 
     this.mutationObserver = new MutationObserverController(this);
     this.wpAjax = new wpAjaxController(this);
@@ -48,6 +51,7 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
 
   async query(){
     const query = {...this.filters, page: this.logPage, cycle: this.cycleId};
+    console.log('query', query);
     const response = await this.wpAjax.request('query', {query});
 
     // query is already in progress
@@ -56,7 +60,9 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
     this.page = 'logs-loading';
     console.log('response', response);
     if ( response.success ) {
-      this.logs = response.data.results.map(log => this._parseLog(log));
+      this.users = response.data.users;
+      this.logs = response.data.results.map(log => this.parseLog(log));
+      this.logPage = response.data.currentPage;
       this.totalPages = response.data.totalPages;
       this.page = 'logs-success';
 
@@ -66,8 +72,51 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
     }
   }
 
-  _parseLog(log){
+  parseLog(log){
+    if ( log.log_type == 'cycle' ){
+      log = this._parseCycleLog(log);
+    }
+
+    if ( !log.displayText ) {
+      log.displayText = 'Error displaying this log!';
+      log.icon = 'ucd-public:fa-question';
+      log.iconColor = 'double-decker';
+    }
+    log.displayDate = datetimeUtils.mysqlToLocaleString(log.date_created, true);
     return log;
+  }
+
+  _parseCycleLog(log){
+    log.icon = 'ucd-public:fa-arrows-spin';
+    log.iconColor = 'gunrock';
+
+    if ( log.log_subtype === 'update' ) {
+      log.displayText = `Cycle updated`;
+    } else if ( log.log_subtype === 'create' ) {
+      log.displayText = `Cycle created`;
+    } else if ( log.log_subtype === 'delete' ) {
+      log.displayText = `Cycle deleted`;
+    }
+    log.displayText += ` by ${this.getUserName(log.user_id_subject)}`;
+
+    return log;
+  }
+
+  getUserName(userId){
+    let out = 'Unknown User';
+    let user = this.users.find(user => user.user_id == userId);
+    if ( !user ) return out;
+    let name = `${user.first_name} ${user.last_name}`;
+    if ( !name.trim() ) return user.display_name;
+    out = name;
+    return out;
+  }
+
+  _onPageChange(e){
+    const newPage = e.detail.page;
+    if ( newPage === this.logPage ) return;
+    this.logPage = newPage;
+    this.query();
   }
 
   /**
@@ -89,6 +138,15 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
       this.query();
     }
 
+  }
+
+  async _filterElementUpdate(filterElement){
+    if ( !filterElement ) return;
+    console.log('filterElement', filterElement);
+    this.logPage = 1;
+    this.filters = filterElement.selectedFilters;
+    await this.query();
+    return true;
   }
 
 }

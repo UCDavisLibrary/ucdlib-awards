@@ -7,7 +7,7 @@ export function render() {
   return html`
     <div class="l-2col l-2col--67-33">
       <div class="l-first panel o-box">
-        <div class="brand-textbox category-brand--tahoe category-brand__background">Activity Feed</div>
+        ${this.renderLogsPanel()}
       </div>
       <div class="l-second panel o-box">
         ${this.renderCycleDatesPanel()}
@@ -55,6 +55,31 @@ export function renderCycleDatesPanel(){
         <a class="icon-ucdlib" href=${this.cyclesLink}>
           <ucdlib-icon class="" icon="ucd-public:fa-circle-chevron-right"></ucdlib-icon>
           <span>View Cycle</span>
+        </a>
+      </section>
+    </div>
+  `;
+}
+
+export function renderLogsPanel(){
+  if (
+    !this.logsPropsJson ||
+    !Object.keys(this.logsProps).length) {
+      return html``;
+    }
+  return html`
+    <div class="panel panel--icon panel--icon-custom o-box category-brand--rose">
+      <h2 class="panel__title">
+        <ucdlib-icon icon="ucd-public:fa-calendar-week" class="panel__custom-icon"></ucdlib-icon>
+        <span>Recent Activity</span>
+      </h2>
+      <section>
+        <ucdlib-awards-logs>
+          <script type="application/json">${this.logsPropsJson}</script>
+        </ucdlib-awards-logs>
+        <a class="icon-ucdlib" href=${this.logsLink}>
+          <ucdlib-icon class="" icon="ucd-public:fa-circle-chevron-right"></ucdlib-icon>
+          <span>View All</span>
         </a>
       </section>
     </div>

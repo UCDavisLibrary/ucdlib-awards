@@ -13,6 +13,7 @@ export default class UcdlibAwardsLogsFilter extends Mixin(LitElement)
     return {
       filters: { type: Array },
       selectedFilters: { type: Object },
+      doingQuery: { type: Boolean }
     }
   }
 
@@ -23,14 +24,31 @@ export default class UcdlibAwardsLogsFilter extends Mixin(LitElement)
 
     this.filters = [];
     this.selectedFilters = {};
+    this.doingQuery = false;
 
     this.mutationObserver = new MutationObserverController(this);
     this.wpAjax = new wpAjaxController(this);
   }
 
-  _onSubmit(e){
+  async _onSubmit(e){
     e.preventDefault();
+    if ( this.doingQuery ) return;
     console.log('submit', this.selectedFilters);
+
+    const mainEle = document.querySelector('ucdlib-awards-page');
+    if ( !mainEle ) {
+      console.error('Could not find main element');
+      return;
+    }
+    const logsEle = mainEle.renderRoot.querySelector('ucdlib-awards-logs');
+    if ( !logsEle ) {
+      console.error('Could not find logs element');
+      return;
+    }
+
+    this.doingQuery = true;
+    await logsEle._filterElementUpdate(this);
+    this.doingQuery = false;
   }
 
   _onFilterChange(prop, value){

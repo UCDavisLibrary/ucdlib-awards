@@ -5,13 +5,17 @@
  */
 class UcdlibAwardsUser {
 
-  public function __construct( $username=null ){
+  public function __construct( $username=null, $record=null ){
     if ( $username ){
       $this->username = $username;
+      if ( $record ) {
+        $this->record = $record;
+      }
     } else {
       $this->wpUser = wp_get_current_user();
       $this->username = $this->wpUser->user_login;
     }
+    $this->table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USERS );
   }
 
   /**
@@ -62,6 +66,31 @@ class UcdlibAwardsUser {
     $usersTable = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USERS );
     $this->record = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $usersTable WHERE wp_user_login = %s", $this->username ) );
     return $this->record;
+  }
+
+  public function createFromWpAccount( $isAdmin=false ){
+    if ( !$this->wpUser() ){
+      return false;
+    }
+    $record = [
+      'first_name' => $this->wpUser()->user_firstname,
+      'last_name' => $this->wpUser()->user_lastname,
+      'wp_user_login' => $this->wpUser()->user_login,
+      'email' => $this->wpUser()->user_email,
+      'is_admin' => $isAdmin ? 1 : 0,
+      'date_created' => date('Y-m-d H:i:s'),
+      'date_updated' => date('Y-m-d H:i:s')
+    ];
+    global $wpdb;
+    $wpdb->insert( $this->table, $record );
+    $this->clearCache();
+    return true;
+  }
+
+  public function clearCache(){
+    $this->record = null;
+    $this->wpUser = null;
+    $this->isAdmin = null;
   }
 
 }

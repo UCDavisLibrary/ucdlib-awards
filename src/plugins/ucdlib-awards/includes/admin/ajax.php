@@ -26,8 +26,15 @@ class UcdlibAwardsAdminAjax {
         $response['data'] = ['filters' => $filters];
         $response['success'] = true;
       } else if ( $action === 'query' ){
-        $data = json_decode( stripslashes($_POST['data']), true );
-        $response['data'] = $this->logger->query($data['query']);
+        $dataIn = json_decode( stripslashes($_POST['data']), true );
+        $dataOut = $this->logger->query($dataIn['query']);
+        $userIds = $this->logger->extractUserIds($dataOut['results']);
+        $dataOut['results'] = $this->logger->getLogTypeLabel($dataOut['results']);
+        $users = $this->plugin->users->getByUserIds($userIds);
+        $dataOut['users'] = array_map(function($user){
+          return $user->record();
+        }, $users);
+        $response['data'] = $dataOut;
         $response['success'] = true;
       }
     } catch (\Throwable $th) {
@@ -149,6 +156,15 @@ class UcdlibAwardsAdminAjax {
     if ( !isset($_POST['subAction']) ){
       $response['messages'][] = 'No subAction specified.';
       $this->utils->sendResponse($response);
+    }
+
+    // create record in user table if one does not exist
+    if ( !$this->plugin->users->currentUser()->record() ){
+      $success = $this->plugin->users->currentUser()->createFromWpAccount(true);
+      if ( !$success ){
+        $response['messages'][] = 'Error creating user record.';
+        $this->utils->sendResponse($response);
+      }
     }
   }
 

@@ -9,7 +9,7 @@ return html`
     </h2>
     <form @submit=${this._onSubmit}>
       ${this.filters.map(filter => this.renderFilter(filter))}
-      <button type="submit" class="btn btn--primary btn--block border-box u-space-mt--large">Apply Filters</button>
+      <button ?disabled=${this.doingQuery} type="submit" class="btn btn--primary btn--block border-box u-space-mt--large">Apply Filters</button>
     </form>
   </div>
 `;}
@@ -29,6 +29,17 @@ export function renderFilter(filter){
         </ucd-theme-slim-select>
       </div>
     `;
+  }
+
+  if ( filter?.type === 'date' ){
+    return html`
+      <div class='field-container'>
+        <label>${filter.label}</label>
+        <input
+          type="date"
+          @change=${e => this._onFilterChange(filter.queryVar, e.target.value)}
+          value="${this.selectedFilters[filter.queryVar] || ''}">
+      </div>`;
   }
   return html``;
 }
