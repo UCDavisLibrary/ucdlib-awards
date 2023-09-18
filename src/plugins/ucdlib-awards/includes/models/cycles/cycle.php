@@ -96,6 +96,66 @@ class UcdlibAwardsCycle {
     return $record->has_support ? true : false;
   }
 
+  public function applicationFormId(){
+    $record = $this->record();
+    return $record->application_form_id;
+  }
+
+  public function supportFormId(){
+    $record = $this->record();
+    if ( !$record->has_support ) return false;
+    return $record->support_form_id;
+  }
+
+  /**
+   * @description returns current status of application window: 'active', 'upcoming', or 'past'
+   */
+  protected $applicationWindowStatus;
+  public function applicationWindowStatus(){
+    if ( !empty( $this->applicationWindowStatus ) ) return $this->applicationWindowStatus;
+    $record = $this->record();
+    if ( empty($record->application_start) || empty($record->application_end) ) return false;
+    $this->applicationWindowStatus = $this->dateRangeStatus( $record->application_start, $record->application_end );
+    return $this->applicationWindowStatus;
+  }
+
+  /**
+   * @description returns current status of evaluation window: 'active', 'upcoming', or 'past'
+   */
+  protected $evaluationWindowStatus;
+  public function evaluationWindowStatus(){
+    if ( !empty( $this->evaluationWindowStatus ) ) return $this->evaluationWindowStatus;
+    $record = $this->record();
+    if ( empty($record->evaluation_start) || empty($record->evaluation_end) ) return false;
+    $this->evaluationWindowStatus = $this->dateRangeStatus( $record->evaluation_start, $record->evaluation_end );
+    return $this->evaluationWindowStatus;
+  }
+
+  /**
+   * @description returns current status of support window: 'active', 'upcoming', or 'past'
+   */
+  protected $supportWindowStatus;
+  public function supportWindowStatus(){
+    if ( !empty( $this->supportWindowStatus ) ) return $this->supportWindowStatus;
+    $record = $this->record();
+    if ( !$this->supportIsEnabled() || empty($record->support_start) || empty($record->support_end) ) return false;
+    $this->supportWindowStatus = $this->dateRangeStatus( $record->support_start, $record->support_end );
+    return $this->supportWindowStatus;
+  }
+
+  private function dateRangeStatus($start, $end){
+    $now = new DateTime( 'now', new DateTimeZone('America/Los_Angeles') );
+    $applicationStart = new DateTime( $start, new DateTimeZone('America/Los_Angeles') );
+    $applicationEnd = new DateTime( $end, new DateTimeZone('America/Los_Angeles') );
+    if ( $now < $applicationStart ) {
+      return 'upcoming';
+    } elseif ( $now > $applicationEnd ) {
+      return 'past';
+    } else {
+      return 'active';
+    }
+  }
+
   /**
    * @description Get the basic cycle record from the db table
    */

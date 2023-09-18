@@ -7,4 +7,4 @@
  */
 
  require_once( __DIR__ . '/includes/main.php' );
- new UcdlibAwards();
+$GLOBALS['ucdlibAwards'] =  new UcdlibAwards();

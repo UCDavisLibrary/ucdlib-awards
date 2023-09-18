@@ -3,6 +3,7 @@ require_once( __DIR__ . '/admin/main.php' );
 require_once( __DIR__ . '/assets.php' );
 require_once( __DIR__ . '/auth.php' );
 require_once( __DIR__ . '/award-loader.php' );
+require_once( __DIR__ . '/forms/main.php' );
 require_once( __DIR__ . '/models/cycles/cycles.php' );
 require_once( __DIR__ . '/models/users/users.php' );
 require_once( __DIR__ . '/models/forms.php' );
@@ -29,7 +30,7 @@ class UcdlibAwards {
 
     register_activation_hook($this->entryPoint, [$this, '_onActivation'] );
 
-    add_action( 'plugins_loaded', [$this, 'loadModules'] );
+    add_action( 'plugins_loaded', [$this, 'loadModules'], 2 );
     add_filter( 'timber/locations', array($this, 'add_timber_locations') );
 
   }
@@ -51,6 +52,7 @@ class UcdlibAwards {
     $this->auth = new UcdlibAwardsAuth( $this );
     $this->admin = new UcdlibAwardsAdmin( $this );
     $this->assets = new UcdlibAwardsAssets( $this );
+    $this->formsCtl = new UcdlibAwardsFormsMain( $this );
   }
 
   /**

@@ -42,8 +42,9 @@ export default class wpAjax {
     }
 
     let responseData;
+    let response;
     try {
-      const response = await fetch(this.url, {
+      response = await fetch(this.url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
@@ -59,7 +60,11 @@ export default class wpAjax {
     } catch (error) {
       console.error('Error fetching data', error);
       const template = {...this.responseTemplate};
-      template.messages = ['An unknown error occurred. Please try again.'];
+      if ( response?.status == 403 ) {
+        template.messages = ['You either do not have permission to perform this action, or your session has expired. Please refresh the page and try again.'];
+      } else {
+        template.messages = ['An unknown error occurred. Please try again.'];
+      }
       responseData = template;
     }
 

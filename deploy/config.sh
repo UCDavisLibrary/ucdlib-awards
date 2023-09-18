@@ -24,6 +24,7 @@ REPO_TAG=main
 
 # Dependency tags/branches
 THEME_TAG='v3.5.0'
+FORMINATOR_THEME_TAG='1.1.0'
 WP_CORE_VERSION='6.3.1'
 MYSQL_TAG=5.7
 ADMINER_TAG=4

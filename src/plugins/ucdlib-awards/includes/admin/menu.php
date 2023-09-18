@@ -91,6 +91,7 @@ class UcdlibAwardsAdminMenu {
       $activeCycle = $this->plugin->cycles->activeCycle();
       $forms = $this->plugin->forms->getForms(null, 1, 100);
       $forms = $this->plugin->forms->toBasicArray($forms);
+      //error_log( print_r($forms, true) );
     }
     if ( $activeCycle ){
       $activeCycle = $activeCycle->recordArray();

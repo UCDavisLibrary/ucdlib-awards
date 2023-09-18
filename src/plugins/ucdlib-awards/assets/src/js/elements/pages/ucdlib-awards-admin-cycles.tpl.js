@@ -204,7 +204,7 @@ export function renderEditForm() {
 
       </fieldset>
       <div class="button-row">
-        <button type="submit" class="btn--primary">${isNew ? 'Create' : 'Edit'}</button>
+        <button type="submit" class="btn--primary">${isNew ? 'Create' : 'Update'}</button>
         <button
           ?hidden=${!this.hasActiveCycle}
           type="button" @click=${this._onEditFormCancel}

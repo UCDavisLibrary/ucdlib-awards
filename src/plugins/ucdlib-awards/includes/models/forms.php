@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @description Wrapper class for select methods from the Forminator API.
+ * @description Wrapper class for select methods from the Forminator API among other things.
  */
 class UcdlibAwardsForms {
 
@@ -27,11 +27,51 @@ class UcdlibAwardsForms {
     foreach( $forms as $form ){
       $basicForms[] = [
         'id' => $form->id,
-        'title' => $form->settings['form_name']
+        'title' => $form->settings['formName']
       ];
     }
     if ( $returnSingle ) return $basicForms[0];
     return $basicForms;
+  }
+
+  protected $applicationFormId;
+  public function applicationFormId(){
+    if ( !empty( $this->applicationFormId ) ) return $this->applicationFormId;
+    $activeCycle = $this->plugin->cycles->activeCycle();
+    if ( !$activeCycle ) return false;
+    $this->applicationFormId = $activeCycle->applicationFormId();
+    return $this->applicationFormId;
+  }
+
+  protected $applicationForm;
+  public function applicationForm(){
+    if ( !empty( $this->applicationForm ) ) return $this->applicationForm;
+    $formId = $this->applicationFormId();
+    if ( !$formId ) return false;
+    $forms = $this->getForms( $formId );
+    if ( empty($forms) ) return false;
+    $this->applicationForm = $forms[0];
+    return $this->applicationForm;
+  }
+
+  protected $supportFormId;
+  public function supportFormId(){
+    if ( !empty( $this->supportFormId ) ) return $this->supportFormId;
+    $activeCycle = $this->plugin->cycles->activeCycle();
+    if ( !$activeCycle ) return false;
+    $this->supportFormId = $activeCycle->supportFormId();
+    return $this->supportFormId;
+  }
+
+  protected $supportForm;
+  public function supportForm(){
+    if ( !empty( $this->supportForm ) ) return $this->supportForm;
+    $formId = $this->supportFormId();
+    if ( !$formId ) return false;
+    $forms = $this->getForms( $formId );
+    if ( empty($forms) ) return false;
+    $this->supportForm = $forms[0];
+    return $this->supportForm;
   }
 
 }

@@ -102,7 +102,13 @@ RUN unzip ${OPENID_CONNECT_GENERIC_ZIP_FILE} && rm ${OPENID_CONNECT_GENERIC_ZIP_
 && unzip ${REDIRECTION_ZIP_FILE} && rm ${REDIRECTION_ZIP_FILE}
 RUN mv $OPENID_CONNECT_GENERIC_DIR openid-connect-generic
 
-# Copy our custom plugins
+# Retrieve any custom plugins from github
+ARG FORMINATOR_THEME_TAG
+RUN git clone https://github.com/UCDavisLibrary/forminator-theme-styles.git \
+&& cd forminator-theme-styles \
+&& git checkout ${FORMINATOR_THEME_TAG}
+
+# Copy our custom awards plugins
 COPY src/plugins/aggie-open aggie-open
 COPY src/plugins/graduate-student-prize graduate-student-prize
 COPY src/plugins/lang-prize lang-prize
