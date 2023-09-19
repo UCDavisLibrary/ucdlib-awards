@@ -14,6 +14,7 @@ class UcdlibAwardsUsers {
     $this->userCache = [];
 
     $this->table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USERS );
+    $this->metaTable = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USER_META );
   }
 
   /**
@@ -56,6 +57,34 @@ class UcdlibAwardsUsers {
       $this->userCache[ $user->username ] = $user;
     }
     return $users;
+  }
+
+  public function getAllApplicants($cycleId){
+    if ( !$cycleId ) return [];
+    global $wpdb;
+    $sql = "
+    SELECT
+      u.*
+    FROM
+      $this->table u
+    INNER JOIN
+      $this->metaTable m
+    ON
+      u.user_id = m.user_id
+    WHERE
+      m.meta_key = 'isApplicant' AND
+      m.meta_value = 'true' AND
+      m.cycle_id = $cycleId
+    ";
+    $results = $wpdb->get_results( $sql );
+    $users = [];
+    foreach ( $results as $result ){
+      $user = new UcdlibAwardsUser( $result->wp_user_login, $result );
+      $users[] = $user;
+      $this->userCache[ $user->username ] = $user;
+    }
+    return $users;
+
   }
 
 }

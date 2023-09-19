@@ -11,6 +11,7 @@ class LangPrize extends UcdlibAwardsAwardAbstract {
     'main' => 'lang-prize-admin',
     'cycles' => 'lang-prize-admin-cycles',
     'logs' => 'lang-prize-admin-logs',
+    'applicants' => 'lang-prize-admin-applicants'
   ];
 
 }

@@ -8,12 +8,14 @@ class UcdlibAwardsConfig {
   public static $pluginHookSlug = 'ucdlib_awards';
   public static $twigNamespace = 'ucdlib-awards';
   public static $adminJsSlug = 'ucdlib-awards';
+  public static $publicJsSlug = 'ucdlib-awards';
 
   public static $ajaxActions = [
     'adminGeneral' => 'ucdlib_awards_admin_general',
     'adminDashboard' => 'ucdlib_awards_admin_dashboard',
     'adminCycles' => 'ucdlib_awards_admin_cycles',
-    'adminLogs' => 'ucdlib_awards_admin_logs'
+    'adminLogs' => 'ucdlib_awards_admin_logs',
+    'adminApplicants' => 'ucdlib_awards_admin_applicants',
   ];
 
   public static $urlQueryParams = [

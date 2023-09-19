@@ -7,7 +7,7 @@ import corkAppBuild from '@ucd-lib/cork-app-build';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-let dist = `${buildConfig.publicDir}/${buildConfig.jsDistDir}`;
+let dist = `${buildConfig.publicDir}/${buildConfig.jsPublicDistDir}`;
 let distFolder = path.join(__dirname, dist);
 if( fs.existsSync(distFolder) ) {
   fs.removeSync(distFolder);
@@ -15,7 +15,7 @@ if( fs.existsSync(distFolder) ) {
 
 let config = corkAppBuild.dist({
   root : __dirname,
-  entry : buildConfig.entry,
+  entry : buildConfig.publicEntry,
   dist: distFolder,
   modern : `${buildConfig.fileName}.js`,
   ie: `${buildConfig.fileName}-ie.js`,

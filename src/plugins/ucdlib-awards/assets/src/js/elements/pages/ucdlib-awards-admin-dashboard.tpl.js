@@ -70,7 +70,7 @@ export function renderLogsPanel(){
   return html`
     <div class="panel panel--icon panel--icon-custom o-box category-brand--rose">
       <h2 class="panel__title">
-        <ucdlib-icon icon="ucd-public:fa-calendar-week" class="panel__custom-icon"></ucdlib-icon>
+        <ucdlib-icon icon="ucd-public:fa-timeline" class="panel__custom-icon"></ucdlib-icon>
         <span>Recent Activity</span>
       </h2>
       <section>

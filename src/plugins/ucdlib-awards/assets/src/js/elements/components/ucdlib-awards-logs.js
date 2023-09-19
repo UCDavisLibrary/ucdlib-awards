@@ -75,6 +75,8 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
   parseLog(log){
     if ( log.log_type == 'cycle' ){
       log = this._parseCycleLog(log);
+    } else if ( log.log_type == 'application' ) {
+      log = this._parseApplicationLog(log);
     }
 
     if ( !log.displayText ) {
@@ -99,6 +101,15 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
     }
     log.displayText += ` by ${this.getUserName(log.user_id_subject)}`;
 
+    return log;
+  }
+
+  _parseApplicationLog(log){
+    log.icon = 'ucd-public:fa-square-pen';
+    log.iconColor = 'pinot';
+    if ( log.log_subtype === 'submit' ) {
+      log.displayText = `Application submitted by ${this.getUserName(log.user_id_subject)}`;
+    }
     return log;
   }
 

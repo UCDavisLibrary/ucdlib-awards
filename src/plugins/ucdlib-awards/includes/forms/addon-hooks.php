@@ -18,12 +18,17 @@ class UcdlibAwardsFormsAddonHooks extends Forminator_Addon_Form_Hooks_Abstract {
     $isSupportForm = $formId == $this->plugin->forms->supportFormId();
     if ( !$isApplicationForm && !$isSupportForm ) return true;
 
+    $activeCycle = $this->plugin->cycles->activeCycle();
+    if ( !$activeCycle ){
+      return "Submission failed! Could not determine active application cycle.";
+    }
+
     // Check that form is active
     $formWindowStatus = '';
     if ( $isApplicationForm ) {
-      $formWindowStatus = $this->plugin->cycles->activeCycle()->applicationWindowStatus();
+      $formWindowStatus = $activeCycle->applicationWindowStatus();
     } else if ( $isSupportForm ) {
-      $formWindowStatus = $this->plugin->cycles->activeCycle()->supportWindowStatus();
+      $formWindowStatus = $activeCycle->supportWindowStatus();
     }
     if ( !$formWindowStatus ){
       return "Submission failed! Could not determine application window status.";
@@ -40,10 +45,42 @@ class UcdlibAwardsFormsAddonHooks extends Forminator_Addon_Form_Hooks_Abstract {
     }
 
     // ensure user has not already submitted if an application form
-    // TODO
+    if ( $isApplicationForm && $user->applicationEntry( $activeCycle->cycleId ) ) {
+      return "Submission failed! You have already submitted an application.";
+    }
 
     // ensure that user is in our users table and set isApplicant meta for cycle
+    $metaUpdateSuccess = $user->updateMeta( 'isApplicant', true, $activeCycle->cycleId );
+    if ( !$metaUpdateSuccess ) {
+      return "Submission failed! Could not update user meta.";
+    }
 
     return true;
+  }
+
+  public function add_entry_fields( $submitted_data, $form_entry_fields = array(), $entry = null ) {
+    $formId = $this->form_id;
+    $out = [];
+
+    // check form is for application or support letter
+    $isApplicationForm = $formId == $this->plugin->forms->applicationFormId();
+    $isSupportForm = $formId == $this->plugin->forms->supportFormId();
+    if ( !$isApplicationForm && !$isSupportForm ) return $out;
+
+    $user = $this->plugin->users->currentUser();
+    $cycle = $this->plugin->cycles->activeCycle();
+    if ( !$user->id || !$cycle ) return $out;
+    $out[] = [
+      'name' => 'applicant_id',
+      'value' => $user->id
+    ];
+    $out[] = [
+      'name' => 'cycle_id',
+      'value' => $cycle->cycleId
+    ];
+
+    $this->plugin->logs->logApplicationSubmit( $cycle->cycleId, $user->id );
+
+    return $out;
   }
 }

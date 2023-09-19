@@ -5,8 +5,11 @@
   "main": "src/js/index.js",
   "scripts": {
     "watch": "webpack --config ./build/webpack-watch.config.js --watch",
+    "watch-public": "webpack --config ./build/webpack-watch-public.config.js --watch",
     "create-dev-bundle": "webpack --config ./build/webpack-watch.config.js",
-    "dist": "webpack --config ./build/webpack-dist.config.js"
+    "create-public-dev-bundle": "webpack --config ./build/webpack-watch-public.config.js",
+    "dist": "webpack --config ./build/webpack-dist.config.js",
+    "dist-public": "webpack --config ./build/webpack-dist-public.config.js"
   },
   "keywords": [],
   "author": "",

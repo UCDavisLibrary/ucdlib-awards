@@ -7,21 +7,19 @@ import corkAppBuild from '@ucd-lib/cork-app-build';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-let dist = `${buildConfig.publicDir}/${buildConfig.jsDistDir}`;
-let distFolder = path.join(__dirname, dist);
-if( fs.existsSync(distFolder) ) {
-  fs.removeSync(distFolder);
+let preview = `${buildConfig.publicDir}/${buildConfig.jsPublicDevDir}`;
+let previewFolder = path.join(__dirname, preview);
+if( fs.existsSync(previewFolder) ) {
+  fs.removeSync(previewFolder);
 }
 
-let config = corkAppBuild.dist({
+let config = corkAppBuild.watch({
   root : __dirname,
-  entry : buildConfig.entry,
-  dist: distFolder,
+  entry : buildConfig.publicEntry,
+  preview : preview,
   modern : `${buildConfig.fileName}.js`,
-  ie: `${buildConfig.fileName}-ie.js`,
   clientModules : buildConfig.clientModules
 });
-
 
 if( !Array.isArray(config) ) config = [config];
 
@@ -41,7 +39,7 @@ if( !Array.isArray(config) ) config = [config];
 
 //   conf.plugins = [
 //     new MiniCssExtractPlugin({
-//       filename: `../../../public/css/${buildConfig.cssFileName}-min.css`
+//       filename: `../../../public/css/${buildConfig.cssFileName}.css`
 //     })
 //   ];
 // });

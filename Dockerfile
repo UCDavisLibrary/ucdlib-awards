@@ -114,6 +114,8 @@ COPY src/plugins/graduate-student-prize graduate-student-prize
 COPY src/plugins/lang-prize lang-prize
 COPY src/plugins/ucdlib-awards ucdlib-awards
 
+# TODO: build js
+
 # Back to site root so wordpress can do the rest of its thing
 WORKDIR $WP_SRC_ROOT
 

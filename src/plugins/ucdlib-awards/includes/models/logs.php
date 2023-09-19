@@ -32,6 +32,17 @@ class UcdlibAwardsLogs {
             'description' => 'Cycle deleted'
           ]
         ]
+      ],
+      'application' => [
+        'slug' => 'application',
+        'label' => 'Application',
+        'subTypes' => [
+          'submit' => [
+            'slug' => 'submit',
+            'label' => 'Submit',
+            'description' => 'Application submitted'
+          ]
+        ]
       ]
     ];
 
@@ -41,6 +52,7 @@ class UcdlibAwardsLogs {
    * @description Get list of allowable filters
    */
   public function getFilters($cycleId = null){
+    $cycle = $this->plugin->cycles->getById($cycleId);
     $filters = [];
 
     $filters[] = [
@@ -72,7 +84,12 @@ class UcdlibAwardsLogs {
       'queryVar' => 'applicant',
       'label' => 'Applicant',
       'type' => 'multiSelect',
-      'options' => []
+      'options' => array_map(function($user){
+        return [
+          'value' => $user->id,
+          'label' => $user->name()
+        ];
+      }, $cycle->allApplicants())
     ];
 
     $filters[] = [
@@ -84,7 +101,6 @@ class UcdlibAwardsLogs {
 
     $showSupporters = false;
     if ( $cycleId ){
-      $cycle = $this->plugin->cycles->getById($cycleId);
       if ( $cycle && $cycle->supportIsEnabled() ){
         $showSupporters = true;
       }
@@ -130,6 +146,20 @@ class UcdlibAwardsLogs {
       $record->log_type_label = $logTypes[$record->log_type]['label'];
     }
     return $records;
+  }
+
+  public function logApplicationSubmit($cycleId, $userId) {
+    $log = [
+      'log_type' => 'application',
+      'log_subtype' => 'submit',
+      'cycle_id' => $cycleId,
+      'user_id_subject' => $userId,
+      'date_created' =>  date('Y-m-d H:i:s')
+    ];
+
+    global $wpdb;
+    $wpdb->insert( $this->table, $log );
+    return true;
   }
 
   /**
@@ -184,6 +214,7 @@ class UcdlibAwardsLogs {
     $errors = isset($args['errors']) ? $args['errors'] : 'exclude';
 
     $users = array_merge($applicant, $judge, $supporter, $users);
+    $users = array_filter($users);
 
     $sql = "
     SELECT

@@ -9,6 +9,7 @@ class UcdlibAwardsCycle {
    * @param $cycle int|string|object - Can be cycle id or cycle db record
    */
   public function __construct( $cycle ){
+    $this->plugin = $GLOBALS['ucdlibAwards'];
     $this->record = null;
     $this->cycleId = null;
     if ( is_int($cycle) ){
@@ -188,5 +189,12 @@ class UcdlibAwardsCycle {
     $record = $this->record();
     $this->isActive = $record->is_active;
     return $this->isActive;
+  }
+
+  protected $allApplicants;
+  public function allApplicants(){
+    if ( !empty($this->allApplicants) ) return $this->allApplicants;
+    $this->allApplicants = $this->plugin->users->getAllApplicants( $this->cycleId );
+    return $this->allApplicants;
   }
 }

@@ -21,6 +21,12 @@ class UcdlibAwardsDbTables {
   const CYCLES = 'cycles';
   const USER_META = 'user_meta';
 
+  /**
+   * Table name keys for other plugins
+   */
+  const FORM_ENTRY = 'frmt_form_entry';
+  const FORM_ENTRY_META = 'frmt_form_entry_meta';
+
 	private static $tables = [];
 
 /**
@@ -38,7 +44,9 @@ class UcdlibAwardsDbTables {
       self::RUBRIC_ITEMS => $db->prefix . self::TABLE_PREFIX . 'rubric_items',
       self::USERS        => $db->prefix . self::TABLE_PREFIX . 'users',
       self::CYCLES       => $db->prefix . self::TABLE_PREFIX . 'cycles',
-      self::USER_META    => $db->prefix . self::TABLE_PREFIX . 'user_meta'
+      self::USER_META    => $db->prefix . self::TABLE_PREFIX . 'user_meta',
+      self::FORM_ENTRY   => $db->prefix . self::FORM_ENTRY,
+      self::FORM_ENTRY_META => $db->prefix . self::FORM_ENTRY_META
     ];
 	}
 

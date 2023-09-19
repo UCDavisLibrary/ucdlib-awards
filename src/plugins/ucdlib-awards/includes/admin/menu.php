@@ -47,6 +47,15 @@ class UcdlibAwardsAdminMenu {
     add_submenu_page(
       $this->slugs['main'],
       $this->award->getAdminMenuPageTitle(),
+      "Applicants",
+      "edit_posts",
+      $this->slugs['applicants'],
+      [$this, 'renderApplicants']
+    );
+
+    add_submenu_page(
+      $this->slugs['main'],
+      $this->award->getAdminMenuPageTitle(),
       "Activity Log",
       "edit_posts",
       $this->slugs['logs'],
@@ -91,7 +100,6 @@ class UcdlibAwardsAdminMenu {
       $activeCycle = $this->plugin->cycles->activeCycle();
       $forms = $this->plugin->forms->getForms(null, 1, 100);
       $forms = $this->plugin->forms->toBasicArray($forms);
-      //error_log( print_r($forms, true) );
     }
     if ( $activeCycle ){
       $activeCycle = $activeCycle->recordArray();
@@ -126,7 +134,14 @@ class UcdlibAwardsAdminMenu {
       'doQueryOnLoad' => true
     ];
     UcdlibAwardsTimber::renderAdminPage( 'logs', $context );
+  }
 
+  /**
+   * @description Render the admin Applicants page.
+   */
+  public function renderApplicants(){
+    $context = $this->context();
+    UcdlibAwardsTimber::renderAdminPage( 'applicants', $context );
   }
 
   /**

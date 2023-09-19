@@ -7,7 +7,7 @@ import corkAppBuild from '@ucd-lib/cork-app-build';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-let preview = `${buildConfig.publicDir}/js/dev`;
+let preview = `${buildConfig.publicDir}/${buildConfig.jsDevDir}`;
 let previewFolder = path.join(__dirname, preview);
 if( fs.existsSync(previewFolder) ) {
   fs.removeSync(previewFolder);

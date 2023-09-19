@@ -11,10 +11,12 @@ class UcdlibAwardsFormsMain {
     $this->plugin = $plugin;
     add_action( 'forminator_addons_loaded', [$this, 'registerAddon'] );
     add_filter( 'forminator_form_notifications', [$this, 'removeDefaultEmailNotification'], 10, 4 );
-    add_action( 'the_post', [$this, 'forceLoginForActivatedForms'] );
+    add_action( 'the_post', [$this, 'forceLoginForActivatedForms'], 9 );
 
+    // properties for tracking if we're on a page with an active awards form
     $this->isApplicationForm = false;
     $this->isSupportForm = false;
+    $this->formId = 0;
   }
 
   /**
@@ -26,6 +28,44 @@ class UcdlibAwardsFormsMain {
     if ( class_exists( 'Forminator_Addon_Loader' ) ) {
       Forminator_Addon_Loader::get_instance()->register( 'UcdlibAwardsFormsAddon' );
     }
+  }
+
+  /**
+   * @description Get config data for the active awards form
+   * Will be passed to the public JS bundle
+   */
+  public function getAwardFormConfig(){
+    $out = [
+      'isApplicationForm' => $this->isApplicationForm,
+      'isSupportForm' => $this->isSupportForm,
+      'formId' => $this->formId
+    ];
+    $activeCycle = $this->plugin->cycles->activeCycle();
+
+    $formWindowStatus = '';
+    $formWindowStart = '';
+    $formWindowEnd = '';
+    if ( $this->isApplicationForm ) {
+      $formWindowStatus = $activeCycle->applicationWindowStatus();
+      $formWindowStart = $activeCycle->record()->application_start;
+      $formWindowEnd = $activeCycle->record()->application_end;
+    } else if ( $this->isSupportForm ) {
+      $formWindowStatus = $activeCycle->supportWindowStatus();
+      $formWindowStart = $activeCycle->record()->support_start;
+      $formWindowEnd = $activeCycle->support_end;
+    }
+    $out['formWindowStatus'] = $formWindowStatus;
+    $out['formWindowStart'] = $formWindowStart;
+    $out['formWindowEnd'] = $formWindowEnd;
+
+    $user = $this->plugin->users->currentUser();
+    $previousEntry = false;
+    if ( $this->isApplicationForm ) {
+      $previousEntry = $user->applicationEntry( $activeCycle->cycleId );
+    }
+    $out['previousEntry'] = $previousEntry;
+
+    return $out;
   }
 
   /**
@@ -45,6 +85,7 @@ class UcdlibAwardsFormsMain {
       $this->isApplicationForm = $formId == $this->plugin->forms->applicationFormId();
       $this->isSupportForm = $formId == $this->plugin->forms->supportFormId();
       if ( $this->isApplicationForm || $this->isSupportForm ) {
+        $this->formId = $formId;
         break;
       }
     }

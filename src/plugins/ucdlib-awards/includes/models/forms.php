@@ -17,6 +17,12 @@ class UcdlibAwardsForms {
     return $forms;
   }
 
+  public function getEntry($formId, $entryId){
+    if ( !$this->forminatorActivated ) return false;
+    $entry = Forminator_API::get_entry($formId, $entryId);
+    return $entry;
+  }
+
   public function toBasicArray($forms){
     if ( is_array($forms) ) {
       $returnSingle = false;

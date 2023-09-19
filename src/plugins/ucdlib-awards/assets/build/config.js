@@ -5,6 +5,11 @@ const config = {
   fileName: 'ucdlib-awards',
   cssFileName: 'ucdlib-awards',
   entry: '../src/js/index.js',
+  jsDevDir: 'js/dev',
+  jsPublicDevDir: 'js/public-dev',
+  jsDistDir: 'js/dist',
+  jsPublicDistDir: 'js/public-dist',
+  publicEntry: '../src/js/public-index.js',
   scssEntry: '../src/scss/style.scss',
   publicDir: '../public',
   clientModules: [
