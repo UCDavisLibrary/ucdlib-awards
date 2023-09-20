@@ -95,7 +95,7 @@ class UcdlibAwardsAdminAjax {
           $cycle->update($data);
           $this->logger->logCycleEvent($cycleId, 'update');
           $response['messages'][] = 'Cycle updated successfully.';
-          $response['data'] = ['cycle' => $cycle->recordArray()];
+          $response['data'] = ['cycle' => $cycle->recordArray(['applicantCount' => true])];
         } else {
           if ( $data['is_active'] ){
             $this->plugin->cycles->deactivateAll();
@@ -104,7 +104,7 @@ class UcdlibAwardsAdminAjax {
           $this->logger->logCycleEvent($cycleId, 'create');
           $response['messages'][] = 'Cycle added successfully.';
           $cycle = $this->plugin->cycles->getById($cycleId);
-          $cycle = $cycle->recordArray();
+          $cycle = $cycle->recordArray(['applicantCount' => true]);
           $response['data'] = ['cycle' => $cycle];
         }
         $response['success'] = true;
@@ -135,6 +135,15 @@ class UcdlibAwardsAdminAjax {
         $cycle->delete();
         $this->logger->logCycleEvent($cycle->cycleId, 'delete');
 
+        $response['success'] = true;
+      } else if ( $action == 'getFormFields' ){
+        if ( !$data['form_id'] ){
+          $response['messages'][] = 'No form specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+        $fields = $this->plugin->forms->getFormFields( intval($data['form_id']) );
+        $response['data'] = ['fields' => $fields];
         $response['success'] = true;
       }
 

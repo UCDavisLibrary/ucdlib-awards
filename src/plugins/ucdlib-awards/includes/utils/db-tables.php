@@ -76,6 +76,8 @@ class UcdlibAwardsDbTables {
         'is_active' => 'Cycle Is Active',
         'application_form_id' => 'Application Form',
         'support_form_id' => 'Support Letters Form',
+        'has_categories' => 'Has Application Categories',
+        'category_form_slug' => 'Category Options',
         'cycle_meta' => 'Cycle Meta',
         'date_created' => 'Date Created',
         'date_updated' => 'Date Updated'
@@ -208,6 +210,8 @@ class UcdlibAwardsDbTables {
       `is_active` TINYINT(1) NOT NULL DEFAULT 0,
       `application_form_id` bigint(20) unsigned NOT NULL DEFAULT 0,
       `support_form_id` bigint(20) unsigned NOT NULL DEFAULT 0,
+      `has_categories` TINYINT(1) NOT NULL DEFAULT 0,
+      `category_form_slug` VARCHAR(200) NOT NULL DEFAULT '',
       `cycle_meta` LONGTEXT NULL,
       `date_created` datetime NOT NULL default '0000-00-00 00:00:00',
       `date_updated` datetime NOT NULL default '0000-00-00 00:00:00',

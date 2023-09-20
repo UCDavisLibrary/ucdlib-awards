@@ -83,6 +83,9 @@ input[type="date"] {
 select {
   box-sizing: border-box;
 }
+select[disabled] {
+  opacity: 0.7;
+}
 .error > label {
   color: #c10230;
 }
@@ -139,6 +142,7 @@ ucdlib-icon.panel__custom-icon {
 .panel--icon .panel__title {
   align-items: center;
   margin-bottom: 1rem;
+  color: #022851;
 }
 .panel--icon .panel__title {
   display: flex;

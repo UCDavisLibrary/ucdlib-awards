@@ -51,6 +51,7 @@ export function renderEditForm() {
 
   let disableAppFormSelect = false;
   if ( !this.siteForms.length ) disableAppFormSelect = true;
+  if ( this.requestedCycle?.applicantCount ) disableAppFormSelect = true;
 
   let disableSupportFormSelect = false;
   if ( !this.siteForms.length ) disableSupportFormSelect = true;
@@ -87,12 +88,7 @@ export function renderEditForm() {
               <label for="cycle-input-active">Active Cycle</label>
             </li>
           </ul>
-          <div class="basic-notification" ?hidden=${!showActiveCycleNotification}>
-            <ucdlib-icon class='double-decker u-space-mr' icon="ucd-public:fa-circle-exclamation"></ucdlib-icon>
-            <div class='notification-text'>
-              Only one cycle may be active at a time. "${this.activeCycle.title}" will no longer be active. </a>
-            </div>
-          </div>
+          ${this.renderBasicNotification(html`<span>Only one cycle may be active at a time. "${this.activeCycle.title}" will no longer be active.</span>`, !showActiveCycleNotification)}
         </div>
       </div>
       <fieldset>
@@ -124,11 +120,32 @@ export function renderEditForm() {
               <option value=${form.id} ?selected=${this.editFormData?.application_form_id == form.id}>${form.title}</option>
             `)}
           </select>
-          <div ?hidden=${this.siteForms.length} class="basic-notification">
-            <ucdlib-icon class='double-decker u-space-mr' icon="ucd-public:fa-circle-exclamation"></ucdlib-icon>
-            <div class='notification-text'>
-              No forms have been created yet! <a href=${this.formsLink}>Make one with the form builder.</a>
-            </div>
+          ${this.renderBasicNotification(html`<span>No forms have been created yet! <a href=${this.formsLink}>Make one with the form builder.</a></span>`, this.siteForms.length)}
+          ${this.renderBasicNotification(html`<span>There is at least 1 applicant - cannot change form!</span>`, !this.editFormData?.applicantCount)}
+        </div>
+        <div class='field-container checkbox'>
+          <ul class="list--reset">
+            <li>
+              <input
+                id="cycle-input-categories"
+                type="checkbox"
+                @input=${() => this._onEditFormInput('has_categories', !this.editFormData?.has_categories ? 1 : 0)}
+                .checked=${this.editFormData?.has_categories}>
+              <label for="cycle-input-categories">Enable Application Categories</label>
+            </li>
+          </ul>
+        </div>
+        <div ?hidden=${!this.editFormData?.has_categories}>
+          <div class="field-container ${this.formErrors.category_form_slug ? 'error' : ''}">
+            <label>Category Options</label>
+            <select
+              @input=${e => this._onEditFormInput('category_form_slug', e.target.value)}
+              .value=${this.editFormData?.category_form_slug || ''}>
+              <option value="" >Select a field from the application form</option>
+              ${this.applicationFormOptionFields.map(field => html`
+                <option value=${field.id} ?selected=${this.editFormData?.category_form_slug == field.id}>${field.label}</option>
+              `)}
+            </select>
           </div>
         </div>
       </fieldset>
@@ -193,12 +210,7 @@ export function renderEditForm() {
                 <option value=${form.id} ?selected=${this.editFormData?.support_form_id == form.id}>${form.title}</option>
               `)}
             </select>
-            <div ?hidden=${this.siteForms.length} class="basic-notification">
-              <ucdlib-icon class='double-decker u-space-mr' icon="ucd-public:fa-circle-exclamation"></ucdlib-icon>
-              <div class='notification-text'>
-                No forms have been created yet! <a href=${this.formsLink}>Make one with the form builder.</a>
-              </div>
-            </div>
+            ${this.renderBasicNotification(html`<span>No forms have been created yet! <a href=${this.formsLink}>Make one with the form builder.</a></span>`, this.siteForms.length)}
           </div>
         </div>
 
@@ -212,6 +224,18 @@ export function renderEditForm() {
       </div>
     </form>
   `;
+}
+
+export function renderBasicNotification(content, hidden){
+  if ( hidden ) return html``;
+  if ( !content ) return html``;
+  return html`
+    <div  class="basic-notification">
+      <ucdlib-icon class='double-decker u-space-mr' icon="ucd-public:fa-circle-exclamation"></ucdlib-icon>
+      <div class='notification-text'>${content}</div>
+    </div>
+  `;
+
 }
 
 export function renderOverview(){

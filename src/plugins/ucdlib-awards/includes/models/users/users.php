@@ -87,4 +87,26 @@ class UcdlibAwardsUsers {
 
   }
 
+  public function getApplicantCount($cycleId){
+    if ( !$cycleId ) return 0;
+    global $wpdb;
+    $sql = "
+    SELECT
+      COUNT(*)
+    FROM
+      $this->table u
+    INNER JOIN
+      $this->metaTable m
+    ON
+      u.user_id = m.user_id
+    WHERE
+      m.meta_key = 'isApplicant' AND
+      m.meta_value = 'true' AND
+      m.cycle_id = $cycleId
+    ";
+    $count = $wpdb->get_var( $sql );
+    $count = intval( $count );
+    return $count;
+  }
+
 }

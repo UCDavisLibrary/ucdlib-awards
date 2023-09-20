@@ -25,6 +25,14 @@ class UcdlibAwardsCycle {
   public function update($data){
     if ( isset($data['cycle_id']) ) unset($data['cycle_id']);
     if ( isset($data['date_created']) ) unset($data['date_created']);
+
+    $validColumns = array_keys(UcdlibAwardsDbTables::get_table_column_labels( UcdlibAwardsDbTables::CYCLES ));
+    foreach( $data as $key => $value ){
+      if ( !in_array($key, $validColumns) ){
+        unset($data[$key]);
+      }
+    }
+
     $data['date_updated'] = date('Y-m-d H:i:s');
     global $wpdb;
     $cyclesTable = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::CYCLES );
@@ -173,11 +181,12 @@ class UcdlibAwardsCycle {
   /**
    * @description Get the cycle record as an associative array
    */
-  protected $recordArray;
-  public function recordArray(){
-    if ( !empty($this->recordArray) ) return $this->recordArray;
-    $this->recordArray = (array) $this->record();
-    return $this->recordArray;
+  public function recordArray($additionalProps = []){
+    $out = (array) $this->record();
+    if ( !empty($additionalProps['applicantCount']) ){
+      $out['applicantCount'] = $this->applicantCount();
+    }
+    return $out;
   }
 
   /**
@@ -196,5 +205,12 @@ class UcdlibAwardsCycle {
     if ( !empty($this->allApplicants) ) return $this->allApplicants;
     $this->allApplicants = $this->plugin->users->getAllApplicants( $this->cycleId );
     return $this->allApplicants;
+  }
+
+  protected $applicantCount;
+  public function applicantCount(){
+    if ( !empty($this->applicantCount) ) return $this->applicantCount;
+    $this->applicantCount = $this->plugin->users->getApplicantCount( $this->cycleId );
+    return $this->applicantCount;
   }
 }

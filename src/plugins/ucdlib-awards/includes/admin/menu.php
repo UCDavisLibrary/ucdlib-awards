@@ -96,20 +96,26 @@ class UcdlibAwardsAdminMenu {
     $context = $this->context();
     $activeCycle = null;
     $forms = [];
+    $requestedCycle = $context['pageContainerProps']['requestedCycle'];
     if ( $this->plugin->users->currentUser()->isAdmin() ){
       $activeCycle = $this->plugin->cycles->activeCycle();
       $forms = $this->plugin->forms->getForms(null, 1, 100);
       $forms = $this->plugin->forms->toBasicArray($forms);
+      $applicationFormFields = [];
+      if ( $requestedCycle && $requestedCycle['application_form_id'] ){
+        $applicationFormFields = $this->plugin->forms->getFormFields( intval($requestedCycle['application_form_id']) );
+      }
     }
     if ( $activeCycle ){
       $activeCycle = $activeCycle->recordArray();
     }
     $context['pageProps'] = [
       'wpAjax' => $this->ajaxUtils->getAjaxElementProperty('adminCycles'),
-      'requestedCycle' => $context['pageContainerProps']['requestedCycle'],
+      'requestedCycle' => $requestedCycle,
       'activeCycle' => $activeCycle,
       'siteForms' => $forms,
       'dashboardLink' => $context['links']['dashboard'],
+      'applicationFormFields' => $applicationFormFields,
       'formsLink' => admin_url( 'admin.php?page=' . $this->plugin->config::$forminatorSlugs['forms'] )
     ];
     UcdlibAwardsTimber::renderAdminPage( 'cycles', $context );
@@ -186,7 +192,7 @@ class UcdlibAwardsAdminMenu {
         $requestedCycle = $this->plugin->cycles->activeCycle();
       }
       if ( $requestedCycle ){
-        $requestedCycle = $requestedCycle->recordArray();
+        $requestedCycle = $requestedCycle->recordArray(['applicantCount' => true]);
       }
       $this->context['pageContainerProps']['requestedCycle'] = $requestedCycle;
     }

@@ -75,6 +75,12 @@ class UcdlibAwardsCycles {
   public function create( $data ){
     global $wpdb;
     $cyclesTable = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::CYCLES );
+    $validColumns = array_keys(UcdlibAwardsDbTables::get_table_column_labels( UcdlibAwardsDbTables::CYCLES ));
+    foreach( $data as $key => $value ){
+      if ( !in_array($key, $validColumns) ){
+        unset($data[$key]);
+      }
+    }
     $data['date_created'] = date('Y-m-d H:i:s');
     $data['date_updated'] = $data['date_created'];
     $wpdb->insert( $cyclesTable, $data );
@@ -213,6 +219,32 @@ class UcdlibAwardsCycles {
           $out[1]['errorFields'][$formColumn] = true;
         }
       }
+    }
+
+    // application categories
+    if ( !empty($cycle['has_categories']) ){
+      if ( empty($cycle['application_form_id']) ){
+        $out[1]['errorMessages'][] = "The '$fieldLabels[application_form_id]' field is required if application categories are enabled.";
+        $out[1]['errorFields']['application_form_id'] = true;
+      }
+      if ( empty($cycle['category_form_slug']) ){
+        $out[1]['errorMessages'][] = "The '$fieldLabels[category_form_slug]' field is required if application categories are enabled.";
+        $out[1]['errorFields']['category_form_slug'] = true;
+      }
+      $formFields = $this->plugin->forms->getFormFields( $cycle['application_form_id'] );
+      $fieldOptions = [];
+      foreach( $formFields as $fieldWrapper ){
+        if ( !is_array($fieldWrapper['fields']) ) continue;
+        foreach( $fieldWrapper['fields'] as $field ){
+          if ( !is_array($field['options']) || !count($field['options']) ) continue;
+          $fieldOptions[] = $field['element_id'];
+        }
+      }
+      if ( !in_array($cycle['category_form_slug'], $fieldOptions) ){
+        $out[1]['errorMessages'][] = "The '$fieldLabels[category_form_slug]' field is not a valid form field.";
+        $out[1]['errorFields']['category_form_slug'] = true;
+      }
+
     }
 
     // ensure at least one cycle is active

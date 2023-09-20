@@ -18,6 +18,8 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
     return {
       requestedCycle: {state: true},
       hasRequestedCycle: {state: true},
+      applicationFormFields: {state: true},
+      applicationFormOptionFields: {state: true},
       activeCycle: {state: true},
       siteForms: {state: true},
       formsLink: {type: String},
@@ -37,7 +39,11 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
     this.renderOverview = templates.renderOverview.bind(this);
     this.renderDeleteForm = templates.renderDeleteForm.bind(this);
     this.renderFormErrorMessages = templates.renderFormErrorMessages.bind(this);
+    this.renderBasicNotification = templates.renderBasicNotification.bind(this);
     this.requestedCycle = {};
+    this.applicationFormFields = [];
+    this.applicationFormFieldsCache = {};
+    this.applicationFormOptionFields = [];
     this.activeCycle = {};
     this.editFormData = {};
     this.deleteFormData = {};
@@ -63,6 +69,23 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
     if ( props.has('activeCycle') ) {
       this.hasActiveCycle = Object.keys(this.activeCycle).length > 0;
     }
+
+    // extract application fields with options for selecting a category
+    if ( props.has('applicationFormFields') ){
+      const applicationFormOptionFields = [];
+      this.applicationFormFields.forEach(fieldWrapper => {
+        if ( !Array.isArray(fieldWrapper.fields) ) return;
+        fieldWrapper.fields.forEach(field => {
+          if ( Array.isArray(field.options) && field.options.length > 0 ) {
+            applicationFormOptionFields.push({
+              label: field.field_label,
+              id: field.element_id
+            });
+          }
+        });
+      });
+      this.applicationFormOptionFields = applicationFormOptionFields;
+    }
   }
 
   /**
@@ -70,10 +93,23 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
    * @param {String} prop - the property name
    * @param {String|Boolean} value - the new value of the property
    */
-  _onEditFormInput(prop, value){
+  async _onEditFormInput(prop, value){
     if ( !this.editFormData ) this.editFormData = {};
     this.editFormData[prop] = value;
     this.formErrors[prop] = false;
+    if ( prop === 'application_form_id' && value ) {
+      if ( this.applicationFormFieldsCache[value] ) {
+        this.applicationFormFields = this.applicationFormFieldsCache[value];
+      } else {
+        const response = await this.wpAjax.request('getFormFields', {form_id: value});
+        if ( response.success ) {
+          this.applicationFormFields = response.data.fields;
+          this.applicationFormFieldsCache[value] = [...response.data.fields];
+        } else {
+          console.error('Error getting application form fields', response);
+        }
+      }
+    }
     this.requestUpdate();
   }
 
@@ -192,6 +228,7 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
       return;
     }
     this.editFormData = {};
+    this.applicationFormFields = [];
     this.formErrors = {};
     this.formErrorMessages = [];
     this.page = 'add';
@@ -285,6 +322,7 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
       'cycle_id',
       'has_support',
       'is_active',
+      'has_categories'
     ];
     ints.forEach(int => {
       if ( cycle[int] ) {
@@ -292,6 +330,12 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
       }
     });
     this.editFormData = {...cycle};
+
+    if ( this.editFormData.application_form_id ) {
+      this.applicationFormFields = this.applicationFormFieldsCache[this.editFormData.application_form_id] || [];
+    } else {
+      this.applicationFormFields = [];
+    }
   }
 
   /**
@@ -320,6 +364,12 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
       this.page = 'view';
     } else {
       this.page = 'add';
+    }
+    if ( data.applicationFormFields ) {
+      this.applicationFormFields = [...data.applicationFormFields];
+      if ( this.requestedCycle?.application_form_id ) {
+        this.applicationFormFieldsCache[this.requestedCycle.application_form_id] = [...data.applicationFormFields];
+      }
     }
 
   }

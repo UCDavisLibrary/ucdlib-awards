@@ -27,7 +27,7 @@ export function renderCycleDatesPanel(){
     supportEnd = datetimeUtils.mysqlToDateString(cycle.support_end);
   }
   return html`
-    <div class="panel panel--icon panel--icon-custom o-box category-brand--arboretum">
+    <div class="panel panel--icon panel--icon-custom o-box category-brand--gunrock">
       <h2 class="panel__title">
         <ucdlib-icon icon="ucd-public:fa-calendar-week" class="panel__custom-icon"></ucdlib-icon>
         <span>Cycle Dates</span>
