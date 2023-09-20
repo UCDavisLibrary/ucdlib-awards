@@ -93,6 +93,9 @@ class UcdlibAwardsCycle {
     $this->record = null;
     $this->recordArray = null;
     $this->isActive = null;
+    $this->allApplicants = null;
+    $this->applicantCount = null;
+    $this->categories = null;
   }
 
   public function title(){
@@ -202,15 +205,45 @@ class UcdlibAwardsCycle {
 
   protected $allApplicants;
   public function allApplicants(){
-    if ( !empty($this->allApplicants) ) return $this->allApplicants;
+    if ( isset($this->allApplicants) ) return $this->allApplicants;
     $this->allApplicants = $this->plugin->users->getAllApplicants( $this->cycleId );
     return $this->allApplicants;
   }
 
   protected $applicantCount;
   public function applicantCount(){
-    if ( !empty($this->applicantCount) ) return $this->applicantCount;
+    if ( isset($this->applicantCount) ) return $this->applicantCount;
     $this->applicantCount = $this->plugin->users->getApplicantCount( $this->cycleId );
     return $this->applicantCount;
+  }
+
+  protected $categories;
+  public function categories(){
+    if ( isset($this->categories) ) return $this->categories;
+    $record = $this->record();
+    if (
+       empty($record->has_categories ) ||
+       empty($record->category_form_slug) ||
+       empty($record->application_form_id)
+       ) {
+      $this->categories = false;
+      return $this->categories;
+       }
+    $formFields = $this->plugin->forms->getFormFields( $record->application_form_id );
+    if ( empty($formFields) ) {
+      $this->categories = false;
+      return $this->categories;
+    }
+    foreach( $formFields as $fieldWrapper ){
+      if ( !is_array($fieldWrapper['fields']) ) continue;
+      foreach( $fieldWrapper['fields'] as $field ){
+        if ( $field['element_id'] != $record->category_form_slug ) continue;
+        if ( !is_array($field['options']) || !count($field['options']) ) continue;
+        $this->categories = $field['options'];
+        return $this->categories;
+      }
+    }
+    $this->categories = null;
+    return $this->categories;
   }
 }

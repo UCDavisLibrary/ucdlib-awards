@@ -131,14 +131,17 @@ class UcdlibAwardsAdminMenu {
       $requestedCycle = $requestedCycle['cycle_id'];
     }
     $context['filterProps'] = [
-      'wpAjax' => $this->ajaxUtils->getAjaxElementProperty('adminLogs'),
-      'filters' => $this->plugin->logs->getFilters($requestedCycle)
+      'wpAjax' => $this->ajaxUtils->getAjaxElementProperty('adminLogs')
     ];
     $context['resultsProps'] = [
       'wpAjax' => $this->ajaxUtils->getAjaxElementProperty('adminLogs'),
       'cycleId' => $requestedCycle,
       'doQueryOnLoad' => true
     ];
+
+    if ( $context['isAdmin'] ){
+      $context['filterProps']['filters'] = $this->plugin->logs->getFilters($requestedCycle);
+    }
     UcdlibAwardsTimber::renderAdminPage( 'logs', $context );
   }
 
@@ -147,6 +150,15 @@ class UcdlibAwardsAdminMenu {
    */
   public function renderApplicants(){
     $context = $this->context();
+    $requestedCycle = $context['requestedCycle'];
+    $pageProps = [
+      'wpAjax' => $this->ajaxUtils->getAjaxElementProperty('adminApplicants'),
+    ];
+    if ( $requestedCycle ){
+      $pageProps['categories'] = $requestedCycle->categories();
+    }
+
+    $context['pageProps'] = $pageProps;
     UcdlibAwardsTimber::renderAdminPage( 'applicants', $context );
   }
 
@@ -167,6 +179,8 @@ class UcdlibAwardsAdminMenu {
 
     $this->context = [
       'currentUser' => $currentUser,
+      'isAdmin' => $currentUser->isAdmin(),
+      'requestedCycle' => null,
       'pageContainerProps' => [
         'pageTitle' => $this->award->getAdminMenuPageTitle(),
         'siteLogo' => dirname( get_template_directory_uri() ) . "/assets/img/site-icon.png",
@@ -192,6 +206,7 @@ class UcdlibAwardsAdminMenu {
         $requestedCycle = $this->plugin->cycles->activeCycle();
       }
       if ( $requestedCycle ){
+        $this->context['requestedCycle'] = $requestedCycle;
         $requestedCycle = $requestedCycle->recordArray(['applicantCount' => true]);
       }
       $this->context['pageContainerProps']['requestedCycle'] = $requestedCycle;

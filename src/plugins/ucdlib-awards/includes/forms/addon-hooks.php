@@ -79,6 +79,21 @@ class UcdlibAwardsFormsAddonHooks extends Forminator_Addon_Form_Hooks_Abstract {
       'value' => $cycle->cycleId
     ];
 
+    // save category value if applicable
+    // since forminator only saves the label...
+    if (
+      !empty($cycle->record()->has_categories) &&
+      !empty($cycle->record()->category_form_slug) &&
+      !empty($submitted_data[$cycle->record()->category_form_slug])
+      ){
+      $category = $submitted_data[$cycle->record()->category_form_slug];
+      if ( is_array($category) ) $category = $category[0];
+      $out[] = [
+        'name' => 'category',
+        'value' => $category
+      ];
+    }
+
     $this->plugin->logs->logApplicationSubmit( $cycle->cycleId, $user->id );
 
     return $out;

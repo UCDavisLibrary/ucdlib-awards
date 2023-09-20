@@ -14,4 +14,5 @@ import "./elements/components/ucdlib-awards-logs-filter.js";
 // app admin pages
 import "./elements/pages/ucdlib-awards-admin-dashboard.js";
 import "./elements/pages/ucdlib-awards-admin-cycles.js";
+import "./elements/pages/applicants/ucdlib-awards-applicants-ctl.js";
 
