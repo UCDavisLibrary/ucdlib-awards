@@ -40,6 +40,20 @@ class UcdlibAwardsUsers {
     return $this->userCache[ $username ];
   }
 
+  public function toArrays($users, $additionalProps = []){
+    if ( empty($users) ) return [];
+    if ( !is_array($users) ) {
+      $users = [$users];
+    }
+    if ( empty($users) ) return [];
+
+    $out = [];
+    foreach ( $users as &$user ){
+      $out[] = $user->toArray( $additionalProps );
+    }
+    return $out;
+  }
+
   public function getByUserIds($userIds){
     if ( !$userIds ) return [];
     if ( !is_array($userIds) ) {

@@ -96,6 +96,9 @@ class UcdlibAwardsCycle {
     $this->allApplicants = null;
     $this->applicantCount = null;
     $this->categories = null;
+    $this->applicationWindowStatus = null;
+    $this->evaluationWindowStatus = null;
+    $this->supportWindowStatus = null;
   }
 
   public function title(){
@@ -168,6 +171,23 @@ class UcdlibAwardsCycle {
     }
   }
 
+  protected $applicationForm;
+  public function applicationForm(){
+    if ( isset($this->applicationForm) ) return $this->applicationForm;
+    $formId = $this->applicationFormId();
+    if ( !$formId ) {
+      $this->applicationForm = false;
+      return $this->applicationForm;
+    }
+    $forms = $this->plugin->forms->getForms([ $formId ]);
+    if ( empty($forms) ) {
+      $this->applicationForm = false;
+      return $this->applicationForm;
+    }
+    $this->applicationForm = $forms[0];
+    return $this->applicationForm;
+  }
+
   /**
    * @description Get the basic cycle record from the db table
    */
@@ -208,6 +228,46 @@ class UcdlibAwardsCycle {
     if ( isset($this->allApplicants) ) return $this->allApplicants;
     $this->allApplicants = $this->plugin->users->getAllApplicants( $this->cycleId );
     return $this->allApplicants;
+  }
+
+  protected $applicationEntries;
+  public function applicationEntries(){
+    if ( isset($this->applicationEntries) ) return $this->applicationEntries;
+    error_log('applicationEntries()');
+    if ( !$this->applicationForm() ) {
+      $this->applicationEntries = [];
+      return $this->applicationEntries;
+    }
+    $this->applicationEntries = $this->plugin->forms->getEntries( $this->applicationForm()->id );
+    return $this->applicationEntries;
+  }
+
+  /**
+   * @description Get all applicants for the cycle with any additional specified metadata
+   */
+  public function getApplicants($args=[]){
+    $allApplicants = $this->allApplicants();
+    if ( empty($allApplicants) ) return [];
+    if ( empty($args) ) return $allApplicants;
+
+    if ( !empty($args['applicationEntry']) ){
+      $entries = $this->applicationEntries();
+      $entriesByUserId = [];
+      foreach( $entries as $entry ){
+        if ( !empty($entry->meta_data['forminator_addon_ucdlib-awards_applicant_id']['value']) ) {
+          $entriesByUserId[ $entry->meta_data['forminator_addon_ucdlib-awards_applicant_id']['value'] ] = $entry;
+        }
+      }
+    }
+
+    foreach( $allApplicants as &$applicant ){
+
+      if ( isset($entriesByUserId[ $applicant->id ]) ){
+        $applicant->setApplicationEntry( $entriesByUserId[ $applicant->id ], $this->cycleId );
+      }
+
+    }
+    return $allApplicants;
   }
 
   protected $applicantCount;

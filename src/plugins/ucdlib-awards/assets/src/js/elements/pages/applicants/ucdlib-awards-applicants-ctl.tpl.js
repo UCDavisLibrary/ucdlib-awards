@@ -9,7 +9,12 @@ return html`
       <ucdlib-awards-applicants-actions></ucdlib-awards-applicants-actions>
     </div>
     <div class="l-first panel o-box">
-      <ucdlib-awards-applicants-display></ucdlib-awards-applicants-display>
+      <ucdlib-awards-applicants-display
+        .applicants=${this.displayedApplicants}
+        .showCategories=${this.hasCategories}
+      >
+
+      </ucdlib-awards-applicants-display>
     </div>
   </div>
 `;}

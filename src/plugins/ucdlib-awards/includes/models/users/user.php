@@ -65,22 +65,91 @@ class UcdlibAwardsUser {
     return $this->isAdmin;
   }
 
-  protected $applicationEntry;
-  public function applicationEntry($cycleId){
-    if ( !empty( $this->applicationEntry ) ){
-      return $this->applicationEntry;
+  /**
+   * @description Get the user record as an associative array
+   */
+  public function toArray($additionalProps = []){
+    $out = (array) $this->record();
+
+    if ( !empty($additionalProps['applicationEntry']) ){
+      $out['applicationEntry'] = $this->applicationEntry();
+    }
+    if ( !empty($additionalProps['applicationEntryBrief']) ){
+      $cycleId = $additionalProps['applicationEntryBrief'];
+      $entry = $this->applicationEntry($cycleId);
+      $out['applicationEntry'] = [
+        'entry_id' => $entry->entry_id,
+        'form_id' => $entry->form_id,
+        'date_created_sql' => $entry->date_created_sql
+      ];
+    }
+    if ( !empty($additionalProps['applicationCategory']) ){
+      $cycleId = $additionalProps['applicationCategory'];
+      $out['applicationCategory'] = $this->applicationCategory($cycleId);
+    }
+    return $out;
+  }
+
+  public function applicationCategory($cycleId=null){
+    $entry = $this->applicationEntry($cycleId);
+    if ( !$entry ) return false;
+    if ( !isset($entry->meta_data['forminator_addon_ucdlib-awards_category']['value']) ) return false;
+    $value = $entry->meta_data['forminator_addon_ucdlib-awards_category']['value'];
+    $out = [
+      'value' => $value,
+      'label' => 'Unknown'
+    ];
+
+    // get saved category label
+    $cycle = $this->plugin->cycles->getById($cycleId);
+    if ( !$cycle ) return $out;
+    $fieldSlug = $cycle->record()->category_form_slug;
+    if ( isset($entry->meta_data[$fieldSlug]['value']) ){
+      $out['label'] = $entry->meta_data[$fieldSlug]['value'];
     }
 
-    if ( !$cycleId ){
+    // replace with current category label if available
+    $categories = $cycle->categories();
+    if ( !$categories ) return $out;
+    foreach ($categories as $category) {
+      if ( $category['value'] == $value ){
+        $out['label'] = $category['label'];
+        break;
+      }
+    }
+
+    return $out;
+
+  }
+
+  public function setApplicationEntry($entry, $cycleId){
+    if ( empty($this->applicationEntry) ){
+      $this->applicationEntry = [];
+    }
+    $this->applicationEntry[$cycleId] = $entry;
+  }
+
+  protected $applicationEntry;
+  public function applicationEntry($cycleId=null){
+    if ( empty($this->applicationEntry) ){
+      $this->applicationEntry = [];
+    }
+
+    if ( !$cycleId || is_bool($cycleId) ){
       $activeCycle = $this->plugin->cycles->activeCycle();
       if ( !$activeCycle ) return false;
       $cycleId = $activeCycle->cycleId;
     }
 
+    if ( isset($this->applicationEntry[$cycleId]) ){
+      return $this->applicationEntry[$cycleId];
+    }
+
     // check user record exists
     $this->record();
     if ( !$this->id ){
-      return false;
+      $this->applicationEntry[$cycleId] = false;
+      return $this->applicationEntry[$cycleId];
     }
 
     global $wpdb;
@@ -104,17 +173,19 @@ class UcdlibAwardsUser {
       }
     }
     if ( !$entryId ){
-      return false;
+      $this->applicationEntry[$cycleId] = false;
+      return $this->applicationEntry[$cycleId];
     }
 
     $table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::FORM_ENTRY );
     $sql = "SELECT form_id FROM $table WHERE entry_id = %d";
     $formId = $wpdb->get_var( $wpdb->prepare( $sql, $entryId ) );
     if ( !$formId ){
-      return false;
+      $this->applicationEntry[$cycleId] = false;
+      return $this->applicationEntry[$cycleId];
     }
-    $this->applicationEntry = $this->plugin->forms->getEntry( $formId, $entryId );
-    return $this->applicationEntry;
+    $this->applicationEntry[$cycleId] = $this->plugin->forms->getEntry( $formId, $entryId );
+    return $this->applicationEntry[$cycleId];
   }
 
   /**
@@ -198,6 +269,7 @@ class UcdlibAwardsUser {
     $this->id = null;
     $this->wpUser = null;
     $this->isAdmin = null;
+    $this->applicationEntry = null;
   }
 
 }

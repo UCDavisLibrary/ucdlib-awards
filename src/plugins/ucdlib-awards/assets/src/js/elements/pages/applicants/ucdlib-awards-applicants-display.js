@@ -9,13 +9,34 @@ export default class UcdlibAwardsApplicantsDisplay extends Mixin(LitElement)
 
   static get properties() {
     return {
-
+      applicants: { type: Array },
+      selectedApplicants: { type: Array },
+      showCategories: { type: Boolean },
+      _applicants: { state: true },
+      _allSelected: { state: true }
     }
   }
 
   constructor() {
     super();
     this.render = templates.render.bind(this);
+    this.applicants = [];
+    this._applicants = [];
+    this.selectedApplicants = [];
+    this._allSelected = false;
+    this.showCategories = false;
+  }
+
+  willUpdate(props) {
+    if ( props.has('applicants') || props.has('selectedApplicants')) {
+      let applicants = this.applicants.map(applicant => {
+        applicant.selected = this.selectedApplicants.includes(applicant.user_id);
+        return applicant;
+      } );
+      this._applicants = applicants;
+      this._allSelected = this._applicants.length && this._applicants.every(applicant => applicant.selected);
+      console.log('applicants', this._applicants);
+    }
   }
 
 }

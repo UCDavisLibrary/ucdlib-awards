@@ -16,6 +16,10 @@ export default class UcdlibAwardsApplicantsCtl extends Mixin(LitElement)
   static get properties() {
     return {
       categories: { type: Array },
+      hasCategories: { type: Boolean },
+      applicants: { type: Array },
+      displayedApplicants: { type: Array },
+      selectedApplicants: { type: Array }
     }
   }
 
@@ -27,6 +31,16 @@ export default class UcdlibAwardsApplicantsCtl extends Mixin(LitElement)
     this.wpAjax = new wpAjaxController(this);
 
     this.categories = [];
+    this.hasCategories = false;
+    this.applicants = [];
+    this.displayedApplicants = [];
+    this.selectedApplicants = [];
+  }
+
+  willUpdate(props) {
+    if ( props.has('categories') ) {
+      this.hasCategories = this.categories.length > 0;
+    }
   }
 
     /**
@@ -55,6 +69,18 @@ export default class UcdlibAwardsApplicantsCtl extends Mixin(LitElement)
     }
     if ( !data ) return;
     if ( data.categories ) this.categories = data.categories;
+    if ( data.applicants ) {
+      let applicants = data.applicants.map(applicant => {
+        applicant.user_id = parseInt(applicant.user_id);
+        applicant.is_admin = parseInt(applicant.is_admin);
+        return applicant;
+      });
+      //this.applicants = applicants;
+      //this.displayedApplicants = applicants;
+      this.applicants = [...applicants, ...applicants, ...applicants];
+      this.displayedApplicants = [...applicants, ...applicants, ...applicants];
+
+    }
     console.log('data', data);
 
   }

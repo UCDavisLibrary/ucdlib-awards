@@ -23,6 +23,13 @@ class UcdlibAwardsForms {
     return $entry;
   }
 
+  public function getEntries( $formId ){
+    if ( !$this->forminatorActivated ) return [];
+    $entries = Forminator_API::get_entries( $formId );
+    if ( is_wp_error($entries) ) return [];
+    return $entries;
+  }
+
   public function getFormFields($formId){
     if ( !$this->forminatorActivated ) return [];
     $fields = Forminator_API::get_form_wrappers($formId);

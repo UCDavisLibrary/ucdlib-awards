@@ -86,6 +86,14 @@ select {
 select[disabled] {
   opacity: 0.7;
 }
+.checkbox.no-label label::before {
+  top: auto;
+  bottom: 0px;
+}
+.checkbox.no-label label::after {
+  top: auto;
+  bottom: .4em;
+}
 .error > label {
   color: #c10230;
 }
