@@ -163,6 +163,18 @@ ucdlib-icon.panel__custom-icon {
 .border-box {
   box-sizing: border-box !important;
 }
+.no-wrap {
+  white-space: nowrap;
+}
+.flex-wrap {
+  flex-wrap: wrap;
+}
+.flex-grow {
+  flex-grow: 1;
+}
+.border-bottom-gold {
+  border-bottom: 2px dotted #ffbf00;
+}
 `;
 
 export default customStyles;

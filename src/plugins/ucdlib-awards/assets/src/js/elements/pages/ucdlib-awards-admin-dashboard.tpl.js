@@ -11,7 +11,10 @@ export function render() {
       </div>
       <div class="l-second panel o-box">
         ${this.renderCycleDatesPanel()}
-        <div class="brand-textbox category-brand--pinot category-brand__background u-space-mb">Applications</div>
+        <div class="brand-textbox category-brand--pinot category-brand__background u-space-mb">
+          Applicants - break application count out by status and category, if applicable. show totals for each.
+          also break out review count i.e. 1/3, 2/3, 3/3
+        </div>
         <div class="brand-textbox category-brand--cabernet category-brand__background u-space-mb">Evaluation</div>
       </div>
     </div>

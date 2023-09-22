@@ -29,6 +29,60 @@ class UcdlibAwardsUser {
     return $record->first_name . ' ' . $record->last_name;
   }
 
+  public function cycleMeta($cycleId=null){
+    if ( !$cycleId ){
+      $cycle = $this->plugin->cycles->activeCycle();
+      if ( !$cycle ) return [];
+      $cycleId = $cycle->cycleId;
+    }
+    if ( isset($this->metaCache[$cycleId]) ){
+      return $this->metaCache[$cycleId];
+    }
+    global $wpdb;
+    $sql = "SELECT * FROM $this->metaTable WHERE user_id = %d AND cycle_id = %d";
+    $meta = $wpdb->get_results( $wpdb->prepare( $sql, $this->id, $cycleId ) );
+    $out = [];
+    foreach( $meta as $m ){
+      $out[$m->meta_key] = json_decode( $m->meta_value, true );
+    }
+    $this->metaCache[$cycleId] = $out;
+    return $this->metaCache[$cycleId];
+  }
+
+  public function cycleMetaItem($key, $cycleId=null){
+    $meta = $this->cycleMeta($cycleId);
+    if ( isset($meta[$key]) ){
+      return $meta[$key];
+    }
+    return null;
+  }
+
+  public function applicationStatus($cycleId=null){
+    # assigned to x reviewers
+    # reviewed by x/y reviewers
+    $meta = $this->cycleMeta($cycleId);
+    if ( !empty($meta['hasSubmittedApplication']) ){
+      return ['value' => 'submitted', 'label' => 'Submitted'];
+
+    }
+
+    // status two: x/y reviewers
+    return null;
+  }
+
+  /**
+   * @description Bulk set the meta cache for a cycle
+   * @param array $meta - array of meta records from the database
+   * @param int $cycleId - the cycle id
+   */
+  public function setCycleMeta($meta, $cycleId){
+    $m = [];
+    foreach( $meta as $dbRow ){
+      $m[$dbRow->meta_key] = json_decode( $dbRow->meta_value, true );
+    }
+    $this->metaCache[$cycleId] = $m;
+  }
+
   /**
    * @description Get the WP_User object for this user
    */
@@ -77,15 +131,24 @@ class UcdlibAwardsUser {
     if ( !empty($additionalProps['applicationEntryBrief']) ){
       $cycleId = $additionalProps['applicationEntryBrief'];
       $entry = $this->applicationEntry($cycleId);
-      $out['applicationEntry'] = [
-        'entry_id' => $entry->entry_id,
-        'form_id' => $entry->form_id,
-        'date_created_sql' => $entry->date_created_sql
-      ];
+      if ( $entry ) {
+        $out['applicationEntry'] = [
+          'entry_id' => $entry->entry_id,
+          'form_id' => $entry->form_id,
+          'date_created_sql' => $entry->date_created_sql
+        ];
+      } else {
+        $out['applicationEntry'] = null;
+      }
+
     }
     if ( !empty($additionalProps['applicationCategory']) ){
       $cycleId = $additionalProps['applicationCategory'];
       $out['applicationCategory'] = $this->applicationCategory($cycleId);
+    }
+    if ( !empty($additionalProps['applicationStatus']) ){
+      $cycleId = $additionalProps['applicationStatus'];
+      $out['applicationStatus'] = $this->applicationStatus($cycleId);
     }
     return $out;
   }
@@ -256,10 +319,11 @@ class UcdlibAwardsUser {
       $record['date_created'] = date('Y-m-d H:i:s');
       $wpdb->insert( $this->metaTable, $record );
     }
-    if ( !isset($this->metaCache[$cycleId]) ){
-      $this->metaCache[$cycleId] = [];
+
+    // clear metacache
+    if ( isset($this->metaCache[$cycleId]) ){
+      unset($this->metaCache[$cycleId]);
     }
-    $this->metaCache[$cycleId][$key] = $value;
     return true;
   }
 

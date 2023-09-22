@@ -156,8 +156,16 @@ class UcdlibAwardsAdminMenu {
     ];
     if ( $requestedCycle ){
       $pageProps['categories'] = $requestedCycle->categories();
-      $applicants = $requestedCycle->getApplicants(['applicationEntry' => true]);
-      $args = ['applicationEntryBrief' => $requestedCycle->cycleId, 'applicationCategory' => $requestedCycle->cycleId];
+      $args = [
+        'applicationEntry' => true,
+        'userMeta' => true
+      ];
+      $applicants = $requestedCycle->getApplicants($args);
+      $args = [
+        'applicationEntryBrief' => $requestedCycle->cycleId,
+        'applicationCategory' => $requestedCycle->cycleId,
+        'applicationStatus' => $requestedCycle->cycleId
+      ];
       $pageProps['applicants'] = $this->plugin->users->toArrays($applicants, $args);
     }
 

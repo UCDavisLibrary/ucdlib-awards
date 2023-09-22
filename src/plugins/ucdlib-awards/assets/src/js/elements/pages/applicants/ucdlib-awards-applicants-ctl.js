@@ -75,10 +75,8 @@ export default class UcdlibAwardsApplicantsCtl extends Mixin(LitElement)
         applicant.is_admin = parseInt(applicant.is_admin);
         return applicant;
       });
-      //this.applicants = applicants;
-      //this.displayedApplicants = applicants;
-      this.applicants = [...applicants, ...applicants, ...applicants];
-      this.displayedApplicants = [...applicants, ...applicants, ...applicants];
+      this.applicants = applicants;
+      this.displayedApplicants = applicants;
 
     }
     console.log('data', data);

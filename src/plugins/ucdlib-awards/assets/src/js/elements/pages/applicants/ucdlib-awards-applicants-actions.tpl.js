@@ -2,6 +2,6 @@ import { html } from 'lit';
 
 export function render() {
 return html`
-  <p>actions</p>
+  <div class='brand-textbox'>Actions</div>
 
 `;}

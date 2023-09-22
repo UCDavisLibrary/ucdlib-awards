@@ -36,6 +36,17 @@ class UcdlibAwardsUtilsDatetime {
     }
   }
 
+  mysqlToLocaleStringTime(dateTimeString) {
+    if ( !dateTimeString ) return '';
+    try {
+      const date = new Date( dateTimeString.split(' ').join('T') + 'Z' );
+      return date.toLocaleTimeString('en-US', {timeStyle: 'short', hour12: true});
+    } catch(e) {
+      console.error('Error formatting date', dateTimeString);
+      return '';
+    }
+  }
+
 }
 
 export default new UcdlibAwardsUtilsDatetime();

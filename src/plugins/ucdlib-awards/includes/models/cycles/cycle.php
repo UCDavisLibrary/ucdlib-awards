@@ -252,11 +252,33 @@ class UcdlibAwardsCycle {
 
     if ( !empty($args['applicationEntry']) ){
       $entries = $this->applicationEntries();
+      usort($entries, function($a, $b){
+        return $b->date_created_sql <=> $a->date_created_sql;
+      });
+
       $entriesByUserId = [];
+      $key_app = 'forminator_addon_ucdlib-awards_applicant_id';
+      $key_cycle = 'forminator_addon_ucdlib-awards_cycle_id';
       foreach( $entries as $entry ){
-        if ( !empty($entry->meta_data['forminator_addon_ucdlib-awards_applicant_id']['value']) ) {
-          $entriesByUserId[ $entry->meta_data['forminator_addon_ucdlib-awards_applicant_id']['value'] ] = $entry;
+        if ( empty($entry->meta_data[$key_cycle]) ) continue;
+        if ( $entry->meta_data[$key_cycle]['value'] != $this->cycleId ) continue;
+        if (
+          !empty($entry->meta_data[$key_app]['value'])
+          && empty($entriesByUserId[ $entry->meta_data[$key_app]['value'] ])
+          ) {
+          $entriesByUserId[ $entry->meta_data[$key_app]['value'] ] = $entry;
         }
+      }
+    }
+
+    if ( !empty($args['userMeta']) ){
+      $userMeta = $this->userMeta();
+      $userMetaByUserId = [];
+      foreach( $userMeta as $meta ){
+        if ( !isset($userMetaByUserId[ $meta->user_id ]) ){
+          $userMetaByUserId[ $meta->user_id ] = [];
+        }
+        $userMetaByUserId[ $meta->user_id ][] = $meta;
       }
     }
 
@@ -266,8 +288,22 @@ class UcdlibAwardsCycle {
         $applicant->setApplicationEntry( $entriesByUserId[ $applicant->id ], $this->cycleId );
       }
 
+      if ( isset($userMetaByUserId[ $applicant->id ]) ){
+        $applicant->setCycleMeta( $userMetaByUserId[ $applicant->id ], $this->cycleId );
+      }
+
     }
     return $allApplicants;
+  }
+
+  protected $userMeta;
+  public function userMeta(){
+    if ( isset($this->userMeta) ) return $this->userMeta;
+    global $wpdb;
+    $userMetaTable = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USER_META );
+    $sql = "SELECT * FROM $userMetaTable WHERE cycle_id = %d";
+    $this->userMeta = $wpdb->get_results( $wpdb->prepare( $sql, $this->cycleId ) );
+    return $this->userMeta;
   }
 
   protected $applicantCount;
