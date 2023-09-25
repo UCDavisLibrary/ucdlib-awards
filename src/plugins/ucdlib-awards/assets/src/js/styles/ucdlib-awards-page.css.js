@@ -46,6 +46,9 @@ const customStyles = css`
 [hidden] {
   display: none !important;
 }
+.hidden {
+  display: none !important;
+}
 .basic-notification {
   display: flex;
   align-items: center;
@@ -174,6 +177,12 @@ ucdlib-icon.panel__custom-icon {
 }
 .border-bottom-gold {
   border-bottom: 2px dotted #ffbf00;
+}
+.bold {
+  font-weight: 700;
+}
+.vertical-link--circle ucdlib-icon.vertical-link__image {
+  height: 50%;
 }
 `;
 

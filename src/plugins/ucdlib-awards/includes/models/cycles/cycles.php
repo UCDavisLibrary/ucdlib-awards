@@ -72,6 +72,20 @@ class UcdlibAwardsCycles {
     return $out;
   }
 
+  /**
+   * @description Only return cycles with an associated rubric
+   */
+  public function filterByRubric(){
+    $out = [];
+    $cycles = $this->getAll();
+    foreach( $cycles as $cycle ){
+      if ( $cycle->hasRubric() ){
+        $out[] = $cycle;
+      }
+    }
+    return $out;
+  }
+
   public function create( $data ){
     global $wpdb;
     $cyclesTable = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::CYCLES );

@@ -1,0 +1,9 @@
+<ucdlib-awards-page>
+  <script type="application/json"> {{pageContainerProps|json_encode()}}</script>
+  <ucdlib-awards-admin-rubric>
+    <script type="application/json"> {{pageProps|json_encode()}}</script>
+  </ucdlib-awards-admin-rubric>
+  {% if not currentUser.isAdmin %}
+    <ucdlib-awards-forbidden></ucdlib-awards-forbidden>
+  {% endif %}
+</ucdlib-awards-page>

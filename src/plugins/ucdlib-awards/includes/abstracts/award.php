@@ -26,7 +26,8 @@ class UcdlibAwardsAwardAbstract {
     'main' => 'awards-admin',
     'cycles' => 'awards-admin-cycles',
     'logs' => 'awards-admin-logs',
-    'applicants' => 'awards-admin-applicants'
+    'applicants' => 'awards-admin-applicants',
+    'rubric' => 'awards-admin-rubric'
   ];
 
   protected $_dashboardSettings = [

@@ -162,6 +162,7 @@ class UcdlibAwardsDbTables {
       `range_max` int(11) unsigned NOT NULL DEFAULT 5,
       `range_step` int(11) unsigned NOT NULL DEFAULT 1,
       `weight` int(11) unsigned NOT NULL DEFAULT 1,
+      `item_order` int(11) unsigned NOT NULL DEFAULT 0,
       `date_created` datetime NOT NULL default '0000-00-00 00:00:00',
       `date_updated` datetime NOT NULL default '0000-00-00 00:00:00',
       PRIMARY KEY (`rubric_item_id`),

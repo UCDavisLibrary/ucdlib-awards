@@ -28,38 +28,64 @@ return html`
       </div>
     </div>
     <div class='table-body'>
-      ${this._applicants.map(applicant => html`
-      <div class='row ${this.showCategories ? 'with-categories' : ''}'>
-        <div class='select-box'>
-          <input type="checkbox" @input=${() => this.toggleApplicantSelect(applicant.user_id)} .checked=${applicant.selected}>
-        </div>
-        <div class='flex-grow'>${applicant.name}</div>
-        ${this.showCategories ? html`<div class='lg-screen-block'>${applicant.category}</div>` : html``}
-        <div class='lg-screen-block applicant-status'>${applicant.applicationStatusLabel}</div>
-        <div class='lg-screen-flex flex-wrap'>
-          <div class='no-wrap u-space-mr--small'>${datetimeUtils.mysqlToLocaleString(applicant.applicationEntry?.date_created_sql)}</div>
-          <div class='no-wrap'>${datetimeUtils.mysqlToLocaleStringTime(applicant.applicationEntry?.date_created_sql)}</div>
-        </div>
-        <div class='mb-screen-flex'>
-          <div class='view-toggle-icon'>
-            ${ applicant.expanded ? html`
-            <ucdlib-icon
-              @click=${() => this.toggleApplicantExpand(applicant.user_id)}
-              icon="ucd-public:fa-caret-up">
-            </ucdlib-icon>
-            ` : html`
-            <ucdlib-icon
-              @click=${() => this.toggleApplicantExpand(applicant.user_id)}
-              icon="ucd-public:fa-caret-down">
-            </ucdlib-icon>
-            `}
-          </div>
-        </div>
-      </div>
-    `)}
+      ${this._applicants.map(this.renderApplicantRow)}
     </div>
   </div>
 `;}
+
+export function renderApplicantRow(applicant){
+  const expanded = applicant.expanded;
+  const status = applicant.applicationStatusLabel;
+  const category = applicant.category;
+  const dateSubmitted = datetimeUtils.mysqlToLocaleString(applicant.applicationEntry?.date_created_sql);
+  const timeSubmitted = datetimeUtils.mysqlToLocaleStringTime(applicant.applicationEntry?.date_created_sql);
+
+  return html`
+  <div class='row ${this.showCategories ? 'with-categories' : ''} ${expanded ? 'has-mb-details' : ''}'>
+    <div class='select-box'>
+      <input type="checkbox" @input=${() => this.toggleApplicantSelect(applicant.user_id)} .checked=${applicant.selected}>
+    </div>
+    <div class='flex-grow'>
+      <div>${applicant.name}</div>
+      <div class='${expanded ? 'mb-details' : 'hidden'}'>
+        <div class='flex-center' ?hidden=${!this.showCategories}>
+          <div class='u-space-mr--small primary bold'>Category:</div>
+          <div>${category}</div>
+        </div>
+        <div class='flex-center'><div class='u-space-mr--small primary bold'>Status:</div><div>${status}</div></div>
+        <div class='flex-center'>
+          <div class='u-space-mr--small primary bold'>Submitted:</div>
+          <div class='flex-center flex-wrap'>
+            <div class='no-wrap u-space-mr--small'>${dateSubmitted}</div>
+            <div class='no-wrap'>${timeSubmitted}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    ${this.showCategories ? html`<div class='lg-screen-block'>${category}</div>` : html``}
+    <div class='lg-screen-block applicant-status'>${status}</div>
+    <div class='lg-screen-flex flex-wrap'>
+      <div class='no-wrap u-space-mr--small'>${dateSubmitted}</div>
+      <div class='no-wrap'>${timeSubmitted}</div>
+    </div>
+    <div class='mb-screen-flex'>
+      <div class='view-toggle-icon'>
+        ${ expanded ? html`
+        <ucdlib-icon
+          @click=${() => this.toggleApplicantExpand(applicant.user_id)}
+          icon="ucd-public:fa-caret-up">
+        </ucdlib-icon>
+        ` : html`
+        <ucdlib-icon
+          @click=${() => this.toggleApplicantExpand(applicant.user_id)}
+          icon="ucd-public:fa-caret-down">
+        </ucdlib-icon>
+        `}
+      </div>
+    </div>
+  </div>
+  `;
+}
 
 export function renderSortIcon(field, sortDirection){
   let asc = false;

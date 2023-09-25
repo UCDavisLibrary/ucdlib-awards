@@ -56,6 +56,15 @@ class UcdlibAwardsAdminMenu {
     add_submenu_page(
       $this->slugs['main'],
       $this->award->getAdminMenuPageTitle(),
+      "Rubric",
+      "edit_posts",
+      $this->slugs['rubric'],
+      [$this, 'renderRubric']
+    );
+
+    add_submenu_page(
+      $this->slugs['main'],
+      $this->award->getAdminMenuPageTitle(),
       "Activity Log",
       "edit_posts",
       $this->slugs['logs'],
@@ -171,6 +180,28 @@ class UcdlibAwardsAdminMenu {
 
     $context['pageProps'] = $pageProps;
     UcdlibAwardsTimber::renderAdminPage( 'applicants', $context );
+  }
+
+  public function renderRubric(){
+    $context = $this->context();
+    $requestedCycle = $context['requestedCycle'];
+    $pageProps = [
+      'wpAjax' => $this->ajaxUtils->getAjaxElementProperty('adminRubric'),
+      'rubricItems' => [],
+      'cyclesWithRubric' => []
+    ];
+    if ( $requestedCycle ){
+      if ( $requestedCycle->hasRubric() ){
+        $pageProps['rubricItems'] = $requestedCycle->rubric()->items();
+      }
+      $cyclesWithRubric = $this->plugin->cycles->filterByRubric();
+      foreach ($cyclesWithRubric as $c) {
+        $pageProps[] = $c->recordArray();
+      }
+    }
+    $context['pageProps'] = $pageProps;
+
+    UcdlibAwardsTimber::renderAdminPage( 'rubric', $context );
   }
 
   /**

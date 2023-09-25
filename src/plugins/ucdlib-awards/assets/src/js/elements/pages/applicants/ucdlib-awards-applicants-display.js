@@ -4,9 +4,6 @@ import * as templates from "./ucdlib-awards-applicants-display.tpl.js";
 import Mixin from "@ucd-lib/theme-elements/utils/mixins/mixin.js";
 import { MainDomElement } from "@ucd-lib/theme-elements/utils/mixins/main-dom-element.js";
 
-// todo: remove this
-import testApplicants from "./test-applicants.js";
-
 export default class UcdlibAwardsApplicantsDisplay extends Mixin(LitElement)
   .with(MainDomElement) {
 
@@ -26,6 +23,7 @@ export default class UcdlibAwardsApplicantsDisplay extends Mixin(LitElement)
     super();
     this.render = templates.render.bind(this);
     this.renderSortIcon = templates.renderSortIcon.bind(this);
+    this.renderApplicantRow = templates.renderApplicantRow.bind(this);
     this.applicants = [];
     this._applicants = [];
     this.selectedApplicants = [];
@@ -41,15 +39,11 @@ export default class UcdlibAwardsApplicantsDisplay extends Mixin(LitElement)
       props.has('selectedApplicants') ||
       props.has('sortDirection') ||
       props.has('expandedRecords')) {
-      //todo remove this
-      let applicants = [...this.applicants, ...testApplicants].map(applicant => {
+
+      let applicants = this.applicants.map(applicant => {
 
         applicant.selected = this.selectedApplicants.includes(applicant.user_id);
         applicant.expanded = this.expandedRecords.includes(applicant.user_id);
-
-        applicant.name = `${applicant.first_name || ''} ${applicant.last_name || ''}`;
-        applicant.category = applicant.applicationCategory?.label || '';
-        applicant.applicationStatusLabel = applicant.applicationStatus?.label || '';
         applicant.submitted = new Date(applicant.applicationEntry?.date_created_sql || '');
         return applicant;
       } );
@@ -109,6 +103,11 @@ export default class UcdlibAwardsApplicantsDisplay extends Mixin(LitElement)
         this.requestUpdate();
       }
     }
+    this.dispatchEvent(new CustomEvent('selected-applicants-change', {
+      detail: {
+        selectedApplicants: this.selectedApplicants
+      }
+    }));
   }
 
 }

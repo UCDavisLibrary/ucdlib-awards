@@ -73,6 +73,13 @@ const customStyles = css`
     color: #022851;
     cursor: pointer;
   }
+  ucdlib-awards-applicants-display .mb-details {
+    display: block;
+    margin-top: .5rem;
+  }
+  ucdlib-awards-applicants-display .has-mb-details {
+      align-items: flex-start;
+    }
   @media (min-width: 1200px) {
     ucdlib-awards-applicants-display .row {
     display: grid;
@@ -94,6 +101,12 @@ const customStyles = css`
     ucdlib-awards-applicants-display .table-head {
       font-weight: 700;
       color: #022851;
+    }
+    ucdlib-awards-applicants-display .mb-details {
+      display: none !important;
+    }
+    ucdlib-awards-applicants-display .has-mb-details {
+      align-items: center;
     }
   }
 `;

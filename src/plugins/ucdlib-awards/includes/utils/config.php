@@ -16,6 +16,7 @@ class UcdlibAwardsConfig {
     'adminCycles' => 'ucdlib_awards_admin_cycles',
     'adminLogs' => 'ucdlib_awards_admin_logs',
     'adminApplicants' => 'ucdlib_awards_admin_applicants',
+    'adminRubric' => 'ucdlib_awards_admin_rubric',
   ];
 
   public static $urlQueryParams = [

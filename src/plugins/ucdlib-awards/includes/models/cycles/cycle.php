@@ -188,6 +188,15 @@ class UcdlibAwardsCycle {
     return $this->applicationForm;
   }
 
+  public function hasRubric(){
+    $rubric = $this->rubric();
+    return !empty($rubric->items);
+  }
+
+  public function rubric(){
+    return $this->plugin->rubrics->getByCycleId( $this->cycleId );
+  }
+
   /**
    * @description Get the basic cycle record from the db table
    */

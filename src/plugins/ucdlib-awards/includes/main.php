@@ -5,6 +5,7 @@ require_once( __DIR__ . '/auth.php' );
 require_once( __DIR__ . '/award-loader.php' );
 require_once( __DIR__ . '/forms/main.php' );
 require_once( __DIR__ . '/models/cycles/cycles.php' );
+require_once( __DIR__ . '/models/rubrics/rubrics.php' );
 require_once( __DIR__ . '/models/users/users.php' );
 require_once( __DIR__ . '/models/forms.php' );
 require_once( __DIR__ . '/models/logs.php' );
@@ -47,6 +48,7 @@ class UcdlibAwards {
     $this->cycles = new UcdlibAwardsCycles( $this );
     $this->forms = new UcdlibAwardsForms( $this );
     $this->logs = new UcdlibAwardsLogs( $this );
+    $this->rubrics = new UcdlibAwardsRubrics( $this );
 
     // modules/controllers
     $this->auth = new UcdlibAwardsAuth( $this );
