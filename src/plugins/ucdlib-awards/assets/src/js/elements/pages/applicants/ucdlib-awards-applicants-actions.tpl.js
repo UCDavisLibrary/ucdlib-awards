@@ -35,7 +35,7 @@ export function renderActionPanel(){
         <span>Actions</span>
       </h2>
       <section>
-        <div ?hidden=${this.selectedApplicants.length} class='u-space-mb admin-blue' style='font-size:.9rem;'>
+        <div ?hidden=${this.selectedApplicants.length} class='u-space-mb hint-text'>
           Select at least one applicant to perform an action
         </div>
         <div class="field-container">

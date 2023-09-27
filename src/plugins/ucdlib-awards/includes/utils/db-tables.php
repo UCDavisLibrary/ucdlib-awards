@@ -81,8 +81,21 @@ class UcdlibAwardsDbTables {
         'cycle_meta' => 'Cycle Meta',
         'date_created' => 'Date Created',
         'date_updated' => 'Date Updated'
+      ],
+      self::RUBRIC_ITEMS => [
+        'rubric_item_id' => 'Rubric Item ID',
+        'cycle_id' => 'Cycle ID',
+        'title' => 'Item Title',
+        'description' => 'Item Description',
+        'range_min' => 'Minimum Score',
+        'range_max' => 'Maximum Score',
+        'range_step' => 'Score Interval',
+        'weight' => 'Item Weight',
+        'item_order' => 'Item Order',
+        'date_created' => 'Date Created',
+        'date_updated' => 'Date Updated'
       ]
-      ];
+    ];
 
     return isset( $labels[ $table ] ) ? $labels[ $table ] : false;
   }

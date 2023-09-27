@@ -12,6 +12,56 @@ class UcdlibAwardsAdminAjax {
     add_action( 'wp_ajax_' . $this->actions['adminCycles'], [$this, 'cycles'] );
     add_action( 'wp_ajax_' . $this->actions['adminGeneral'], [$this, 'general'] );
     add_action( 'wp_ajax_' . $this->actions['adminLogs'], [$this, 'logs'] );
+    add_action( 'wp_ajax_' . $this->actions['adminRubric'], [$this, 'rubric'] );
+  }
+
+  public function rubric(){
+    check_ajax_referer( $this->actions['adminRubric'] );
+    $response = $this->utils->getResponseTemplate();
+
+    try {
+      $this->validateRequest($response);
+      $action = $_POST['subAction'];
+      if ( $action === 'updateItems' ){
+        $payload = json_decode( stripslashes($_POST['data']), true );
+
+        if ( !is_array($payload) || !count($payload) ){
+          $response['messages'][] = 'Form is empty. Fill out the form and try submitting again.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        $rubricItems = [];
+        $errorMessages = [];
+        $errorFields = [];
+        $isValid = true;
+        foreach ($payload as $i => $payloadItem) {
+          $payloadItem['item_order'] = $i;
+          $valid = $this->plugin->rubrics->validateRubric($payloadItem);
+          if ( !$valid[0] ) {
+            $isValid = false;
+            $errorMessages = array_merge($errorMessages, $valid[1]['errorMessages']);
+            foreach ($valid[1]['errorFields'] as $field => $value) {
+              if ( !isset($errorFields[$field]) ) $errorFields[$field] = [];
+              $errorFields[$field][] = $i;
+            }
+          }
+          $rubricItems[] = $payloadItem;
+        }
+        if ( !$isValid ) {
+          $response['messages'] = array_unique($errorMessages);
+          if ( count($errorFields) ){
+            $response['errorFields'] = $errorFields;
+          }
+          $this->utils->sendResponse($response);
+          return;
+        }
+      }
+    } catch (\Throwable $th) {
+      error_log('Error in UcdlibAwardsAdminAjax::rubric(): ' . $th->getMessage());
+    }
+
+    $this->utils->sendResponse($response);
   }
 
   public function logs(){

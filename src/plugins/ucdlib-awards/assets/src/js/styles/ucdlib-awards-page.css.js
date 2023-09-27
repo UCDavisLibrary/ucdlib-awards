@@ -83,7 +83,13 @@ input[type="text"] {
 input[type="date"] {
   box-sizing: border-box;
 }
+input[type="number"] {
+  box-sizing: border-box;
+}
 select {
+  box-sizing: border-box;
+}
+textarea {
   box-sizing: border-box;
 }
 select[disabled] {
@@ -183,6 +189,22 @@ ucdlib-icon.panel__custom-icon {
 }
 .vertical-link--circle ucdlib-icon.vertical-link__image {
   height: 50%;
+}
+.hint-text {
+  font-size: .9rem;
+  color: #13639e;
+}
+.overflow-elipsis {
+  overflow-y: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.width-100 {
+  width: 100%;
+}
+.marketing-highlight__cta:hover, .marketing-highlight__cta:focus {
+  color: var(--category-brand-contrast-color, #022851);
+  text-decoration: none;
 }
 `;
 
