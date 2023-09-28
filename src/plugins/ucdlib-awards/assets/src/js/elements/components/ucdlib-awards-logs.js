@@ -77,6 +77,8 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
       log = this._parseCycleLog(log);
     } else if ( log.log_type == 'application' ) {
       log = this._parseApplicationLog(log);
+    } else if ( log.log_type == 'rubric' ) {
+      log = this._parseRubricLog(log);
     }
 
     if ( !log.displayText ) {
@@ -109,6 +111,17 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
     log.iconColor = 'pinot';
     if ( log.log_subtype === 'submit' ) {
       log.displayText = `Application submitted by ${this.getUserName(log.user_id_subject)}`;
+    }
+    return log;
+  }
+
+  _parseRubricLog(log){
+    log.icon = 'ucd-public:fa-list-check';
+    log.iconColor = 'redwood';
+    if ( log.log_subtype === 'create' ) {
+      log.displayText = `Evaluation rubric created by ${this.getUserName(log.user_id_subject)}`;
+    } else if ( log.log_subtype === 'update' ) {
+      log.displayText = `Evaluation rubric updated by ${this.getUserName(log.user_id_subject)}`;
     }
     return log;
   }

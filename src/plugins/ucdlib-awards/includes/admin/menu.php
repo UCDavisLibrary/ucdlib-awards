@@ -78,23 +78,29 @@ class UcdlibAwardsAdminMenu {
    */
   public function renderMain(){
     $context = $this->context();
-    $requestedCycle = $this->context['pageContainerProps']['requestedCycle'];
+    $requestedCycle = $this->context['requestedCycle'];
     if ( $requestedCycle ){
-      $requestedCycle = $requestedCycle['cycle_id'];
+      $cycleId = $requestedCycle->cycleId;
     }
     $dashboardSettings = $this->award->getDashboardSettings();
     $context['pageProps'] = [
       'wpAjax' => $this->ajaxUtils->getAjaxElementProperty('adminDashboard'),
       'logsProps' => [
         'wpAjax' => $this->ajaxUtils->getAjaxElementProperty('adminLogs'),
-        'cycleId' => $requestedCycle,
+        'cycleId' => isset($cycleId) ? $cycleId : 0,
         'doQueryOnLoad' => true,
         'filters' => ['types' => $dashboardSettings['logTypeFilter']]
       ],
       'requestedCycle' => $context['pageContainerProps']['requestedCycle'],
       'cyclesLink' => $context['pageContainerProps']['cyclesLink'],
-      'logsLink' => $context['links']['logs']
+      'logsLink' => $context['links']['logs'],
+      'rubricLink' => $context['links']['rubric'],
+      'hasRubric' => false
     ];
+
+    if ( $requestedCycle ){
+      $context['pageProps']['hasRubric'] = $requestedCycle->hasRubric();
+    }
     UcdlibAwardsTimber::renderAdminPage( 'main', $context );
   }
 
@@ -191,6 +197,7 @@ class UcdlibAwardsAdminMenu {
       'cyclesWithRubric' => []
     ];
     if ( $requestedCycle ){
+      $pageProps['cycleId'] = $requestedCycle->cycleId;
       if ( $requestedCycle->hasRubric() ){
         $pageProps['rubricItems'] = $requestedCycle->rubric()->items();
       }
@@ -216,7 +223,8 @@ class UcdlibAwardsAdminMenu {
     $links = [
       'cycles' => admin_url( 'admin.php?page=' . $this->slugs['cycles'] ),
       'dashboard' => admin_url( 'admin.php?page=' . $this->slugs['main'] ),
-      'logs' => admin_url( 'admin.php?page=' . $this->slugs['logs'] )
+      'logs' => admin_url( 'admin.php?page=' . $this->slugs['logs'] ),
+      'rubric' => admin_url( 'admin.php?page=' . $this->slugs['rubric'] )
     ];
 
     $this->context = [
@@ -249,6 +257,9 @@ class UcdlibAwardsAdminMenu {
       }
       if ( $requestedCycle ){
         $this->context['requestedCycle'] = $requestedCycle;
+        foreach ($this->context['links'] as &$link) {
+          $link = add_query_arg( $cycleQueryParam, $requestedCycle->cycleId, $link );
+        }
         $requestedCycle = $requestedCycle->recordArray(['applicantCount' => true]);
       }
       $this->context['pageContainerProps']['requestedCycle'] = $requestedCycle;

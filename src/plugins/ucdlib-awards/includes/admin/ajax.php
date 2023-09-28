@@ -35,6 +35,7 @@ class UcdlibAwardsAdminAjax {
         $errorMessages = [];
         $errorFields = [];
         $isValid = true;
+        $cycleId = false;
         foreach ($payload as $i => $payloadItem) {
           $payloadItem['item_order'] = $i;
           $valid = $this->plugin->rubrics->validateRubric($payloadItem);
@@ -47,7 +48,9 @@ class UcdlibAwardsAdminAjax {
             }
           }
           $rubricItems[] = $payloadItem;
+          if (!empty($payloadItem['cycle_id'])) $cycleId = $payloadItem['cycle_id'];
         }
+
         if ( !$isValid ) {
           $response['messages'] = array_unique($errorMessages);
           if ( count($errorFields) ){
@@ -56,6 +59,31 @@ class UcdlibAwardsAdminAjax {
           $this->utils->sendResponse($response);
           return;
         }
+
+        // verify any updated items actually exist
+        $rubric = $this->plugin->rubrics->getByCycleId($cycleId);
+        $existingItemIds = $rubric->itemIds();
+        $payloadItemIds = array_filter(array_map(function($item){
+          return !empty($item['rubric_item_id']) ? $item['rubric_item_id'] : false;
+        }, $payload));
+        $missingItemIds = array_diff($payloadItemIds, $existingItemIds);
+        if ( count($missingItemIds) ){
+          $response['messages'][] = 'One or more rubric items could not be updated because they could not be found.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        // create or update items
+        foreach ($rubricItems as $item) {
+          $rubric->createOrUpdateItem($item);
+        }
+
+        $logSubtype = count($existingItemIds) ? 'update' : 'create';
+        $this->logger->logRubricEvent($cycleId, $logSubtype);
+
+        $response['data'] = ['rubricItems' => $rubric->items()];
+        $response['messages'][] = 'Rubric items updated successfully.';
+        $response['success'] = true;
       }
     } catch (\Throwable $th) {
       error_log('Error in UcdlibAwardsAdminAjax::rubric(): ' . $th->getMessage());

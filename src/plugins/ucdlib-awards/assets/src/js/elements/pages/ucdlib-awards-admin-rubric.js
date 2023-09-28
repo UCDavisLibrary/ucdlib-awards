@@ -18,7 +18,8 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
       cyclesWithRubric: { type: Array },
       hasRubric: { type: Boolean },
       errorMessages: { type: Array },
-      fieldsWithErrors: { type: Object }
+      fieldsWithErrors: { type: Object },
+      cycleId: { type: Number}
     }
   }
 
@@ -37,6 +38,7 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
     this.hasRubric = false;
     this.errorMessages = [];
     this.fieldsWithErrors = {};
+    this.cycleId = 0;
 
     this.mutationObserver = new MutationObserverController(this);
     this.wpAjax = new wpAjaxController(this);
@@ -53,6 +55,10 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
       this.editedRubricItems.push({});
     }
 
+    if ( this.fieldsWithErrors[prop] && Array.isArray(this.fieldsWithErrors[prop]) ) {
+      this.fieldsWithErrors[prop] = this.fieldsWithErrors[prop].filter(i => i !== itemIndex);
+    }
+
     const ints = ['range_min', 'range_max', 'range_step', 'weight'];
     if ( ints.includes(prop) ) value = parseInt(value);
 
@@ -67,7 +73,9 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
     console.log('submit', this.editedRubricItems);
 
     const payload = this.editedRubricItems.map(item => {
-      const newItem = {};
+      const newItem = {
+        cycle_id: this.cycleId
+      };
       Object.keys(item).forEach(key => {
         if ( item[key] !== null || item[key] !== undefined ) {
           newItem[key] = item[key];
@@ -79,6 +87,15 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
     console.log('response', response);
 
     if ( response.success ) {
+      this.rubricItems = response.data.rubricItems;
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: 'Rubric updated',
+          type: 'success'
+        }
+      }));
 
     } else {
       window.scrollTo({top: 0, behavior: 'smooth'});
@@ -121,6 +138,7 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
     }
     if ( !data ) return;
     if ( data.cyclesWithRubric ) this.cyclesWithRubric = data.cyclesWithRubric;
+    if ( data.cycleId ) this.cycleId = parseInt(data.cycleId);
     if ( data.rubricItems ) {
       this.rubricItems = data.rubricItems
     }

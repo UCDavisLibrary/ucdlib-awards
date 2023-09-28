@@ -43,6 +43,27 @@ class UcdlibAwardsLogs {
             'description' => 'Application submitted'
           ]
         ]
+      ],
+      'rubric' => [
+        'slug' => 'rubric',
+        'label' => 'Rubric',
+        'subTypes' => [
+          'create' => [
+            'slug' => 'create',
+            'label' => 'Create',
+            'description' => 'Rubric created'
+          ],
+          'update' => [
+            'slug' => 'update',
+            'label' => 'Update',
+            'description' => 'Rubric updated'
+          ],
+          'delete' => [
+            'slug' => 'delete',
+            'label' => 'Delete',
+            'description' => 'Rubric deleted'
+          ]
+        ]
       ]
     ];
 
@@ -156,6 +177,41 @@ class UcdlibAwardsLogs {
       'user_id_subject' => $userId,
       'date_created' =>  date('Y-m-d H:i:s')
     ];
+
+    global $wpdb;
+    $wpdb->insert( $this->table, $log );
+    return true;
+  }
+
+  public function logRubricEvent($cycleId, $subType){
+    if ( !isset($this->logTypes['rubric']['subTypes'][$subType]) ) {
+      error_log('UcdlibAwardsLogs::logRubricEvent() - Invalid subType: ' . $subType);
+      return false;
+    }
+    $logDetails = [];
+    $log = [
+      'log_type' => $this->logTypes['rubric']['slug'],
+      'log_subtype' => $this->logTypes['rubric']['subTypes'][$subType]['slug'],
+      'cycle_id' => $cycleId,
+      'date_created' =>  date('Y-m-d H:i:s')
+    ];
+
+    $currentUser = $this->plugin->users->currentUser();
+    if ( $currentUser->wpUser() ) {
+      $logDetails['wp_user'] = [
+        'id' => $currentUser->wpUser()->ID,
+        'username' => $currentUser->wpUser()->user_login,
+        'email' => $currentUser->wpUser()->user_email,
+        'name' => $currentUser->wpUser()->display_name
+      ];
+    }
+    if ( $currentUser->record() ){
+      $log['user_id_subject'] = $currentUser->record()->user_id;
+    }
+
+    if ( count($logDetails) > 0 ) {
+      $log['log_value'] = json_encode($logDetails);
+    }
 
     global $wpdb;
     $wpdb->insert( $this->table, $log );

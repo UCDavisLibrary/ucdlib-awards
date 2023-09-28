@@ -88,7 +88,7 @@ export function renderFormItem(item, index, args={}) {
           <label>Item Title</label>
           <input type="text" .value=${title} maxlength='200' @input=${(e) => this._onFormInput(index, 'title', e.target.value)}>
         </div>
-        <div class='field-container'>
+        <div class='field-container ${errors.description ? 'error' : ''}'>
           <label>Description</label>
           <textarea
             rows="3"
@@ -102,19 +102,19 @@ export function renderFormItem(item, index, args={}) {
       <fieldset>
         <legend>Scoring</legend>
         <div class='l-4col'>
-          <div class='l-first field-container'>
+          <div class='l-first field-container ${errors.weight ? 'error' : ''}'>
             <label class='overflow-elipsis'>Item Weight</label>
             <input type="number" min="1" max="100" .value=${weight} @input=${(e) => this._onFormInput(index, 'weight', e.target.value)}>
           </div>
-          <div class='l-second field-container'>
+          <div class='l-second field-container ${errors.range_min ? 'error' : ''}'>
             <label class='overflow-elipsis'>Range Min</label>
             <input type="number" min="1" max="100" .value=${rangeMin} @input=${(e) => this._onFormInput(index, 'range_min', e.target.value)}>
           </div>
-          <div class='l-third field-container'>
+          <div class='l-third field-container ${errors.range_max ? 'error' : ''}'>
             <label class='overflow-elipsis'>Range Max</label>
             <input type="number" min="1" max="100" .value=${rangeMax} @input=${(e) => this._onFormInput(index, 'range_max', e.target.value)}>
           </div>
-          <div class='l-fourth field-container'>
+          <div class='l-fourth field-container ${errors.range_step ? 'error' : ''}'>
             <label class='overflow-elipsis'>Range Interval</label>
             <input type="number" min="1" max="100" .value=${rangeStep} @input=${(e) => this._onFormInput(index, 'range_step', e.target.value)}>
           </div>

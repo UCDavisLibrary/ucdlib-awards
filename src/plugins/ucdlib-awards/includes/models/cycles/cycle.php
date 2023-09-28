@@ -190,7 +190,7 @@ class UcdlibAwardsCycle {
 
   public function hasRubric(){
     $rubric = $this->rubric();
-    return !empty($rubric->items);
+    return !empty($rubric->items());
   }
 
   public function rubric(){
@@ -242,7 +242,6 @@ class UcdlibAwardsCycle {
   protected $applicationEntries;
   public function applicationEntries(){
     if ( isset($this->applicationEntries) ) return $this->applicationEntries;
-    error_log('applicationEntries()');
     if ( !$this->applicationForm() ) {
       $this->applicationEntries = [];
       return $this->applicationEntries;

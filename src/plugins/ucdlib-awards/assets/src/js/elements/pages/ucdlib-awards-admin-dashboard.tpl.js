@@ -11,6 +11,7 @@ export function render() {
       </div>
       <div class="l-second panel o-box">
         ${this.renderCycleDatesPanel()}
+        ${this.renderRubricPanel()}
         <div class="brand-textbox category-brand--pinot category-brand__background u-space-mb">
           Applicants - break application count out by status and category, if applicable. show totals for each.
           also break out review count i.e. 1/3, 2/3, 3/3
@@ -58,6 +59,29 @@ export function renderCycleDatesPanel(){
         <a class="icon-ucdlib" href=${this.cyclesLink}>
           <ucdlib-icon class="" icon="ucd-public:fa-circle-chevron-right"></ucdlib-icon>
           <span>View Cycle</span>
+        </a>
+      </section>
+    </div>
+  `;
+}
+
+export function renderRubricPanel(){
+  const actionText = this.hasRubric ? 'Edit Rubric' : 'Create a Rubric';
+  return html`
+    <div class="panel panel--icon panel--icon-custom o-box category-brand--redwood">
+      <h2 class="panel__title">
+        <ucdlib-icon icon="ucd-public:fa-list-check" class="panel__custom-icon"></ucdlib-icon>
+        <span>Evaluation Rubric</span>
+      </h2>
+      <section>
+        ${this.hasRubric ? html`
+          <p>TODO: summarize rubric here</p>
+        ` : html`
+          <p>No rubric has been created for this cycle.</p>
+        `}
+        <a class="icon-ucdlib" href=${this.rubricLink}>
+          <ucdlib-icon class="" icon="ucd-public:fa-circle-chevron-right"></ucdlib-icon>
+          <span>${actionText}</span>
         </a>
       </section>
     </div>

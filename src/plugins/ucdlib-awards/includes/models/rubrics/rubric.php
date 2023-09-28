@@ -31,4 +31,44 @@ class UcdlibAwardsRubric {
     $this->items = $wpdb->get_results( $sql );
     return $this->items;
   }
+
+  public function itemIds(){
+    $ids = [];
+    foreach( $this->items() as $item ){
+      $ids[] = $item->rubric_item_id;
+    }
+    return $ids;
+  }
+
+  public function createOrUpdateItem( $item ){
+    global $wpdb;
+    $table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::RUBRIC_ITEMS );
+
+    $item['date_updated'] = date('Y-m-d H:i:s');
+    $item['date_created'] = date('Y-m-d H:i:s');
+    $item['cycle_id'] = $this->cycleId;
+
+    $id = false;
+    if ( isset($item['rubric_item_id']) ){
+      if ( in_array($item['rubric_item_id'], $this->itemIds()) ){
+        $id = $item['rubric_item_id'];
+      }
+      unset($item['rubric_item_id']);
+    }
+
+    if ( $id ){
+      $wpdb->update( $table, $item, ['rubric_item_id' => $id] );
+    } else {
+      $wpdb->insert( $table, $item );
+      $id = $wpdb->insert_id;
+    }
+
+    $this->clearCache();
+
+    return $id;
+  }
+
+  public function clearCache(){
+    $this->items = null;
+  }
 }
