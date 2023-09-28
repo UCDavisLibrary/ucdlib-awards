@@ -52,6 +52,34 @@ export function renderForm() {
         </ul>
       </div>
     ${this.hasRubric ? html`
+      <div>
+        <h4>Rubric Items</h4>
+        ${this.renderInsertBar(0, 'before')}
+        ${this.editedRubricItems.map((item, index) => html`
+          <div class='gold-box o-box'>
+            <div class='flex-center'>
+              <h5 class='flex-grow u-space-mb--flush u-space-mr'>${item.title || ''}</h5>
+              ${this.expandedItems.includes(index) ? html`
+                <ucdlib-icon
+                  icon="ucd-public:fa-caret-up"
+                  class="pointer icon-hover primary"
+                  title="Collapse"
+                  @click=${() => this._onToggleExpand(index)}></ucdlib-icon>
+              ` : html`
+                <ucdlib-icon
+                  icon="ucd-public:fa-pen-to-square"
+                  title="Edit"
+                  class="pointer icon-hover primary"
+                  @click=${() => this._onToggleExpand(index)}></ucdlib-icon>
+              `}
+            </div>
+            <div ?hidden=${!this.expandedItems.includes(index)} class='o-box'>
+              ${this.renderFormItem(item, index)}
+            </div>
+          </div>
+          ${this.renderInsertBar(index)}
+        `)}
+      </div>
     ` : html`
       <div class='hint-text u-space-mb'>
         Create rubric items for judges to use when evaluating applications.
@@ -75,6 +103,9 @@ export function renderFormItem(item, index, args={}) {
   const rangeMax = item.range_max || '5';
   const rangeStep = item.range_step || '1';
   const noActions = args.noActions || false;
+  const noMoveUp = index === 0;
+  const noMoveDown = index === this.editedRubricItems.length - 1;
+
   const errors = {};
   Object.keys(this.fieldsWithErrors).forEach(field => {
     if ( Array.isArray(this.fieldsWithErrors[field]) ) {
@@ -122,17 +153,45 @@ export function renderFormItem(item, index, args={}) {
       </fieldset>
       <div ?hidden=${noActions} class='l-3col'>
         <div class='l-first u-space-mb'>
-          <span class="marketing-highlight__cta border-box category-brand--double-decker width-100">Delete</span>
+          <span
+            class="marketing-highlight__cta border-box category-brand--double-decker width-100"
+            @click=${() => this._onDeleteItem(index)}>
+            Delete</span>
         </div>
         <div class='l-second u-space-mb'>
-          <button type='button' class="btn btn--alt3 btn--block border-box">Move Up</button>
+          <button
+            type='button'
+            ?disabled=${noMoveUp}
+            @click=${() => this._onMoveItem(index, 'up')}
+            class="btn btn--alt3 btn--block border-box">Move Up</button>
         </div>
         <div class='l-third u-space-mb'>
-          <button type='button' class="btn btn--alt3 btn--block border-box">Move Down</button>
+          <button
+            type='button'
+            ?disabled=${noMoveDown}
+            @click=${() => this._onMoveItem(index, 'down')}
+            class="btn btn--alt3 btn--block border-box">Move Down</button>
         </div>
       </div>
     </div>
   `
+}
+
+export function renderInsertBar(index, direction='after') {
+  const arrayIndex = direction === 'after' ? index + 1 : index;
+  return html`
+    <div class='insert-bar'>
+      <div class='border-bottom-blue flex-grow'></div>
+      <div class='u-space-mx'>
+        <ucdlib-icon
+          icon="ucd-public:fa-circle-plus"
+          title="Add Item"
+          @click=${() => this._onInsertItem(arrayIndex)}
+          class="icon-hover primary pointer">
+        </ucdlib-icon></div>
+      <div class='border-bottom-blue flex-grow'></div>
+    </div>
+  `;
 }
 
 export function renderUploadPanel(){

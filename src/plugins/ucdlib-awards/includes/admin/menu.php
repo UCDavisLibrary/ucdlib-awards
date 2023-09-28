@@ -203,7 +203,11 @@ class UcdlibAwardsAdminMenu {
       }
       $cyclesWithRubric = $this->plugin->cycles->filterByRubric();
       foreach ($cyclesWithRubric as $c) {
-        $pageProps[] = $c->recordArray();
+        if ( $c->cycleId == $requestedCycle->cycleId ) continue;
+        $pageProps['cyclesWithRubric'][] = [
+          'cycle_id' => $c->cycleId,
+          'title' => $c->title()
+        ];
       }
     }
     $context['pageProps'] = $pageProps;

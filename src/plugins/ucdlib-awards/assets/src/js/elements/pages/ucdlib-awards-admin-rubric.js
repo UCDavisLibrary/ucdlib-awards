@@ -19,7 +19,8 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
       hasRubric: { type: Boolean },
       errorMessages: { type: Array },
       fieldsWithErrors: { type: Object },
-      cycleId: { type: Number}
+      cycleId: { type: Number},
+      expandedItems: { type: Array }
     }
   }
 
@@ -30,6 +31,7 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
     this.renderForm = templates.renderForm.bind(this);
     this.renderFormItem = templates.renderFormItem.bind(this);
     this.renderUploadPanel = templates.renderUploadPanel.bind(this);
+    this.renderInsertBar = templates.renderInsertBar.bind(this);
 
     this.page = 'main';
     this.cyclesWithRubric = [];
@@ -39,6 +41,7 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
     this.errorMessages = [];
     this.fieldsWithErrors = {};
     this.cycleId = 0;
+    this.expandedItems = [];
 
     this.mutationObserver = new MutationObserverController(this);
     this.wpAjax = new wpAjaxController(this);
@@ -48,6 +51,15 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
     if ( props.has('rubricItems') ){
       this.editedRubricItems = JSON.parse(JSON.stringify(this.rubricItems));
     }
+  }
+
+  _onToggleExpand(index){
+    if ( this.expandedItems.includes(index) ) {
+      this.expandedItems = this.expandedItems.filter(i => i !== index);
+    } else {
+      this.expandedItems.push(index);
+    }
+    this.requestUpdate();
   }
 
   _onFormInput(itemIndex, prop, value){
@@ -100,8 +112,58 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
     } else {
       window.scrollTo({top: 0, behavior: 'smooth'});
       this.fieldsWithErrors = response.errorFields;
+      Object.values(this.fieldsWithErrors).forEach(items => {
+        if ( Array.isArray(items) ) {
+          items.forEach(item => {
+            if ( !this.expandedItems.includes(item) ) {
+              this.expandedItems.push(item);
+            }
+          });
+        }
+      });
       this.errorMessages = response.messages;
     }
+  }
+
+  _onInsertItem(index){
+    this.editedRubricItems.splice(index, 0, {});
+    const expandedItems = this.expandedItems.map(i => {
+      if ( i >= index ) return i+1;
+      return i;
+    });
+    expandedItems.push(index);
+    this.expandedItems = expandedItems;
+    this.requestUpdate();
+  }
+
+  _onDeleteItem(index){
+    this.editedRubricItems.splice(index, 1);
+    const expandedItems = this.expandedItems.filter(i => i !== index).map(i => {
+      if ( i >= index ) return i-1;
+      return i;
+    });
+    this.expandedItems = expandedItems;
+    if ( !this.editedRubricItems.length ) {
+      this.hasRubric = false;
+    }
+    this.requestUpdate();
+  }
+
+  _onMoveItem(index, direction){
+    if ( direction === 'up' ) {
+      const item = this.editedRubricItems.splice(index, 1)[0];
+      this.editedRubricItems.splice(index-1, 0, item);
+    } else {
+      const item = this.editedRubricItems.splice(index, 1)[0];
+      this.editedRubricItems.splice(index+1, 0, item);
+    }
+    const expandedItems = this.expandedItems.map(i => {
+      if ( i === index ) return direction === 'up' ? i-1 : i+1;
+      if ( i === index-1 ) return direction === 'up' ? i+1 : i-1;
+      return i;
+    });
+    this.expandedItems = expandedItems;
+    this.requestUpdate();
   }
 
   _onNewRubricClick(action){

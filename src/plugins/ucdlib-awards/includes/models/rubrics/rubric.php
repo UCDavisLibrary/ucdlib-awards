@@ -40,6 +40,14 @@ class UcdlibAwardsRubric {
     return $ids;
   }
 
+  public function deleteItemsById( $itemIds ) {
+    global $wpdb;
+    $table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::RUBRIC_ITEMS );
+    $sql = "DELETE FROM $table WHERE rubric_item_id IN (" . implode(',', $itemIds) . ")";
+    $wpdb->query( $sql );
+    $this->clearCache();
+  }
+
   public function createOrUpdateItem( $item ){
     global $wpdb;
     $table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::RUBRIC_ITEMS );

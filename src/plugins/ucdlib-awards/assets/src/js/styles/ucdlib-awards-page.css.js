@@ -184,6 +184,12 @@ ucdlib-icon.panel__custom-icon {
 .border-bottom-gold {
   border-bottom: 2px dotted #ffbf00;
 }
+.border-bottom-blue {
+  border-bottom: 1px solid #022851;
+}
+.gold-box {
+  border: 1px solid #ffbf00;
+}
 .bold {
   font-weight: 700;
 }
@@ -205,6 +211,9 @@ ucdlib-icon.panel__custom-icon {
 .marketing-highlight__cta:hover, .marketing-highlight__cta:focus {
   color: var(--category-brand-contrast-color, #022851);
   text-decoration: none;
+}
+.icon-hover:hover, .icon-hover:focus {
+  color: #008eaa;
 }
 `;
 

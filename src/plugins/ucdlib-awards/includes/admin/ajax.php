@@ -78,6 +78,12 @@ class UcdlibAwardsAdminAjax {
           $rubric->createOrUpdateItem($item);
         }
 
+        // delete items
+        $deletedItemIds = array_diff($existingItemIds, $payloadItemIds);
+        if ( count($deletedItemIds) ){
+          $rubric->deleteItemsById($deletedItemIds);
+        }
+
         $logSubtype = count($existingItemIds) ? 'update' : 'create';
         $this->logger->logRubricEvent($cycleId, $logSubtype);
 
