@@ -5,6 +5,7 @@ return html`
   <h3 class='page-subtitle'>Evaluation Rubric</h3>
   <ucdlib-pages selected='rubric--${this.page}'>
     <div id='rubric--no-rubric'>${this.renderNoRubric()}</div>
+    <div id='rubric--copy'>${this.renderCopyRubricForm()}</div>
     <div id='rubric--main'>
       <div class="l-2col l-2col--67-33">
         <div class="l-first panel o-box">
@@ -12,6 +13,7 @@ return html`
         </div>
         <div class="l-second panel o-box">
           ${this.renderUploadPanel()}
+          ${this.renderCalculationPanel()}
         </div>
       </div>
     </div>
@@ -207,5 +209,43 @@ export function renderUploadPanel(){
         </div>
       </section>
     </div>
+  `;
+}
+
+export function renderCalculationPanel(){
+  return html`
+    <div class="panel panel--icon panel--icon-custom o-box category-brand--sage">
+      <h2 class="panel__title">
+        <ucdlib-icon icon="ucd-public:fa-calculator" class="panel__custom-icon"></ucdlib-icon>
+        <span>Scoring Calculation</span>
+      </h2>
+      <section>
+        <div class='hint-text'>
+          How should the overall score of an application be calculated?
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+export function renderCopyRubricForm() {
+  return html`
+    <div class='l-container'>
+      <div class="panel o-box o-box--large gold-box l-shrink">
+        <form @submit=${this._onCopyRubricSubmit}>
+          <div class='field-container'>
+            <label>Copy Rubric from a Previous Cycle</label>
+            <select @change=${(e) => this.cycleToCopyId = e.target.value}>
+              <option value='0' ?selected=${!this.cycleToCopyId} disabled>Select a cycle</option>
+              ${this.cyclesWithRubric.map(cycle => html`
+                <option value=${cycle.cycle_id} ?selected=${this.cycleToCopyId == cycle.cycle_id}>${cycle.title}</option>
+              `)}
+            </select>
+          </div>
+          <button ?disabled=${this.copyFormDisabled || !this.cycleToCopyId} type='submit' class="btn btn--primary border-box">Copy</button>
+        </form>
+      </div>
+    </div>
+
   `;
 }

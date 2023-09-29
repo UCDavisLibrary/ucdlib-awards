@@ -20,7 +20,9 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
       errorMessages: { type: Array },
       fieldsWithErrors: { type: Object },
       cycleId: { type: Number},
-      expandedItems: { type: Array }
+      expandedItems: { type: Array },
+      cycleToCopyId: { type: Number },
+      copyFormDisabled: { type: Boolean }
     }
   }
 
@@ -32,6 +34,8 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
     this.renderFormItem = templates.renderFormItem.bind(this);
     this.renderUploadPanel = templates.renderUploadPanel.bind(this);
     this.renderInsertBar = templates.renderInsertBar.bind(this);
+    this.renderCalculationPanel = templates.renderCalculationPanel.bind(this);
+    this.renderCopyRubricForm = templates.renderCopyRubricForm.bind(this);
 
     this.page = 'main';
     this.cyclesWithRubric = [];
@@ -42,6 +46,8 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
     this.fieldsWithErrors = {};
     this.cycleId = 0;
     this.expandedItems = [];
+    this.cycleToCopyId = 0;
+    this.copyFormDisabled = false;
 
     this.mutationObserver = new MutationObserverController(this);
     this.wpAjax = new wpAjaxController(this);
@@ -168,9 +174,9 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
 
   _onNewRubricClick(action){
     if ( action === 'copy' ) {
-      // do stuff
+      this.page = 'copy';
     } else if ( action === 'create' ) {
-      // do stuff
+      this.page = 'main';
     }
   }
 
