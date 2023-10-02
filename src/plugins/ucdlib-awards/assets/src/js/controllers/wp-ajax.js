@@ -34,23 +34,35 @@ export default class wpAjax {
   async request(subAction, data){
     if ( !this.nonce || !subAction || this.requestInProgress[subAction] ) return;
     this.requestInProgress[subAction] = true;
-    const body = {
-      action: this.action,
-      subAction,
-      data: JSON.stringify(data),
-      _ajax_nonce: this.nonce
+
+    const body = {};
+    if ( data instanceof FormData ) {
+      data.append('action', this.action);
+      data.append('subAction', subAction);
+      data.append('_ajax_nonce', this.nonce);
+    } else {
+      body.action = this.action;
+      body.subAction = subAction;
+      body.data = JSON.stringify(data);
+      body._ajax_nonce = this.nonce;
     }
 
     let responseData;
     let response;
     try {
-      response = await fetch(this.url, {
-        method: 'POST',
-        headers: {
+      const args = {
+        method: 'POST'
+      };
+      if ( Object.keys(body).length ) {
+        args.headers = {
           'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: new URLSearchParams(body).toString(),
-      });
+        };
+        args.body = new URLSearchParams(body).toString();
+      } else {
+        args.body = data;
+      }
+
+      response = await fetch(this.url, args);
 
       if ( !response.ok ) {
         throw new Error(response.statusText);

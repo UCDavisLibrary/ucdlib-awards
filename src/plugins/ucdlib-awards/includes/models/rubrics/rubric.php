@@ -53,15 +53,18 @@ class UcdlibAwardsRubric {
     $table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::RUBRIC_ITEMS );
 
     $item['date_updated'] = date('Y-m-d H:i:s');
-    $item['date_created'] = date('Y-m-d H:i:s');
     $item['cycle_id'] = $this->cycleId;
 
     $id = false;
     if ( isset($item['rubric_item_id']) ){
       if ( in_array($item['rubric_item_id'], $this->itemIds()) ){
         $id = $item['rubric_item_id'];
+      } else {
+        $item['date_created'] = date('Y-m-d H:i:s');
       }
       unset($item['rubric_item_id']);
+    } else {
+      $item['date_created'] = date('Y-m-d H:i:s');
     }
 
     if ( $id ){
@@ -74,6 +77,24 @@ class UcdlibAwardsRubric {
     $this->clearCache();
 
     return $id;
+  }
+
+  public function uploadedFile(){
+    $cycle = $this->plugin->cycles->getById( $this->cycleId );
+    $cycleMeta = $cycle->cycleMeta();
+    if ( isset($cycleMeta['rubric_file']) ){
+      return $cycleMeta['rubric_file'];
+    }
+    return false;
+  }
+
+  public function scoringCalculation(){
+    $cycle = $this->plugin->cycles->getById( $this->cycleId );
+    $cycleMeta = $cycle->cycleMeta();
+    if ( isset($cycleMeta['rubric_scoring_calculation']) ){
+      return $cycleMeta['rubric_scoring_calculation'];
+    }
+    return 'sum';
   }
 
   public function clearCache(){

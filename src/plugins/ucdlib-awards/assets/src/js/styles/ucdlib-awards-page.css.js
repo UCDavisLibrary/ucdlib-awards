@@ -86,6 +86,9 @@ input[type="date"] {
 input[type="number"] {
   box-sizing: border-box;
 }
+input[type="file"] {
+  box-sizing: border-box;
+}
 select {
   box-sizing: border-box;
 }
@@ -180,6 +183,9 @@ ucdlib-icon.panel__custom-icon {
 }
 .flex-grow {
   flex-grow: 1;
+}
+.flex-space-between {
+  justify-content: space-between;
 }
 .border-bottom-gold {
   border-bottom: 2px dotted #ffbf00;

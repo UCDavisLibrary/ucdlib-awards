@@ -194,13 +194,16 @@ class UcdlibAwardsAdminMenu {
     $pageProps = [
       'wpAjax' => $this->ajaxUtils->getAjaxElementProperty('adminRubric'),
       'rubricItems' => [],
-      'cyclesWithRubric' => []
+      'cyclesWithRubric' => [],
+      'scoringCalculation' => 'sum'
     ];
     if ( $requestedCycle ){
       $pageProps['cycleId'] = $requestedCycle->cycleId;
       if ( $requestedCycle->hasRubric() ){
         $pageProps['rubricItems'] = $requestedCycle->rubric()->items();
       }
+      $pageProps['scoringCalculation'] = $requestedCycle->rubric()->scoringCalculation();
+      $pageProps['uploadedFile'] = $requestedCycle->rubric()->uploadedFile();
       $cyclesWithRubric = $this->plugin->cycles->filterByRubric();
       foreach ($cyclesWithRubric as $c) {
         if ( $c->cycleId == $requestedCycle->cycleId ) continue;

@@ -91,7 +91,6 @@ class UcdlibAwardsCycle {
 
   public function clearCache(){
     $this->record = null;
-    $this->recordArray = null;
     $this->isActive = null;
     $this->allApplicants = null;
     $this->applicantCount = null;
@@ -99,6 +98,10 @@ class UcdlibAwardsCycle {
     $this->applicationWindowStatus = null;
     $this->evaluationWindowStatus = null;
     $this->supportWindowStatus = null;
+    $this->applicationForm = null;
+    $this->applicationEntries = null;
+    $this->userMeta = null;
+    $this->cycleMeta = null;
   }
 
   public function title(){
@@ -120,6 +123,36 @@ class UcdlibAwardsCycle {
     $record = $this->record();
     if ( !$record->has_support ) return false;
     return $record->support_form_id;
+  }
+
+  protected $cycleMeta;
+  public function cycleMeta(){
+    if ( isset($this->cycleMeta) ) return $this->cycleMeta;
+    $record = $this->record();
+    if ( empty($record->cycle_meta) ) {
+      $this->cycleMeta = [];
+      return $this->cycleMeta;
+    }
+    $this->cycleMeta = json_decode( $record->cycle_meta, true );
+    return $this->cycleMeta;
+  }
+
+  public function updateMeta($items){
+    $cycleMeta = $this->cycleMeta();
+
+    foreach ($items as $key => $value) {
+      $cycleMeta[$key] = $value;
+    }
+
+    global $wpdb;
+    $cyclesTable = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::CYCLES );
+    $wpdb->update(
+      $cyclesTable,
+      ['cycle_meta' => json_encode($cycleMeta)],
+      ['cycle_id' => $this->cycleId]
+    );
+    $this->record = null;
+    $this->cycleMeta = null;
   }
 
   /**

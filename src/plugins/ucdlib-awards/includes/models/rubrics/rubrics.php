@@ -10,6 +10,41 @@ class UcdlibAwardsRubrics {
     $this->cache = [];
   }
 
+  public function clearCache(){
+    $this->cache = [];
+  }
+
+  public function copyFromCycle($cycleFromId, $cycleToId ){
+    $existingRubric = $this->getByCycleId( $cycleFromId );
+    $existingCycle = $this->plugin->cycles->getById( $cycleFromId );
+    $newRubric = $this->getByCycleId( $cycleToId );
+
+    // copy items
+    $items = $existingRubric->items();
+    foreach( $items as $item ){
+      $item = (array) $item;
+      unset($item['rubric_item_id']);
+      $newRubric->createOrUpdateItem( $item );
+    }
+
+    // copy rubric settings
+    $newCycleMeta = [];
+    if ( !empty($existingCycle->cycleMeta()['rubric_scoring_calculation']) ){
+      $newCycleMeta['rubric_scoring_calculation'] = $existingCycle->cycleMeta()['rubric_scoring_calculation'];
+    }
+    if ( !empty($existingCycle->cycleMeta()['rubric_file']) ){
+      $newCycleMeta['rubric_file'] = $existingCycle->cycleMeta()['rubric_file'];
+    }
+    if ( !empty($newCycleMeta) ){
+      $newCycle = $this->plugin->cycles->getById( $cycleToId );
+      $newCycle->updateMeta( $newCycleMeta );
+    }
+
+
+    $this->clearCache();
+
+  }
+
   public function getByCycleId( $cycleId ){
     if ( isset($this->cache[$cycleId]) ){
       return $this->cache[$cycleId];

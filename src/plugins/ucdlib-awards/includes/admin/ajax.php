@@ -90,6 +90,83 @@ class UcdlibAwardsAdminAjax {
         $response['data'] = ['rubricItems' => $rubric->items()];
         $response['messages'][] = 'Rubric items updated successfully.';
         $response['success'] = true;
+      } else if ( $action === 'copyFromExisting' ){
+        $payload = json_decode( stripslashes($_POST['data']), true );
+
+        $cycleId = $payload['cycle_id'];
+        $copyFromCycleId = $payload['copy_cycle_id'];
+
+        // verify both cyles exists
+        foreach ([$cycleId, $copyFromCycleId] as $id) {
+          $cycle = $this->plugin->cycles->getById($id);
+          if ( !$cycle ){
+            $response['messages'][] = 'Cycle not found.';
+            $this->utils->sendResponse($response);
+            return;
+          }
+        }
+
+        $this->plugin->rubrics->copyFromCycle($copyFromCycleId, $cycleId);
+        $this->logger->logRubricEvent($cycleId, 'create');
+
+        $rubric = $this->plugin->rubrics->getByCycleId($cycleId);
+        $response['data'] = [
+          'rubricItems' => $rubric->items(),
+          'scoringCalculation' => $cycle->rubric()->scoringCalculation(),
+          'uploadedFile' => $cycle->rubric()->uploadedFile()
+        ];
+        $response['messages'][] = 'Rubric items copied successfully.';
+        $response['success'] = true;
+      } else if ( $action === 'updateCalculation' ){
+        $payload = json_decode( stripslashes($_POST['data']), true );
+        $cycle = $this->plugin->cycles->getById($payload['cycle_id']);
+        if ( !$cycle ){
+          $response['messages'][] = 'Cycle not found.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+        if ( empty($payload['scoring_calculation']) ){
+          $response['messages'][] = 'No scoring calculation specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+        $cycle->updateMeta(['rubric_scoring_calculation' => $payload['scoring_calculation']]);
+        $this->logger->logRubricEvent($cycle->cycleId, 'update');
+        $response['messages'][] = 'Scoring calculation updated successfully.';
+        $response['success'] = true;
+      } else if ( $action === 'uploadRubricFile' ){
+        $cycle = $this->plugin->cycles->getById($_POST['cycle_id']);
+        if ( !$cycle ){
+          $response['messages'][] = 'Cycle not found.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+        $file = $_FILES['file'];
+        if ( ! function_exists( 'wp_handle_upload' ) ) {
+          require_once( ABSPATH . 'wp-admin/includes/file.php' );
+        }
+        $movefile = wp_handle_upload($file, ['test_form' => false]);
+        if ( $movefile && !isset( $movefile['error'] ) ) {
+          $cycle->updateMeta(['rubric_file' => $movefile['url']]);
+          $this->logger->logRubricEvent($cycle->cycleId, 'update');
+          $response['messages'][] = 'Rubric file uploaded successfully.';
+          $response['data'] = ['rubricFile' => $movefile['url']];
+          $response['success'] = true;
+        } else {
+          $response['messages'][] = 'Error uploading file.';
+        }
+      } else if ($action === 'deleteRubricFile') {
+        $payload = json_decode( stripslashes($_POST['data']), true );
+        $cycle = $this->plugin->cycles->getById($payload['cycle_id']);
+        if ( !$cycle ){
+          $response['messages'][] = 'Cycle not found.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+        $cycle->updateMeta(['rubric_file' => '']);
+        $this->logger->logRubricEvent($cycle->cycleId, 'update');
+        $response['messages'][] = 'Rubric file deleted successfully.';
+        $response['success'] = true;
       }
     } catch (\Throwable $th) {
       error_log('Error in UcdlibAwardsAdminAjax::rubric(): ' . $th->getMessage());

@@ -55,7 +55,7 @@ export function renderForm() {
       </div>
     ${this.hasRubric ? html`
       <div>
-        <h4>Rubric Items</h4>
+        <h4 class='u-space-mb--flush'>Rubric Items</h4>
         ${this.renderInsertBar(0, 'before')}
         ${this.editedRubricItems.map((item, index) => html`
           <div class='gold-box o-box'>
@@ -92,7 +92,7 @@ export function renderForm() {
       </div>
       ${this.renderFormItem(this.editedRubricItems.length ? this.editedRubricItems[0] : {}, 0, {noActions: true})}
     `}
-    <button type='submit' class="btn btn--primary border-box">${this.hasRubric ? 'Save' : 'Create'}</button>
+    <button type='submit' class="btn btn--primary border-box">${this.hasRubric ? 'Save Items' : 'Create'}</button>
     </form>
   `;
 }
@@ -204,9 +204,32 @@ export function renderUploadPanel(){
         <span>Rubric Document</span>
       </h2>
       <section>
-        <div class='hint-text'>
+        <div class='hint-text u-space-mb'>
           Upload a full rubric as a PDF or Word document for the judge to download and reference.
+          Should be used in conjunction with the rubric items form when a rubric is complex.
         </div>
+        <div ?hidden=${!this.uploadedFile}>
+          <ul class="list--download u-space-mb">
+          <li class='flex-center flex-space-between'>
+            <a class="icon icon--link icon--download" href=${this.uploadedFile} target='_blank'>${this.uploadedFileName}</a>
+            <div class='u-space-ml flex-center upload-action-icons'>
+              <ucdlib-icon
+                title='Remove'
+                icon="ucd-public:fa-circle-minus"
+                class="icon-hover primary pointer"
+                @click=${this._onUploadFileRemove}>
+              </ucdlib-icon>
+              <ucdlib-icon
+                title='Replace'
+                icon="ucd-public:fa-upload"
+                class="icon-hover primary pointer u-space-ml--small"
+                @click=${() => this.hideFileUploadInput = !this.hideFileUploadInput}>
+              </ucdlib-icon>
+            </div>
+          </li>
+          </ul>
+        </div>
+        <input type="file" @change=${this._onUploadFileChange} ?hidden=${this.hideFileUploadInput}>
       </section>
     </div>
   `;
@@ -220,9 +243,13 @@ export function renderCalculationPanel(){
         <span>Scoring Calculation</span>
       </h2>
       <section>
-        <div class='hint-text'>
+        <div class='hint-text u-space-mb'>
           How should the overall score of an application be calculated?
         </div>
+        <select @change=${this._onCalculationChange} .value=${this.scoringCalculation}>
+          <option value='sum' ?selected=${this.scoringCalculation === 'sum'}>Sum</option>
+          <option value='average' ?selected=${this.scoringCalculation === 'average'}>Average</option>
+        </select>
       </section>
     </div>
   `;

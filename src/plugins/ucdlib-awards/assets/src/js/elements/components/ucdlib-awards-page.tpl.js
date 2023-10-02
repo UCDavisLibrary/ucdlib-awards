@@ -9,6 +9,7 @@ import brandBox from "@ucd-lib/theme-sass/4_component/_brand-textbox.css.js";
 import panel from "@ucd-lib/theme-sass/4_component/_panel.css.js";
 import brandColors from "@ucd-lib/theme-sass/4_component/_category-brand.css.js";
 import focalLink from "@ucd-lib/theme-sass/4_component/_focal-link.css.js";
+import icons from "@ucd-lib/theme-sass/4_component/_icons.css.js";
 import marketingHighlight from "@ucd-lib/theme-sass/4_component/_marketing-highlight.css.js";
 import priorityLinks from "@ucd-lib/theme-sass/4_component/_priority-links.css.js";
 import verticalLink from "@ucd-lib/theme-sass/4_component/_vertical-link.css.js";
@@ -28,6 +29,7 @@ export function styles() {
     brandBox,
     brandColors,
     focalLink,
+    icons,
     marketingHighlight,
     priorityLinks,
     verticalLink,

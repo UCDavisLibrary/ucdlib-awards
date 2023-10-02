@@ -22,7 +22,11 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
       cycleId: { type: Number},
       expandedItems: { type: Array },
       cycleToCopyId: { type: Number },
-      copyFormDisabled: { type: Boolean }
+      copyFormDisabled: { type: Boolean },
+      scoringCalculation: { type: String },
+      uploadedFile: { type: String},
+      uploadedFileName: { state: true},
+      hideFileUploadInput: { type: Boolean }
     }
   }
 
@@ -48,6 +52,10 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
     this.expandedItems = [];
     this.cycleToCopyId = 0;
     this.copyFormDisabled = false;
+    this.scoringCalculation = '';
+    this.uploadedFile = '';
+    this.hideFileUploadInput = false;
+    this.uploadedFileName = '';
 
     this.mutationObserver = new MutationObserverController(this);
     this.wpAjax = new wpAjaxController(this);
@@ -56,6 +64,17 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
   willUpdate(props){
     if ( props.has('rubricItems') ){
       this.editedRubricItems = JSON.parse(JSON.stringify(this.rubricItems));
+    }
+
+    if ( props.has('uploadedFile') && this.uploadedFile ) {
+      this.hideFileUploadInput = true;
+    }
+    if ( props.has('uploadedFile') ) {
+      if ( !this.uploadedFile ) {
+        this.uploadedFileName = '';
+      } else {
+        this.uploadedFileName = this.uploadedFile.split('/').pop();
+      }
     }
   }
 
@@ -82,6 +101,136 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
 
     this.editedRubricItems[itemIndex][prop] = value;
     this.requestUpdate();
+  }
+
+  async _onUploadFileRemove(){
+    const payload = {
+      cycle_id: this.cycleId,
+    }
+    const response = await this.wpAjax.request('deleteRubricFile', payload);
+    if ( response.success ) {
+      this.uploadedFile = '';
+      this.hideFileUploadInput = false;
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: 'File removed',
+          type: 'success'
+        }
+      }));
+    } else {
+      console.error('Error removing file', response);
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: 'Error removing file',
+          type: 'error'
+        }
+      }));
+    }
+  }
+
+  async _onUploadFileChange(e){
+    const file = e.target.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('cycle_id', this.cycleId);
+    const response = await this.wpAjax.request('uploadRubricFile', formData);
+    console.log('response', response);
+    if ( response.success ) {
+      this.uploadedFile = response.data.rubricFile;
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: 'File uploaded',
+          type: 'success'
+        }
+      }));
+    } else {
+      console.error('Error uploading file', response);
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: 'Error uploading file',
+          type: 'error'
+        }
+      }));
+    }
+
+  }
+
+
+  async _onCalculationChange(e){
+    const ogValue = this.scoringCalculation;
+    this.scoringCalculation = e.target.value;
+    const payload = {
+      cycle_id: this.cycleId,
+      scoring_calculation: this.scoringCalculation
+    }
+    const response = await this.wpAjax.request('updateCalculation', payload);
+    if ( response.success ) {
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: 'Scoring calculation updated',
+          type: 'success'
+        }
+      }));
+    } else {
+      console.error('Error updating scoring calculation', response);
+      this.scoringCalculation = ogValue;
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: 'Error updating scoring calculation',
+          type: 'error'
+        }
+      }));
+    }
+  }
+
+  async _onCopyRubricSubmit(e){
+    e.preventDefault();
+    if ( !this.cycleToCopyId ) return;
+    this.copyFormDisabled = true;
+    const payload = {
+      cycle_id: this.cycleId,
+      copy_cycle_id: this.cycleToCopyId
+    }
+    const response = await this.wpAjax.request('copyFromExisting', payload);
+    this.copyFormDisabled = false;
+    if ( response.success ) {
+      this.hasRubric = true;
+      this.rubricItems = response.data.rubricItems;
+      this.editedRubricItems = JSON.parse(JSON.stringify(this.rubricItems));
+      this.scoringCalculation = response.data.scoringCalculation;
+      this.uploadedFile = response.data.uploadedFile;
+      this.page = 'main';
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: 'Rubric copied',
+          type: 'success'
+        }
+      }));
+    } else {
+      console.error('Error copying rubric', response);
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: 'Error copying rubric',
+          type: 'error'
+        }
+      }));
+    }
   }
 
   async _onFormSubmit(e){
@@ -207,6 +356,8 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
     if ( !data ) return;
     if ( data.cyclesWithRubric ) this.cyclesWithRubric = data.cyclesWithRubric;
     if ( data.cycleId ) this.cycleId = parseInt(data.cycleId);
+    if ( data.scoringCalculation ) this.scoringCalculation = data.scoringCalculation;
+    if ( data.uploadedFile ) this.uploadedFile = data.uploadedFile;
     if ( data.rubricItems ) {
       this.rubricItems = data.rubricItems
     }
@@ -215,7 +366,6 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
     if ( !this.rubricItems.length && this.cyclesWithRubric.length ){
       this.page = 'no-rubric';
     }
-    console.log('data', data);
 
   }
 
