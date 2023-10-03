@@ -31,6 +31,25 @@ class UcdlibAwardsUsers {
     return $this->currentUser;
   }
 
+  public function getByEmail($email){
+    foreach ($this->userCache as $username => $user) {
+      if ( $user->recordRetrieved() && $user->record()->email == $email ){
+        return $user;
+      }
+    }
+    global $wpdb;
+    $sql = "SELECT * FROM $this->table WHERE email = '$email'";
+    $result = $wpdb->get_row( $sql );
+    if ( !$result ) return false;
+    if ( isset( $this->userCache[ $result->wp_user_login ] ) ){
+      $this->userCache[ $result->wp_user_login ]->setRecord( $result );
+      return $this->userCache[ $result->wp_user_login ];
+    }
+    $user = new UcdlibAwardsUser( $result->wp_user_login, $result );
+    $this->userCache[ $user->username ] = $user;
+    return $this->userCache[ $user->username ];
+  }
+
   public function getByUsername($username){
     if ( isset( $this->userCache[ $username ] ) ){
       return $this->userCache[ $username ];

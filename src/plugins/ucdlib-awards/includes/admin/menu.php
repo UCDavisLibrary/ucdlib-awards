@@ -65,6 +65,15 @@ class UcdlibAwardsAdminMenu {
     add_submenu_page(
       $this->slugs['main'],
       $this->award->getAdminMenuPageTitle(),
+      "Judges",
+      "edit_posts",
+      $this->slugs['judges'],
+      [$this, 'renderJudges']
+    );
+
+    add_submenu_page(
+      $this->slugs['main'],
+      $this->award->getAdminMenuPageTitle(),
       "Activity Log",
       "edit_posts",
       $this->slugs['logs'],
@@ -100,6 +109,17 @@ class UcdlibAwardsAdminMenu {
 
     if ( $requestedCycle ){
       $context['pageProps']['hasRubric'] = $requestedCycle->hasRubric();
+      $usesSum = $requestedCycle->rubric()->scoringCalculation() == 'sum';
+      if ( $requestedCycle->hasRubric() ){
+        $context['pageProps']['rubricItemTitles'] = array_map(function($item) use ($usesSum){
+          $title = $item->title;
+          if ( $item->range_max && $usesSum){
+            $title .= ' (' . $item->range_max . ')';
+          }
+          return $title;
+        }, $requestedCycle->rubric()->items()
+        );
+      }
     }
     UcdlibAwardsTimber::renderAdminPage( 'main', $context );
   }
@@ -158,6 +178,24 @@ class UcdlibAwardsAdminMenu {
       $context['filterProps']['filters'] = $this->plugin->logs->getFilters($requestedCycle);
     }
     UcdlibAwardsTimber::renderAdminPage( 'logs', $context );
+  }
+
+  /**
+   * @description Render the admin Judges page.
+   */
+  public function renderJudges(){
+    $context = $this->context();
+    $requestedCycle = $context['requestedCycle'];
+    $pageProps = [
+      'wpAjax' => $this->ajaxUtils->getAjaxElementProperty('adminJudges'),
+    ];
+    if ( $requestedCycle ){
+      $pageProps['cycleId'] = $requestedCycle->cycleId;
+      $pageProps['categories'] = $requestedCycle->categories();
+    }
+
+    $context['pageProps'] = $pageProps;
+    UcdlibAwardsTimber::renderAdminPage( 'judges', $context );
   }
 
   /**

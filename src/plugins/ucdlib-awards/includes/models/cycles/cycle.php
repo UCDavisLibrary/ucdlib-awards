@@ -102,6 +102,7 @@ class UcdlibAwardsCycle {
     $this->applicationEntries = null;
     $this->userMeta = null;
     $this->cycleMeta = null;
+    $this->judgeInvites = null;
   }
 
   public function title(){
@@ -228,6 +229,49 @@ class UcdlibAwardsCycle {
 
   public function rubric(){
     return $this->plugin->rubrics->getByCycleId( $this->cycleId );
+  }
+
+  public function addJudgePlaceholder($judge){
+    $data = [];
+    $fields = ['first_name', 'last_name', 'email', 'category'];
+    foreach( $fields as $field ){
+      if ( isset($judge[$field]) ){
+        $data[$field] = $judge[$field];
+      }
+    }
+    $table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USER_META );
+    global $wpdb;
+    $wpdb->insert(
+      $table,
+      [
+        'user_id' => 0,
+        'cycle_id' => $this->cycleId,
+        'meta_key' => 'isJudge',
+        'meta_value' => json_encode($data)
+      ]
+    );
+    return $data;
+  }
+
+  protected $judgeInvites;
+  public function judgeInvites(){
+    if ( isset($this->judgeInvites) ) return $this->judgeInvites;
+    $table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USER_META );
+    global $wpdb;
+    $sql = "SELECT * FROM $table WHERE cycle_id = %d AND meta_key = 'isJudge'";
+    $results = $wpdb->get_results( $wpdb->prepare( $sql, $this->cycleId ) );
+    $this->judgeInvites = [];
+    foreach( $results as $result ){
+      $this->judgeInvites[] = [
+        'user_id' => $result->user_id,
+        'meta_value' => json_decode($result->meta_value, true)
+      ];
+    }
+    return $this->judgeInvites;
+  }
+
+  public function judges(){
+    return [];
   }
 
   /**

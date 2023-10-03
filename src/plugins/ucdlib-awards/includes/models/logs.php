@@ -64,6 +64,17 @@ class UcdlibAwardsLogs {
             'description' => 'Rubric deleted'
           ]
         ]
+      ],
+      'evaluation-admin' => [
+        'slug' => 'evaluation-admin',
+        'label' => 'Evaluation Administration',
+        'subTypes' => [
+          'judge-added' => [
+            'slug' => 'judge-added',
+            'label' => 'Judge Added',
+            'description' => 'Judge added to evaluation'
+          ]
+        ]
       ]
     ];
 
@@ -167,6 +178,53 @@ class UcdlibAwardsLogs {
       $record->log_type_label = $logTypes[$record->log_type]['label'];
     }
     return $records;
+  }
+
+  public function decodeLogDetails( $records ){
+    foreach( $records as &$record ){
+      if ( !$record->log_value ) continue;
+      $record->log_value = json_decode($record->log_value, true);
+    }
+    return $records;
+  }
+
+  public function logJudgeAddition($cycleId, $judgeId=null, $judgeDetails=[]){
+    $log = [
+      'log_type' => 'evaluation-admin',
+      'log_subtype' => 'judge-added',
+      'cycle_id' => $cycleId,
+      'date_created' =>  date('Y-m-d H:i:s')
+    ];
+    if ( !empty($judgeId) ){
+      $log['user_id_object'] = $judgeId;
+    }
+
+    $logDetails = [];
+
+    if ( !empty($judgeDetails) ){
+      $logDetails['judge'] = $judgeDetails;
+    }
+
+    $currentUser = $this->plugin->users->currentUser();
+    if ( $currentUser->wpUser() ) {
+      $logDetails['wp_user'] = [
+        'id' => $currentUser->wpUser()->ID,
+        'username' => $currentUser->wpUser()->user_login,
+        'email' => $currentUser->wpUser()->user_email,
+        'name' => $currentUser->wpUser()->display_name
+      ];
+    }
+    if ( $currentUser->record() ){
+      $log['user_id_subject'] = $currentUser->record()->user_id;
+    }
+
+    if ( count($logDetails) > 0 ) {
+      $log['log_value'] = json_encode($logDetails);
+    }
+
+    global $wpdb;
+    $wpdb->insert( $this->table, $log );
+    return true;
   }
 
   public function logApplicationSubmit($cycleId, $userId) {

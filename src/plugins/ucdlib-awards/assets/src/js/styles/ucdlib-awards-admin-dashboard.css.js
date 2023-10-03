@@ -5,6 +5,12 @@ const customStyles = css`
     width: 45px;
     font-weight: 700;
   }
+  ucdlib-awards-admin-dashboard ul.list--arrow {
+    padding-left: 1rem;
+  }
+  ucdlib-awards-admin-dashboard .list--arrow li::marker {
+    color: var(--category-brand);
+  }
 
 `;
 

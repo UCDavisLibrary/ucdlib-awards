@@ -216,7 +216,7 @@ export function renderUploadPanel(){
               <ucdlib-icon
                 title='Remove'
                 icon="ucd-public:fa-circle-minus"
-                class="icon-hover primary pointer"
+                class="icon-hover double-decker pointer"
                 @click=${this._onUploadFileRemove}>
               </ucdlib-icon>
               <ucdlib-icon

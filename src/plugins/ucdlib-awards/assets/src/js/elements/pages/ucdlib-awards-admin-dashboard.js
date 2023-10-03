@@ -17,6 +17,7 @@ export default class UcdlibAwardsAdminDashboard extends Mixin(LitElement)
       cyclesLink: {state: true},
       rubricLink: {state: true},
       hasRubric: {state: true},
+      rubricItemTitles: {state: true},
       logsProps: {state: true},
       logsPropsJson: {state: true},
       logsLink: {state: true}
@@ -39,6 +40,7 @@ export default class UcdlibAwardsAdminDashboard extends Mixin(LitElement)
     this.logsLink = '';
     this.hasRubric = false;
     this.rubricLink = '';
+    this.rubricItemTitles = [];
 
     this.wpAjax = new wpAjaxController(this);
     this.mutationObserver = new MutationObserverController(this);
@@ -85,6 +87,9 @@ export default class UcdlibAwardsAdminDashboard extends Mixin(LitElement)
     }
     if ( data.hasRubric ) {
       this.hasRubric = data.hasRubric;
+    }
+    if ( data.rubricItemTitles ) {
+      this.rubricItemTitles = data.rubricItemTitles;
     }
     if ( data.cyclesLink && data.requestedCycle ) {
       const params = new URLSearchParams(data.cyclesLink.split('?')[1]);

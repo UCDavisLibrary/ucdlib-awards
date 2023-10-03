@@ -79,6 +79,8 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
       log = this._parseApplicationLog(log);
     } else if ( log.log_type == 'rubric' ) {
       log = this._parseRubricLog(log);
+    } else if ( log.log_type == 'evaluation-admin' ) {
+      log = this._parseEvaluationAdminLog(log);
     }
 
     if ( !log.displayText ) {
@@ -103,6 +105,22 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
     }
     log.displayText += ` by ${this.getUserName(log.user_id_subject)}`;
 
+    return log;
+  }
+
+  _parseEvaluationAdminLog(log){
+    log.icon = 'ucd-public:fa-users-gear';
+    log.iconColor = 'cabernet';
+    if ( log.log_subtype === 'judge-added' ){
+      let judge = '';
+      if ( !parseInt(log.user_id_object) && log.log_value?.judge ) {
+        judge = `${log.log_value.judge?.first_name || ''} ${log.log_value.judge?.last_name || ''}`;
+      } else {
+        judge = this.getUserName(log.user_id_object);
+      }
+      let admin = this.getUserName(log.user_id_subject);
+      log.displayText = `${judge} assigned as judge ${admin ? `by ${admin}` : ''}`;
+    }
     return log;
   }
 

@@ -75,7 +75,9 @@ export function renderRubricPanel(){
       </h2>
       <section>
         ${this.hasRubric ? html`
-          <p>TODO: summarize rubric here</p>
+          <ul class='list--arrow'>
+            ${this.rubricItemTitles.map(title => html`<li>${title}</li>`)}
+          </ul>
         ` : html`
           <p>No rubric has been created for this cycle.</p>
         `}

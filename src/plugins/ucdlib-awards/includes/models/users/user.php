@@ -268,6 +268,14 @@ class UcdlibAwardsUser {
     return $this->record;
   }
 
+  public function recordRetrieved(){
+    return !empty($this->record);
+  }
+
+  public function setRecord($record){
+    $this->record = $record;
+  }
+
   public function createFromWpAccount( $isAdmin=false ){
     if ( !$this->wpUser() ){
       return false;

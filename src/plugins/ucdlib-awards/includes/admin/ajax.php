@@ -13,6 +13,70 @@ class UcdlibAwardsAdminAjax {
     add_action( 'wp_ajax_' . $this->actions['adminGeneral'], [$this, 'general'] );
     add_action( 'wp_ajax_' . $this->actions['adminLogs'], [$this, 'logs'] );
     add_action( 'wp_ajax_' . $this->actions['adminRubric'], [$this, 'rubric'] );
+    add_action( 'wp_ajax_' . $this->actions['adminJudges'], [$this, 'judges'] );
+
+  }
+
+  public function judges(){
+    check_ajax_referer( $this->actions['adminJudges'] );
+    $response = $this->utils->getResponseTemplate();
+    try {
+      $this->validateRequest($response);
+      $action = $_POST['subAction'];
+      if ($action === 'add') {
+        $payload = json_decode( stripslashes($_POST['data']), true );
+        if ( empty($payload['cycle_id']) ){
+          $response['messages'][] = 'No cycle specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+        $cycleId = $payload['cycle_id'];
+        $cycle = $this->plugin->cycles->getById($cycleId);
+        if ( !$cycle ){
+          $response['messages'][] = 'Cycle not found.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        if ( empty($payload['judge']['email'])){
+          $response['messages'][] = 'No judge email specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        $existingUser = $this->plugin->users->getByEmail($payload['judge']['email']);
+        if ( !empty($existingUser) ){
+          if ( $existingUser->cycleMetaItem('isJudge', $cycleId) ){
+            $response['messages'][] = 'User is already a judge for this cycle.';
+            $this->utils->sendResponse($response);
+            return;
+          }
+          $existingUser->updateMeta('isJudge', true, $cycleId);
+          $this->logger->logJudgeAddition($cycleId, $existingUser->user_id);
+          $response['messages'][] = 'Judge added successfully.';
+          $response['data'] = ['judges' => $cycle->judges()];
+          $response['success'] = true;
+        } else {
+          foreach ($cycle->judgeInvites() as $judge) {
+            if ( $judge['user_id'] ) continue;
+            if ( !empty($judge['meta_value']['email']) && $judge['meta_value']['email'] === $payload['judge']['email'] ){
+              $response['messages'][] = 'User is already a judge for this cycle.';
+              $this->utils->sendResponse($response);
+              return;
+            }
+          }
+          $d = $cycle->addJudgePlaceholder($payload['judge']);
+          $this->logger->logJudgeAddition($cycleId, null, $d);
+          $response['messages'][] = 'Judge added successfully.';
+          $response['data'] = ['judges' => $cycle->judges()];
+          $response['success'] = true;
+        }
+      }
+    } catch (\Throwable $th) {
+      error_log('Error in UcdlibAwardsAdminAjax::cycles(): ' . $th->getMessage());
+    }
+    $this->utils->sendResponse($response);
+
   }
 
   public function rubric(){
@@ -190,7 +254,9 @@ class UcdlibAwardsAdminAjax {
         $dataIn = json_decode( stripslashes($_POST['data']), true );
         $dataOut = $this->logger->query($dataIn['query']);
         $userIds = $this->logger->extractUserIds($dataOut['results']);
-        $dataOut['results'] = $this->logger->getLogTypeLabel($dataOut['results']);
+        $results = $this->logger->getLogTypeLabel($dataOut['results']);
+        $results = $this->logger->decodeLogDetails($results);
+        $dataOut['results'] = $results;
         $users = $this->plugin->users->getByUserIds($userIds);
         $dataOut['users'] = array_map(function($user){
           return $user->record();

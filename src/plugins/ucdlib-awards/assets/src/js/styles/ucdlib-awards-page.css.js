@@ -89,6 +89,9 @@ input[type="number"] {
 input[type="file"] {
   box-sizing: border-box;
 }
+input[type="email"] {
+  box-sizing: border-box;
+}
 select {
   box-sizing: border-box;
 }
