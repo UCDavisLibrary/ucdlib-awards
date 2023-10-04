@@ -264,14 +264,60 @@ class UcdlibAwardsCycle {
     foreach( $results as $result ){
       $this->judgeInvites[] = [
         'user_id' => $result->user_id,
-        'meta_value' => json_decode($result->meta_value, true)
+        'meta_value' => json_decode($result->meta_value, true),
+        'meta_id' => $result->meta_id
       ];
     }
     return $this->judgeInvites;
   }
 
   public function judges(){
-    return [];
+    $judges = [];
+
+    $categoriesBySlug = [];
+    $categories = $this->categories();
+    if ( !empty($categories) ){
+      foreach( $categories as $category ){
+        $categoriesBySlug[ $category['value'] ] = $category;
+      }
+    }
+
+    $invites = $this->judgeInvites();
+    $haveUserRecords = [];
+    foreach ($invites as $invite) {
+      if ( !empty($invite['user_id']) ){
+        $haveUserRecords[] = $invite['user_id'];
+      } else {
+        $r = $invite['meta_value'];
+        $r['name'] = $r['first_name'] . ' ' . $r['last_name'];
+        $r['user_id'] = $invite['user_id'];
+        $r['meta_id'] = $invite['meta_id'];
+        $r['id'] = 'm-' . $invite['meta_id'];
+        if ( isset($r['category']) && isset($categoriesBySlug[ $r['category'] ]) ){
+          $r['categoryObject'] = $categoriesBySlug[ $r['category'] ];
+        }
+        $judges[] = $r;
+      }
+    }
+    $users = $this->plugin->users->getByUserIds( $haveUserRecords );
+    foreach ($users as $user) {
+      $r = [
+        'first_name' => $user->record()->first_name,
+        'last_name' => $user->record()->last_name,
+        'email' => $user->record()->email,
+        'user_id' => $user->record()->user_id,
+        'id' => 'u-' . $user->record()->user_id
+      ];
+      $r['name'] = $r['first_name'] . ' ' . $r['last_name'];
+      if ( !empty($user->cycleMetaItem('judgeCategory', $this->cycleId) )){
+        $r['category'] = $user->cycleMetaItem('judgeCategory', $this->cycleId);
+        if ( isset($categoriesBySlug[ $r['category'] ]) ){
+          $r['categoryObject'] = $categoriesBySlug[ $r['category'] ];
+        }
+      }
+      $judges[] = $r;
+    }
+    return $judges;
   }
 
   /**

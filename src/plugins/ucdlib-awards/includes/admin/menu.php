@@ -192,6 +192,7 @@ class UcdlibAwardsAdminMenu {
     if ( $requestedCycle ){
       $pageProps['cycleId'] = $requestedCycle->cycleId;
       $pageProps['categories'] = $requestedCycle->categories();
+      $pageProps['judges'] = $requestedCycle->judges();
     }
 
     $context['pageProps'] = $pageProps;

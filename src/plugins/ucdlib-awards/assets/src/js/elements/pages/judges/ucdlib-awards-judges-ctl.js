@@ -7,6 +7,7 @@ import { MainDomElement } from "@ucd-lib/theme-elements/utils/mixins/main-dom-el
 import { MutationObserverController } from '@ucd-lib/theme-elements/utils/controllers/index.js';
 
 import "./ucdlib-awards-judges-actions.js";
+import "./ucdlib-awards-judges-display.js";
 
 export default class UcdlibAwardsJudgesCtl extends Mixin(LitElement)
   .with(MainDomElement) {
@@ -15,7 +16,8 @@ export default class UcdlibAwardsJudgesCtl extends Mixin(LitElement)
     return {
       categories: { type: Array },
       hasCategories: { type: Boolean },
-      cycleId: { type: Number }
+      cycleId: { type: Number },
+      judges: { type: Array }
     }
   }
 
@@ -29,6 +31,7 @@ export default class UcdlibAwardsJudgesCtl extends Mixin(LitElement)
     this.categories = [];
     this.hasCategories = false;
     this.cycleId = 0;
+    this.judges = [];
   }
 
   willUpdate(props) {
@@ -106,6 +109,7 @@ export default class UcdlibAwardsJudgesCtl extends Mixin(LitElement)
     if ( !data ) return;
     if ( data.categories ) this.categories = data.categories;
     if ( data.cycleId ) this.cycleId = data.cycleId;
+    if ( data.judges ) this.judges = data.judges;
     console.log('data', data);
 
   }

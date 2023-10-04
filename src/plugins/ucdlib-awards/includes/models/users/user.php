@@ -276,6 +276,22 @@ class UcdlibAwardsUser {
     $this->record = $record;
   }
 
+  public function create( $record ){
+    $r = [
+      'first_name' => !empty($record['first_name']) ? $record['first_name'] : '',
+      'last_name' => !empty($record['last_name']) ? $record['last_name'] : '',
+      'wp_user_login' => $this->username,
+      'email' => !empty($record['email']) ? $record['email'] : '',
+      'is_admin' => !empty($record['is_admin']) ? $record['is_admin'] : 0,
+      'date_created' => date('Y-m-d H:i:s'),
+      'date_updated' => date('Y-m-d H:i:s')
+    ];
+    global $wpdb;
+    $wpdb->insert( $this->table, $r );
+    $this->clearCache();
+    return true;
+  }
+
   public function createFromWpAccount( $isAdmin=false ){
     if ( !$this->wpUser() ){
       return false;

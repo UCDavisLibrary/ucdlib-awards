@@ -2,6 +2,7 @@ import { html } from 'lit';
 
 export function render() {
 return html`
+  ${this.renderActionPanel()}
   ${this.renderNewJudgePanel()}
 
 `;}
@@ -39,6 +40,18 @@ export function renderNewJudgePanel(){
           <button ?disabled=${!this.newJudgeDataIsValid || this.addingNewJudge} type="submit" class="btn marketing-highlight__cta border-box category-brand--arboretum width-100">Add</button>
         </form>
       </section>
+    </div>
+  `;
+}
+
+export function renderActionPanel(){
+  if ( !this.judgeCt ) return html``;
+  return html`
+    <div class="panel panel--icon panel--icon-custom o-box category-brand--redwood">
+      <h2 class="panel__title">
+        <ucdlib-icon icon="ucd-public:fa-wrench" class="panel__custom-icon"></ucdlib-icon>
+        <span>Actions</span>
+      </h2>
     </div>
   `;
 }

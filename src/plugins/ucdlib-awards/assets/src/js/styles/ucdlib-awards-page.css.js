@@ -224,6 +224,36 @@ ucdlib-icon.panel__custom-icon {
 .icon-hover:hover, .icon-hover:focus {
   color: #008eaa;
 }
+.sort-icon {
+  margin-left: .25rem;
+}
+.sort-icon ucdlib-icon {
+  min-height: 20px;
+  height: 20px;
+  min-width: 20px;
+  width: 20px;
+  position: relative;
+  color: #cce0f3;
+  cursor: pointer;
+}
+.sort-icon ucdlib-icon.active {
+  color: #022851;
+}
+.sort-icon ucdlib-icon:hover {
+  color: #022851;
+}
+.sort-icon ucdlib-icon.sort-icon__up {
+  top: 5px;
+}
+.sort-icon ucdlib-icon.sort-icon__down {
+  bottom: 5px;
+}
+.small-text {
+  font-size: .9rem;
+}
+.overflow-anywhere {
+  overflow-wrap: anywhere;
+}
 `;
 
 export default customStyles;

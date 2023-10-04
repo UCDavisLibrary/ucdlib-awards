@@ -12,7 +12,8 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
       newJudgeData: { type: Object },
       newJudgeDataIsValid: { type: Boolean },
       addingNewJudge: { type: Boolean },
-      categories: { type: Array }
+      categories: { type: Array },
+      judgeCt: { type: Number }
     }
   }
 
@@ -20,10 +21,13 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
     super();
     this.render = templates.render.bind(this);
     this.renderNewJudgePanel = templates.renderNewJudgePanel.bind(this);
+    this.renderActionPanel = templates.renderActionPanel.bind(this);
+
     this.newJudgeData = {};
     this.newJudgeDataIsValid = false;
     this.addingNewJudge = false;
     this.categories = [];
+    this.judgeCt = 0;
   }
 
   _onNewJudgeInput(prop, value){

@@ -80,10 +80,21 @@ class UcdlibAwardsUsers {
     }
     if ( empty($userIds) ) return [];
 
-    global $wpdb;
-    $sql = "SELECT * FROM $this->table WHERE user_id IN (" . implode(',', $userIds) . ")";
-    $results = $wpdb->get_results( $sql );
     $users = [];
+    $userIdsInCache = [];
+    foreach ($this->userCache as $username => $user) {
+      if ( $user->recordRetrieved() && in_array( $user->record()->user_id, $userIds ) ){
+        $users[] = $user;
+        $userIdsInCache[] = $user->record()->user_id;
+      }
+    }
+    $usersNotInCache = array_diff( $userIds, $userIdsInCache );
+
+    if ( empty($usersNotInCache) ) return $users;
+
+    global $wpdb;
+    $sql = "SELECT * FROM $this->table WHERE user_id IN (" . implode(',', $usersNotInCache) . ")";
+    $results = $wpdb->get_results( $sql );
     foreach ( $results as $result ){
       $user = new UcdlibAwardsUser( $result->wp_user_login, $result );
       $users[] = $user;

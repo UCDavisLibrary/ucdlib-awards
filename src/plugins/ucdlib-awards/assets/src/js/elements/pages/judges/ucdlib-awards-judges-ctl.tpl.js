@@ -18,9 +18,15 @@ return html`
       <ucdlib-awards-judges-actions
         @add-judge=${this._onAddJudge}
         .categories=${this.categories}
+        .judgeCt=${this.judges.length}
       ></ucdlib-awards-judges-actions>
     </div>
     <div class="l-first panel o-box">
+      <ucdlib-awards-judges-display
+        @selected-judges-change=${this._onSelectedJudgesChange}
+        .judges=${this.judges}
+        .showCategories=${this.hasCategories}
+      ></ucdlib-awards-judges-display>
     </div>
   </div>
 

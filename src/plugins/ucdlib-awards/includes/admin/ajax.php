@@ -44,33 +44,27 @@ class UcdlibAwardsAdminAjax {
           return;
         }
 
-        $existingUser = $this->plugin->users->getByEmail($payload['judge']['email']);
-        if ( !empty($existingUser) ){
-          if ( $existingUser->cycleMetaItem('isJudge', $cycleId) ){
-            $response['messages'][] = 'User is already a judge for this cycle.';
-            $this->utils->sendResponse($response);
-            return;
-          }
-          $existingUser->updateMeta('isJudge', true, $cycleId);
-          $this->logger->logJudgeAddition($cycleId, $existingUser->user_id);
-          $response['messages'][] = 'Judge added successfully.';
-          $response['data'] = ['judges' => $cycle->judges()];
-          $response['success'] = true;
-        } else {
-          foreach ($cycle->judgeInvites() as $judge) {
-            if ( $judge['user_id'] ) continue;
-            if ( !empty($judge['meta_value']['email']) && $judge['meta_value']['email'] === $payload['judge']['email'] ){
-              $response['messages'][] = 'User is already a judge for this cycle.';
-              $this->utils->sendResponse($response);
-              return;
-            }
-          }
-          $d = $cycle->addJudgePlaceholder($payload['judge']);
-          $this->logger->logJudgeAddition($cycleId, null, $d);
-          $response['messages'][] = 'Judge added successfully.';
-          $response['data'] = ['judges' => $cycle->judges()];
-          $response['success'] = true;
+        $user = $this->plugin->users->getByEmail($payload['judge']['email']);
+        if ( empty( $user) ){
+          $phUsername = 'ph_' . explode('@', $payload['judge']['email'])[0];
+          $user = $this->plugin->users->getByUsername($phUsername);
+          $user->create([
+            'email' => $payload['judge']['email'],
+            'first_name' => isset($payload['judge']['first_name']) ? $payload['judge']['first_name'] : '',
+            'last_name' => isset($payload['judge']['last_name']) ? $payload['judge']['last_name'] : ''
+          ]);
         }
+        if ( $user->cycleMetaItem('isJudge', $cycleId) ){
+          $response['messages'][] = 'User is already a judge for this cycle.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+        $user->updateMeta('isJudge', true, $cycleId);
+        // todo: add category meta
+        $this->logger->logJudgeAddition($cycleId, $user->user_id);
+        $response['messages'][] = 'Judge added successfully.';
+        $response['data'] = ['judges' => $cycle->judges()];
+        $response['success'] = true;
       }
     } catch (\Throwable $th) {
       error_log('Error in UcdlibAwardsAdminAjax::cycles(): ' . $th->getMessage());
