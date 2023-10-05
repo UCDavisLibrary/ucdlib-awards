@@ -63,7 +63,7 @@ const customStyles = css`
     grid-template-columns: 40px 2fr 1fr 1fr;
     }
     ucdlib-awards-judges-display .row.with-categories {
-      grid-template-columns:  40px 2fr 1.5fr 1fr 1fr;
+      grid-template-columns:  40px 2fr 1.3fr 1fr 1fr;
     }
     ucdlib-awards-judges-display .lg-screen-block {
       display: block !important;

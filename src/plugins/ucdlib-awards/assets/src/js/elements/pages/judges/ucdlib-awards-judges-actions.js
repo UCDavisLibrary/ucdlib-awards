@@ -12,8 +12,13 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
       newJudgeData: { type: Object },
       newJudgeDataIsValid: { type: Boolean },
       addingNewJudge: { type: Boolean },
+      selectedAction: { type: String},
       categories: { type: Array },
-      judgeCt: { type: Number }
+      judgeCt: { type: Number },
+      selectedJudges: { type: Array },
+      _actions: {state: true},
+      actions: { type: Array },
+      disableActionSubmit: { type: Boolean }
     }
   }
 
@@ -25,9 +30,52 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
 
     this.newJudgeData = {};
     this.newJudgeDataIsValid = false;
+    this.selectedAction = '';
     this.addingNewJudge = false;
     this.categories = [];
     this.judgeCt = 0;
+    this.selectedJudges = [];
+    this.disableActionSubmit = false;
+
+    this._actions = [];
+    this.actions = [
+      {
+        label: 'Delete Judge',
+        slug: 'delete',
+        bulk: true
+      },
+      {
+        label: 'Assign Applications',
+        slug: 'assign',
+        bulk: true
+      }
+    ];
+  }
+
+  willUpdate(props) {
+
+    if ( props.has('actions') || props.has('selectedAction') || props.has('selectedJudges')){
+      let disableActionSubmit = !this.selectedJudges.length || !this.selectedAction;
+      const placeholder = {
+        label: 'Select an action',
+        slug: '',
+        bulk: false
+      }
+      this._actions = [placeholder, ...this.actions].map(action => {
+        action = {...action};
+        action.selected = action.slug === this.selectedAction;
+
+        if ( !action.slug || !this.selectedJudges.length ) action.disabled = true;
+        if ( !action.bulk && this.selectedJudges.length > 1 ) {
+          action.disabled = true;
+          if ( action.selected ) {
+            disableActionSubmit = true;
+          }
+        }
+        return action;
+      });
+      this.disableActionSubmit = disableActionSubmit;
+    }
   }
 
   _onNewJudgeInput(prop, value){
@@ -41,6 +89,15 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
     this.addingNewJudge = true;
     this.dispatchEvent(new CustomEvent('add-judge', {
       detail: this.newJudgeData
+    }));
+  }
+
+  _onActionSubmit(e){
+    e.preventDefault();
+    this.dispatchEvent(new CustomEvent('action-submit', {
+      detail: {
+        action: this.selectedAction
+      }
     }));
   }
 

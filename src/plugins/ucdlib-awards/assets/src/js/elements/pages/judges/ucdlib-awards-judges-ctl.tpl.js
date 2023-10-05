@@ -17,8 +17,10 @@ return html`
     <div class="l-second panel o-box">
       <ucdlib-awards-judges-actions
         @add-judge=${this._onAddJudge}
+        @action-submit=${this._onActionSubmit}
         .categories=${this.categories}
         .judgeCt=${this.judges.length}
+        .selectedJudges=${this.selectedJudges}
       ></ucdlib-awards-judges-actions>
     </div>
     <div class="l-first panel o-box">
@@ -27,6 +29,11 @@ return html`
         .judges=${this.judges}
         .showCategories=${this.hasCategories}
       ></ucdlib-awards-judges-display>
+      <ucdlib-awards-modal>
+        <div>
+          <div class='brand-textbox'>Hello World</div>
+        </div>
+      </ucdlib-awards-modal>
     </div>
   </div>
 

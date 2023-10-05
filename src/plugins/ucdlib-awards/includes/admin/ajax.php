@@ -60,11 +60,56 @@ class UcdlibAwardsAdminAjax {
           return;
         }
         $user->updateMeta('isJudge', true, $cycleId);
-        // todo: add category meta
-        $this->logger->logJudgeAddition($cycleId, $user->user_id);
+        if ( !empty($payload['judge']['category']) ){
+          $user->updateMeta('judgeCategory', $payload['judge']['category'], $cycleId);
+        }
+        $this->logger->logJudgeAddition($cycleId, $user->id);
         $response['messages'][] = 'Judge added successfully.';
-        $response['data'] = ['judges' => $cycle->judges()];
+        $response['data'] = ['judges' => $cycle->judges(true)];
         $response['success'] = true;
+      } else if ($action == 'delete'){
+
+        $payload = json_decode( stripslashes($_POST['data']), true );
+        if ( empty($payload['cycle_id']) ){
+          $response['messages'][] = 'No cycle specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+        $cycleId = $payload['cycle_id'];
+        $cycle = $this->plugin->cycles->getById($cycleId);
+        if ( !$cycle ){
+          $response['messages'][] = 'Cycle not found.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        if ( empty($payload['judge_ids'])){
+          $response['messages'][] = 'No judge ids specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        $userIds = is_array($payload['judge_ids']) ? $payload['judge_ids'] : [$payload['judge_ids']];
+        $existingJudgeIds = $cycle->judgeIds();
+        $missingJudgeIds = array_diff($userIds, $existingJudgeIds);
+        if ( count($missingJudgeIds) ){
+          $response['messages'][] = 'One or more judges could not be deleted because they could not be found.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        $cycle->removeJudges($userIds);
+        foreach ($userIds as $userId) {
+          $this->logger->logJudgeRemoval($cycleId, $userId);
+        }
+        if ( count($userIds) > 1 ){
+          $response['messages'][] = 'Judges deleted successfully.';
+        } else {
+          $response['messages'][] = 'Judge deleted successfully.';
+        }
+        $response['data'] = ['judges' => $cycle->judges(true)];
+        $response['success'] = true;
+
       }
     } catch (\Throwable $th) {
       error_log('Error in UcdlibAwardsAdminAjax::cycles(): ' . $th->getMessage());

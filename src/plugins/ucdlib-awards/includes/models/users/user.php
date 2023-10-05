@@ -24,6 +24,12 @@ class UcdlibAwardsUser {
     $this->metaTable = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USER_META );
   }
 
+  public function hasUserLogin() {
+    $record = $this->record();
+    if ( empty($record) ) return false;
+    return !empty($record->wp_user_login) && !str_starts_with($record->wp_user_login, 'ph-');
+  }
+
   public function name(){
     $record = $this->record();
     return $record->first_name . ' ' . $record->last_name;
@@ -38,12 +44,22 @@ class UcdlibAwardsUser {
     if ( isset($this->metaCache[$cycleId]) ){
       return $this->metaCache[$cycleId];
     }
+
+    // ensure we have user_id
+    $this->record();
+    if ( empty($this->id) ) return [];
+
     global $wpdb;
     $sql = "SELECT * FROM $this->metaTable WHERE user_id = %d AND cycle_id = %d";
     $meta = $wpdb->get_results( $wpdb->prepare( $sql, $this->id, $cycleId ) );
     $out = [];
     foreach( $meta as $m ){
-      $out[$m->meta_key] = json_decode( $m->meta_value, true );
+      if ( !empty($m->is_json) ){
+        $out[$m->meta_key] = json_decode( $m->meta_value, true );
+      } else {
+        $out[$m->meta_key] = $m->meta_value;
+      }
+
     }
     $this->metaCache[$cycleId] = $out;
     return $this->metaCache[$cycleId];
@@ -78,7 +94,11 @@ class UcdlibAwardsUser {
   public function setCycleMeta($meta, $cycleId){
     $m = [];
     foreach( $meta as $dbRow ){
-      $m[$dbRow->meta_key] = json_decode( $dbRow->meta_value, true );
+      if ( !empty($dbRow->is_json) ){
+        $m[$dbRow->meta_key] = json_decode( $dbRow->meta_value, true );
+      } else {
+        $m[$dbRow->meta_key] = $dbRow->meta_value;
+      }
     }
     $this->metaCache[$cycleId] = $m;
   }
@@ -334,9 +354,14 @@ class UcdlibAwardsUser {
       'user_id' => $this->record()->user_id,
       'cycle_id' => $cycleId,
       'meta_key' => $key,
-      'meta_value' => json_encode( $value ),
       'date_updated' => date('Y-m-d H:i:s')
     ];
+    if ( is_string($value) ){
+      $record['meta_value'] = $value;
+    } else {
+      $record['meta_value'] = json_encode( $value );
+      $record['is_json'] = 1;
+    }
     if ( $isUpdate ){
       $wpdb->update( $this->metaTable, $record, ['meta_id' => $metaRecord->meta_id] );
     } else {

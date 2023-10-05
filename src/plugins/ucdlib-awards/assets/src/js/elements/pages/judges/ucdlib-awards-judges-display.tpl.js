@@ -1,6 +1,11 @@
 import { html } from 'lit';
 
 export function render() {
+  if ( !this._judges.length ) return html`
+    <div class='brand-textbox'>
+      No judges found!
+    </div>
+  `;
   return html`
     <div>
       <div class='row border-bottom-gold u-space-pb table-head ${this.showCategories ? 'with-categories' : ''}'>

@@ -52,6 +52,27 @@ export function renderActionPanel(){
         <ucdlib-icon icon="ucd-public:fa-wrench" class="panel__custom-icon"></ucdlib-icon>
         <span>Actions</span>
       </h2>
+      <form @submit=${this._onActionSubmit}>
+        <div ?hidden=${this.selectedJudges.length} class='u-space-mb hint-text'>
+          Select at least one judge to perform an action
+        </div>
+        <div class="field-container">
+          <select
+            @change=${(e) => this.selectedAction = e.target.value}
+            .value=${this.selectedAction}
+          >
+            ${this._actions.map(action => html`
+              <option
+                value=${action.slug}
+                ?selected=${action.slug === this.selectedAction}
+                ?disabled=${action.disabled}
+              >${action.label}
+              </option>
+            `)}
+          </select>
+        </div>
+        <button ?disabled=${this.disableActionSubmit} type="submit" class="btn marketing-highlight__cta border-box category-brand--redwood width-100">Apply</button>
+      </form>
     </div>
   `;
 }

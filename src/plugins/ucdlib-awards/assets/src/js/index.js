@@ -10,6 +10,7 @@ import "./elements/components/ucdlib-awards-page.js";
 import "./elements/components/ucdlib-awards-forbidden.js";
 import "./elements/components/ucdlib-awards-logs.js";
 import "./elements/components/ucdlib-awards-logs-filter.js";
+import "./elements/components/ucdlib-awards-modal.js";
 
 // app admin pages
 import "./elements/pages/ucdlib-awards-admin-dashboard.js";

@@ -245,6 +245,7 @@ class UcdlibAwardsDbTables {
       `cycle_id` bigint(20) unsigned NOT NULL DEFAULT 0,
       `meta_key` VARCHAR(191) default NULL,
       `meta_value` LONGTEXT NULL,
+      `is_json` TINYINT(1) NOT NULL DEFAULT 0,
       `date_created` datetime NOT NULL default '0000-00-00 00:00:00',
       `date_updated` datetime NOT NULL default '0000-00-00 00:00:00',
       PRIMARY KEY (`meta_id`),

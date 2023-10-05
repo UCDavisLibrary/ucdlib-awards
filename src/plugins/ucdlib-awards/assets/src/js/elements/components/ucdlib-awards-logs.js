@@ -120,6 +120,8 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
       }
       let admin = this.getUserName(log.user_id_subject);
       log.displayText = `${judge} assigned as judge ${admin ? `by ${admin}` : ''}`;
+    } else if ( log.log_subtype === 'judge-removed' ) {
+      log.displayText = `${this.getUserName(log.user_id_object)} removed as judge by ${this.getUserName(log.user_id_subject)}`;
     }
     return log;
   }

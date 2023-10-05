@@ -102,7 +102,6 @@ class UcdlibAwardsCycle {
     $this->applicationEntries = null;
     $this->userMeta = null;
     $this->cycleMeta = null;
-    $this->judgeInvites = null;
   }
 
   public function title(){
@@ -231,49 +230,56 @@ class UcdlibAwardsCycle {
     return $this->plugin->rubrics->getByCycleId( $this->cycleId );
   }
 
-  public function addJudgePlaceholder($judge){
-    $data = [];
-    $fields = ['first_name', 'last_name', 'email', 'category'];
-    foreach( $fields as $field ){
-      if ( isset($judge[$field]) ){
-        $data[$field] = $judge[$field];
-      }
-    }
-    $table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USER_META );
+  protected $judgeIds;
+  public function judgeIds(){
+    if ( isset($this->judgeIds) ) return $this->judgeIds;
     global $wpdb;
-    $wpdb->insert(
-      $table,
-      [
-        'user_id' => 0,
-        'cycle_id' => $this->cycleId,
-        'meta_key' => 'isJudge',
-        'meta_value' => json_encode($data)
-      ]
-    );
-    return $data;
+    $table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USER_META );
+    $sql = "SELECT user_id FROM $table WHERE cycle_id = %d AND meta_key = 'isJudge' AND meta_value = 'true'";
+    $this->judgeIds = $wpdb->get_col( $wpdb->prepare( $sql, $this->cycleId ) );
+    return $this->judgeIds;
   }
 
-  protected $judgeInvites;
-  public function judgeInvites(){
-    if ( isset($this->judgeInvites) ) return $this->judgeInvites;
-    $table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USER_META );
+  public function removeJudges($judgeIds){
+    if ( empty($judgeIds) ) return;
+    if ( !is_array($judgeIds) ) $judgeIds = [$judgeIds];
     global $wpdb;
-    $sql = "SELECT * FROM $table WHERE cycle_id = %d AND meta_key = 'isJudge'";
-    $results = $wpdb->get_results( $wpdb->prepare( $sql, $this->cycleId ) );
-    $this->judgeInvites = [];
-    foreach( $results as $result ){
-      $this->judgeInvites[] = [
-        'user_id' => $result->user_id,
-        'meta_value' => json_decode($result->meta_value, true),
-        'meta_id' => $result->meta_id
-      ];
-    }
-    return $this->judgeInvites;
+
+    // remove from user meta
+    $table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USER_META );
+    $meta_keys = ['isJudge', 'judgeCategory', 'assignedApplicant'];
+    $sql = "DELETE FROM $table WHERE cycle_id = %d AND user_id IN (" . implode(',', $judgeIds) . ") AND meta_key IN ('" . implode("','", $meta_keys) . "')";
+    $wpdb->query( $wpdb->prepare( $sql, $this->cycleId ) );
+
+    // remove from scores
+    $this->removeJudgeScores( $judgeIds );
+    $this->judgeIds = null;
+
   }
 
-  public function judges(){
+  public function removeJudgeScores($judgeIds){
+    if ( empty($judgeIds) ) return;
+    if ( !is_array($judgeIds) ) $judgeIds = [$judgeIds];
+
+    if ( !$this->hasRubric() ) return;
+    $rubricItemIds = $this->rubric()->itemIds();
+    if ( empty($rubricItemIds) ) return;
+
+    global $wpdb;
+    $table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::SCORES );
+    $sql = "DELETE FROM $table WHERE rubric_id IN (" . implode(',', $rubricItemIds) . ") AND judge_id IN (" . implode(',', $judgeIds) . ")";
+    $wpdb->query( $sql );
+  }
+
+  public function judges($returnArray=false){
     $judges = [];
 
+    $judgeIds = $this->judgeIds();
+    if ( empty($judgeIds) ) return $judges;
+    $users = $this->plugin->users->getByUserIds( $judgeIds );
+    if ( !$returnArray ) return $users;
+
+    // categories
     $categoriesBySlug = [];
     $categories = $this->categories();
     if ( !empty($categories) ){
@@ -282,40 +288,21 @@ class UcdlibAwardsCycle {
       }
     }
 
-    $invites = $this->judgeInvites();
-    $haveUserRecords = [];
-    foreach ($invites as $invite) {
-      if ( !empty($invite['user_id']) ){
-        $haveUserRecords[] = $invite['user_id'];
-      } else {
-        $r = $invite['meta_value'];
-        $r['name'] = $r['first_name'] . ' ' . $r['last_name'];
-        $r['user_id'] = $invite['user_id'];
-        $r['meta_id'] = $invite['meta_id'];
-        $r['id'] = 'm-' . $invite['meta_id'];
-        if ( isset($r['category']) && isset($categoriesBySlug[ $r['category'] ]) ){
-          $r['categoryObject'] = $categoriesBySlug[ $r['category'] ];
-        }
-        $judges[] = $r;
-      }
-    }
-    $users = $this->plugin->users->getByUserIds( $haveUserRecords );
-    foreach ($users as $user) {
-      $r = [
-        'first_name' => $user->record()->first_name,
-        'last_name' => $user->record()->last_name,
+    foreach( $users as $user ){
+      $judge = [
+        'id' => $user->record()->user_id,
+        'name' => $user->name(),
         'email' => $user->record()->email,
-        'user_id' => $user->record()->user_id,
-        'id' => 'u-' . $user->record()->user_id
+        'hasUserLogin' => $user->hasUserLogin()
       ];
-      $r['name'] = $r['first_name'] . ' ' . $r['last_name'];
-      if ( !empty($user->cycleMetaItem('judgeCategory', $this->cycleId) )){
-        $r['category'] = $user->cycleMetaItem('judgeCategory', $this->cycleId);
-        if ( isset($categoriesBySlug[ $r['category'] ]) ){
-          $r['categoryObject'] = $categoriesBySlug[ $r['category'] ];
+      $category = $user->cycleMetaItem('judgeCategory', $this->cycleId);
+      if ( !empty($category) ){
+        $judge['category'] = $category;
+        if ( !empty($categoriesBySlug[ $category ]) ){
+          $judge['categoryObject'] = $categoriesBySlug[ $category ];
         }
       }
-      $judges[] = $r;
+      $judges[] = $judge;
     }
     return $judges;
   }

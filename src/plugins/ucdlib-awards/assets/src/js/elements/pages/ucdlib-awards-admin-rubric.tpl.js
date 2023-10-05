@@ -244,7 +244,7 @@ export function renderCalculationPanel(){
       </h2>
       <section>
         <div class='hint-text u-space-mb'>
-          How should the overall score of an application be calculated?
+          How should the overall rubric score be calculated?
         </div>
         <select @change=${this._onCalculationChange} .value=${this.scoringCalculation}>
           <option value='sum' ?selected=${this.scoringCalculation === 'sum'}>Sum</option>

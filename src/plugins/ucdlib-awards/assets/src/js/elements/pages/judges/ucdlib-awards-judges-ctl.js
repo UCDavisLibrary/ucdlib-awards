@@ -17,7 +17,8 @@ export default class UcdlibAwardsJudgesCtl extends Mixin(LitElement)
       categories: { type: Array },
       hasCategories: { type: Boolean },
       cycleId: { type: Number },
-      judges: { type: Array }
+      judges: { type: Array },
+      selectedJudges: { type: Array },
     }
   }
 
@@ -32,6 +33,7 @@ export default class UcdlibAwardsJudgesCtl extends Mixin(LitElement)
     this.hasCategories = false;
     this.cycleId = 0;
     this.judges = [];
+    this.selectedJudges = [];
   }
 
   willUpdate(props) {
@@ -54,6 +56,7 @@ export default class UcdlibAwardsJudgesCtl extends Mixin(LitElement)
 
       ele.newJudgeData = {};
       ele.newJudgeDataIsValid = false;
+      this.judges = response.data.judges;
 
       this.dispatchEvent(new CustomEvent('toast-request', {
         bubbles: true,
@@ -80,6 +83,50 @@ export default class UcdlibAwardsJudgesCtl extends Mixin(LitElement)
     }
 
     ele.addingNewJudge = false;
+  }
+
+  async _onActionSubmit(e){
+    const action = e.detail.action;
+    if ( action === 'delete' ) {
+      this.deleteSelectedJudges();
+    } else if ( action === 'assign' ) {
+      this.showAssignApplicationsModal();
+    }
+  }
+
+  showAssignApplicationsModal(){
+    this.renderRoot.querySelector('ucdlib-awards-modal').show();
+  }
+
+  async deleteSelectedJudges(){
+    const response = await this.wpAjax.request('delete', {cycle_id: this.cycleId, judge_ids: this.selectedJudges});
+    if ( response.success ) {
+      this.judges = response.data.judges;
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: response.messages[0],
+          type: 'success'
+        }
+      }));
+    } else {
+      console.error('Error deleting judges', response);
+      let msg = 'Unable to delete judges';
+      if ( response.messages.length) msg += `: ${response.messages?.[0] || ''}`;
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: msg,
+          type: 'error'
+        }
+      }));
+    }
+  }
+
+  _onSelectedJudgesChange(e) {
+    this.selectedJudges = e.detail.selectedJudges;
   }
 
     /**

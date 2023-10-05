@@ -73,7 +73,12 @@ class UcdlibAwardsLogs {
             'slug' => 'judge-added',
             'label' => 'Judge Added',
             'description' => 'Judge added to evaluation'
-          ]
+          ],
+          'judge-removed' => [
+            'slug' => 'judge-removed',
+            'label' => 'Judge Removed',
+            'description' => 'Judge removed from evaluation'
+          ],
         ]
       ]
     ];
@@ -128,7 +133,12 @@ class UcdlibAwardsLogs {
       'queryVar' => 'judge',
       'label' => 'Judge',
       'type' => 'multiSelect',
-      'options' => []
+      'options' => array_map(function($user){
+        return [
+          'value' => $user['id'],
+          'label' => $user['name']
+        ];
+      }, $cycle->judges(true))
     ];
 
     $showSupporters = false;
@@ -186,6 +196,25 @@ class UcdlibAwardsLogs {
       $record->log_value = json_decode($record->log_value, true);
     }
     return $records;
+  }
+
+  public function logJudgeRemoval($cycleId, $judgeId) {
+    $log = [
+      'log_type' => 'evaluation-admin',
+      'log_subtype' => 'judge-removed',
+      'cycle_id' => $cycleId,
+      'user_id_object' => $judgeId,
+      'date_created' =>  date('Y-m-d H:i:s')
+    ];
+
+    $currentUser = $this->plugin->users->currentUser();
+    if ( $currentUser->record() ){
+      $log['user_id_subject'] = $currentUser->record()->user_id;
+    }
+
+    global $wpdb;
+    $wpdb->insert( $this->table, $log );
+    return true;
   }
 
   public function logJudgeAddition($cycleId, $judgeId=null, $judgeDetails=[]){
