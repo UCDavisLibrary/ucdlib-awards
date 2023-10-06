@@ -19,7 +19,6 @@ return html`
         .applicants=${this.displayedApplicants}
         .showCategories=${this.hasCategories}
       >
-
       </ucdlib-awards-applicants-display>
     </div>
   </div>

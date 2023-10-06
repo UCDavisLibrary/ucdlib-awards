@@ -18,7 +18,11 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
       selectedJudges: { type: Array },
       _actions: {state: true},
       actions: { type: Array },
-      disableActionSubmit: { type: Boolean }
+      doingAction: { type: Boolean },
+      disableActionSubmit: { type: Boolean },
+      applicants: { type: Array },
+      selectedApplicants: { type: Array },
+      showApplicantsSelect: { type: Boolean }
     }
   }
 
@@ -36,18 +40,30 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
     this.judgeCt = 0;
     this.selectedJudges = [];
     this.disableActionSubmit = false;
+    this.applicants = [];
+    this.showApplicantsSelect = false;
+    this.selectedApplicants = [];
+    this.doingAction = false;
 
     this._actions = [];
     this.actions = [
       {
         label: 'Delete Judge',
         slug: 'delete',
-        bulk: true
+        bulk: true,
+        applicants: false
       },
       {
         label: 'Assign Applications',
         slug: 'assign',
-        bulk: true
+        bulk: true,
+        applicants: true
+      },
+      {
+        label: 'View Assignments',
+        slug: 'view-assignments',
+        bulk: true,
+        applicants: false
       }
     ];
   }
@@ -76,6 +92,15 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
       });
       this.disableActionSubmit = disableActionSubmit;
     }
+
+    if ( props.has('selectedAction') ) {
+      const actions = this.actions.filter(action => action.applicants).map(action => action.slug);
+      this.showApplicantsSelect = actions.includes(this.selectedAction);
+    }
+  }
+
+  _onApplicantsSelect(e){
+    this.selectedApplicants = e.detail.map(applicant => applicant.value);
   }
 
   _onNewJudgeInput(prop, value){
@@ -94,11 +119,19 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
 
   _onActionSubmit(e){
     e.preventDefault();
-    this.dispatchEvent(new CustomEvent('action-submit', {
-      detail: {
-        action: this.selectedAction
-      }
-    }));
+
+    const action = this.actions.find(action => action.slug === this.selectedAction);
+    if ( !action ) {
+      console.error('Unable to find action', this.selectedAction);
+      return;
+    }
+
+    const detail = {
+      action: this.selectedAction
+    }
+    if ( action.applicants ) detail.applicants = this.selectedApplicants;
+
+    this.dispatchEvent(new CustomEvent('action-submit', {detail}));
   }
 
   validateNewJudgeData(){

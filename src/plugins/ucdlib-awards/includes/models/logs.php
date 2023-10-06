@@ -79,6 +79,11 @@ class UcdlibAwardsLogs {
             'label' => 'Judge Removed',
             'description' => 'Judge removed from evaluation'
           ],
+          'application-assignment' => [
+            'slug' => 'application-assignment',
+            'label' => 'Application Assignment',
+            'description' => 'Application assigned to judge'
+          ]
         ]
       ]
     ];
@@ -196,6 +201,35 @@ class UcdlibAwardsLogs {
       $record->log_value = json_decode($record->log_value, true);
     }
     return $records;
+  }
+
+  public function logApplicationAssignment($cycleId, $judgeId, $applicantIds){
+    if ( !is_array($applicantIds) ) $applicantIds = [$applicantIds];
+    if ( empty($applicantIds) ) return false;
+    $log = [
+      'log_type' => 'evaluation-admin',
+      'log_subtype' => 'application-assignment',
+      'cycle_id' => $cycleId,
+      'user_id_object' => $judgeId,
+      'date_created' =>  date('Y-m-d H:i:s')
+    ];
+
+    $details = [
+      'judge' => $judgeId
+    ];
+    $currentUser = $this->plugin->users->currentUser();
+    if ( $currentUser->record() ){
+      $details['assignedBy'] = $currentUser->record()->user_id;
+    }
+
+    global $wpdb;
+    foreach( $applicantIds as $applicantId ){
+      $log['user_id_subject'] = $applicantId;
+      $details['applicant'] = $applicantId;
+      $log['log_value'] = json_encode($details);
+      $wpdb->insert( $this->table, $log );
+    }
+
   }
 
   public function logJudgeRemoval($cycleId, $judgeId) {

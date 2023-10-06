@@ -47,6 +47,10 @@ const customStyles = css`
     font-size: .9rem;
     color: #424242;
   }
+  ucdlib-awards-logs .log-person {
+    font-style: italic;
+    color: #022851;
+  }
   @media screen and (min-width: 768px) {
     ucdlib-awards-logs .log .log-content {
       flex: 1;

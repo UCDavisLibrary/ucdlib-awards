@@ -44,7 +44,7 @@ export default class UcdlibAwardsJudgesDisplay extends Mixin(LitElement)
 
       let judges = this.judges.map(judge => {
         judge.selected = this.selectedJudges.includes(judge.id);
-        judge.assignedCt = judge.applicationsAssignedCt || 0;
+        judge.assignedCt = judge.assignments?.length || 0;
         judge.evaluatedCt = judge.applicationsEvaluatedCt || 0;
         judge.expanded = this.expandedRecords.includes(judge.id);
         if ( this.showCategories ) {

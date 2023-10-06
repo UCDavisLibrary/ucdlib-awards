@@ -192,7 +192,22 @@ class UcdlibAwardsAdminMenu {
     if ( $requestedCycle ){
       $pageProps['cycleId'] = $requestedCycle->cycleId;
       $pageProps['categories'] = $requestedCycle->categories();
-      $pageProps['judges'] = $requestedCycle->judges(true);
+      $pageProps['judges'] = $requestedCycle->judges(true, ['assignments' => true]);
+
+      $pageProps['applicants'] = [];
+      $applicants = $requestedCycle->allApplicants();
+      foreach ($applicants as $applicant) {
+        $a = [
+          'name' => $applicant->name(),
+          'id' => $applicant->record()->user_id,
+        ];
+        if ( !empty($requestedCycle->categories())) {
+          $a['category'] = $applicant->applicationCategory($requestedCycle->cycleId);
+        }
+        $pageProps['applicants'][] = $a;
+      }
+
+
     }
 
     $context['pageProps'] = $pageProps;

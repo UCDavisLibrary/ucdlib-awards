@@ -122,6 +122,8 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
       log.displayText = `${judge} assigned as judge ${admin ? `by ${admin}` : ''}`;
     } else if ( log.log_subtype === 'judge-removed' ) {
       log.displayText = `${this.getUserName(log.user_id_object)} removed as judge by ${this.getUserName(log.user_id_subject)}`;
+    } else if ( log.log_subtype === 'application-assignment' ) {
+      log.displayText = `Applicant ${this.getUserName(log.user_id_subject)} assigned to ${this.getUserName(log.user_id_object)} for evaluation`;
     }
     return log;
   }
@@ -149,10 +151,15 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
   getUserName(userId){
     let out = 'Unknown User';
     let user = this.users.find(user => user.user_id == userId);
-    if ( !user ) return out;
-    let name = `${user.first_name} ${user.last_name}`;
-    if ( !name.trim() ) return user.display_name;
-    out = name;
+    if ( user ){
+      let name = `${user.first_name} ${user.last_name}`;
+      if ( name.trim() ) {
+        out = name.trim();
+      } else if ( user.display_name ) {
+        out = user.display_name;
+      }
+    }
+    out = `<span class='log-person'>${out}</span>`
     return out;
   }
 

@@ -271,7 +271,23 @@ class UcdlibAwardsCycle {
     $wpdb->query( $sql );
   }
 
-  public function judges($returnArray=false){
+
+  public function judgeAssignmentMap(){
+    $judgeIds = $this->judgeIds();
+    $assignments = $this->userMetaItem('assignedApplicant');
+    $out = [];
+    foreach( $judgeIds as $judgeId ){
+      $out[ $judgeId ] = [];
+      foreach( $assignments as $assignment ){
+        if ( $assignment->user_id == $judgeId ){
+          $out[ $judgeId ][] = $assignment->meta_value;
+        }
+      }
+    }
+    return $out;
+  }
+
+  public function judges($returnArray=false, $arrayFields=[]){
     $judges = [];
 
     $judgeIds = $this->judgeIds();
@@ -288,6 +304,10 @@ class UcdlibAwardsCycle {
       }
     }
 
+    if ( !empty($arrayFields['assignments'])){
+      $assignmentsByJudge = $this->judgeAssignmentMap();
+    }
+
     foreach( $users as $user ){
       $judge = [
         'id' => $user->record()->user_id,
@@ -302,6 +322,15 @@ class UcdlibAwardsCycle {
           $judge['categoryObject'] = $categoriesBySlug[ $category ];
         }
       }
+
+      if ( !empty($arrayFields['assignments']) ){
+        if ( !empty($assignmentsByJudge[ $judge['id'] ]) ){
+          $judge['assignments'] = $assignmentsByJudge[ $judge['id'] ];
+        } else {
+          $judge['assignments'] = [];
+        }
+      }
+
       $judges[] = $judge;
     }
     return $judges;
@@ -412,6 +441,66 @@ class UcdlibAwardsCycle {
 
     }
     return $allApplicants;
+  }
+
+  public function assignApplicants($applicant_ids, $judge_ids){
+    if ( !is_array($applicant_ids) ) $applicant_ids = [$applicant_ids];
+    if ( !is_array($judge_ids) ) $judge_ids = [$judge_ids];
+    if ( empty($applicant_ids) || empty($judge_ids) ) return;
+    $metaKey = 'assignedApplicant';
+
+    $existingAssignments = $this->userMetaItem($metaKey);
+    $existingAssignmentsByJudgeId = [];
+    foreach( $existingAssignments as $assignment ){
+      if ( !isset($existingAssignmentsByJudgeId[ $assignment->user_id ]) ){
+        $existingAssignmentsByJudgeId[ $assignment->user_id ] = [];
+      }
+      $existingAssignmentsByJudgeId[ $assignment->user_id ][] = $assignment->meta_value;
+    }
+
+    $newAssignments = [];
+    foreach( $judge_ids as $judge_id ){
+      if ( !isset($existingAssignmentsByJudgeId[ $judge_id ]) ){
+        $existingAssignmentsByJudgeId[ $judge_id ] = [];
+      }
+      $newAssignments[ $judge_id ] = array_diff( $applicant_ids, $existingAssignmentsByJudgeId[ $judge_id ] );
+    }
+    $newAssignments = array_filter( $newAssignments );
+
+    global $wpdb;
+    $table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USER_META );
+
+    foreach( $newAssignments as $judge_id => $applicant_ids ){
+      foreach( $applicant_ids as $applicant_id ){
+        $wpdb->insert(
+          $table,
+          [
+            'user_id' => $judge_id,
+            'cycle_id' => $this->cycleId,
+            'meta_key' => $metaKey,
+            'meta_value' => $applicant_id,
+            'date_created' => date('Y-m-d H:i:s'),
+            'date_updated' => date('Y-m-d H:i:s')
+          ]
+        );
+      }
+    }
+
+    $this->userMeta = null;
+
+    return $newAssignments;
+  }
+
+  public function userMetaItem($metaKey){
+    $out = [];
+    $userMeta = $this->userMeta();
+    if ( empty($userMeta) ) return $out;
+    foreach( $userMeta as $meta ){
+      if ( $meta->meta_key == $metaKey ) {
+        $out[] = $meta;
+      }
+    }
+    return $out;
   }
 
   protected $userMeta;

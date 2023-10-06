@@ -8,6 +8,7 @@ import { MutationObserverController } from '@ucd-lib/theme-elements/utils/contro
 
 import "./ucdlib-awards-judges-actions.js";
 import "./ucdlib-awards-judges-display.js";
+import "./ucdlib-awards-judges-assignments.js";
 
 export default class UcdlibAwardsJudgesCtl extends Mixin(LitElement)
   .with(MainDomElement) {
@@ -19,6 +20,9 @@ export default class UcdlibAwardsJudgesCtl extends Mixin(LitElement)
       cycleId: { type: Number },
       judges: { type: Array },
       selectedJudges: { type: Array },
+      applicants: { type: Array },
+      judgeAssignmentFiltered: { type: Array },
+      doingAction: { type: Boolean }
     }
   }
 
@@ -34,6 +38,9 @@ export default class UcdlibAwardsJudgesCtl extends Mixin(LitElement)
     this.cycleId = 0;
     this.judges = [];
     this.selectedJudges = [];
+    this.applicants = [];
+    this.doingAction = false;
+    this.judgeAssignmentFiltered = [];
   }
 
   willUpdate(props) {
@@ -86,22 +93,65 @@ export default class UcdlibAwardsJudgesCtl extends Mixin(LitElement)
   }
 
   async _onActionSubmit(e){
+    if ( this.doingAction ) return;
+    this.doingAction = true;
+
     const action = e.detail.action;
     if ( action === 'delete' ) {
       this.deleteSelectedJudges();
     } else if ( action === 'assign' ) {
-      this.showAssignApplicationsModal();
+      this.assignApplicants(e.detail.applicants);
+    } else if ( action === 'view-assignments' ) {
+      this.judgeAssignmentFiltered = this.judges.filter(judge => this.selectedJudges.includes(judge.id));
+      this.renderRoot.querySelector('ucdlib-awards-judges-assignments').show();
+      this.doingAction  = false;
+      return;
     }
+
+    this.selectedJudges = [];
+    this.doingAction = false;
+    this.renderRoot.querySelector('ucdlib-awards-judges-actions').selectedAction = '';
+    this.renderRoot.querySelector('ucdlib-awards-judges-display').selectedJudges = [];
   }
 
-  showAssignApplicationsModal(){
-    this.renderRoot.querySelector('ucdlib-awards-modal').show();
+  async assignApplicants(applicants){
+    const payload = {
+      cycle_id: this.cycleId,
+      judge_ids: this.selectedJudges,
+      applicant_ids: applicants
+    }
+    const response = await this.wpAjax.request('assign', payload);
+    this.renderRoot.querySelector('ucdlib-awards-judges-actions').selectedApplicants = [];
+    if ( response.success ) {
+      this.judges = response.data.judges;
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: response.messages[0],
+          type: 'success'
+        }
+      }));
+    } else {
+      console.error('Error assigning applicants', response);
+      let msg = 'Unable to assign applicants';
+      if ( response.messages.length) msg += `: ${response.messages?.[0] || ''}`;
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: msg,
+          type: 'error'
+        }
+      }));
+    }
   }
 
   async deleteSelectedJudges(){
     const response = await this.wpAjax.request('delete', {cycle_id: this.cycleId, judge_ids: this.selectedJudges});
     if ( response.success ) {
       this.judges = response.data.judges;
+      this.selectedJudges = [];
       this.dispatchEvent(new CustomEvent('toast-request', {
         bubbles: true,
         composed: true,
@@ -157,6 +207,7 @@ export default class UcdlibAwardsJudgesCtl extends Mixin(LitElement)
     if ( data.categories ) this.categories = data.categories;
     if ( data.cycleId ) this.cycleId = data.cycleId;
     if ( data.judges ) this.judges = data.judges;
+    if ( data.applicants ) this.applicants = data.applicants;
     console.log('data', data);
 
   }

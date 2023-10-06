@@ -71,7 +71,27 @@ export function renderActionPanel(){
             `)}
           </select>
         </div>
-        <button ?disabled=${this.disableActionSubmit} type="submit" class="btn marketing-highlight__cta border-box category-brand--redwood width-100">Apply</button>
+        <div class='field-container' ?hidden=${!this.showApplicantsSelect}>
+          <label>Applicants</label>
+          <ucd-theme-slim-select @change=${this._onApplicantsSelect}>
+            <select multiple>
+              ${this.categories.length ? html`
+                ${this.categories.map(category => html`
+                  <optgroup label="${category.label}">
+                    ${this.applicants.filter(a => a.category?.value == category.value).map(applicant => html`
+                      <option value="${applicant.id}" ?selected=${this.selectedApplicants.includes(applicant.id)}>${applicant.name}</option>
+                    `)}
+                  </optgroup>
+                `)}
+              ` : html`
+                ${this.applicants.map(applicant => html`
+                  <option value="${applicant.id}" ?selected=${this.selectedApplicants.includes(applicant.id)}>${applicant.name}</option>
+                `)}
+              `}
+            </select>
+          </ucd-theme-slim-select>
+        </div>
+        <button ?disabled=${this.disableActionSubmit || this.doingAction} type="submit" class="btn marketing-highlight__cta border-box category-brand--redwood width-100">Apply</button>
       </form>
     </div>
   `;

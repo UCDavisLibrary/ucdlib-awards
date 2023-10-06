@@ -9,8 +9,6 @@ import { MutationObserverController } from '@ucd-lib/theme-elements/utils/contro
 import "./ucdlib-awards-applicants-display.js";
 import "./ucdlib-awards-applicants-actions.js";
 
-// todo: remove this
-import testApplicants from "./test-applicants.js";
 
 export default class UcdlibAwardsApplicantsCtl extends Mixin(LitElement)
   .with(MainDomElement) {
@@ -92,7 +90,7 @@ export default class UcdlibAwardsApplicantsCtl extends Mixin(LitElement)
     if ( data.categories ) this.categories = data.categories;
     if ( data.applicants ) {
       // todo: remove this
-      let applicants = [...data.applicants, ...testApplicants].map(applicant => {
+      let applicants = data.applicants.map(applicant => {
         applicant.user_id = parseInt(applicant.user_id);
         applicant.is_admin = parseInt(applicant.is_admin);
         applicant.name = `${applicant.first_name || ''} ${applicant.last_name || ''}`;

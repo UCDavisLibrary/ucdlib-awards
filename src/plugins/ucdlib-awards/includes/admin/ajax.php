@@ -25,18 +25,8 @@ class UcdlibAwardsAdminAjax {
       $action = $_POST['subAction'];
       if ($action === 'add') {
         $payload = json_decode( stripslashes($_POST['data']), true );
-        if ( empty($payload['cycle_id']) ){
-          $response['messages'][] = 'No cycle specified.';
-          $this->utils->sendResponse($response);
-          return;
-        }
-        $cycleId = $payload['cycle_id'];
-        $cycle = $this->plugin->cycles->getById($cycleId);
-        if ( !$cycle ){
-          $response['messages'][] = 'Cycle not found.';
-          $this->utils->sendResponse($response);
-          return;
-        }
+        $cycle = $this->getCycle($payload, $response);
+        $cycleId = $cycle->cycleId;
 
         if ( empty($payload['judge']['email'])){
           $response['messages'][] = 'No judge email specified.';
@@ -70,18 +60,8 @@ class UcdlibAwardsAdminAjax {
       } else if ($action == 'delete'){
 
         $payload = json_decode( stripslashes($_POST['data']), true );
-        if ( empty($payload['cycle_id']) ){
-          $response['messages'][] = 'No cycle specified.';
-          $this->utils->sendResponse($response);
-          return;
-        }
-        $cycleId = $payload['cycle_id'];
-        $cycle = $this->plugin->cycles->getById($cycleId);
-        if ( !$cycle ){
-          $response['messages'][] = 'Cycle not found.';
-          $this->utils->sendResponse($response);
-          return;
-        }
+        $cycle = $this->getCycle($payload, $response);
+        $cycleId = $cycle->cycleId;
 
         if ( empty($payload['judge_ids'])){
           $response['messages'][] = 'No judge ids specified.';
@@ -109,6 +89,38 @@ class UcdlibAwardsAdminAjax {
         }
         $response['data'] = ['judges' => $cycle->judges(true)];
         $response['success'] = true;
+      } else if ( $action === 'assign' ){
+
+        $payload = json_decode( stripslashes($_POST['data']), true );
+        $cycle = $this->getCycle($payload, $response);
+        $cycleId = $cycle->cycleId;
+
+        if ( empty($payload['judge_ids'])){
+          $response['messages'][] = 'No judge ids specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        if ( empty($payload['applicant_ids']) ){
+          $response['messages'][] = 'No applicants specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        $assignments = $cycle->assignApplicants( $payload['applicant_ids'], $payload['judge_ids'] );
+        if ( empty($assignments) ){
+          $response['messages'][] = 'All applicant(s) are already assigned to specified judge(s).';
+          $this->utils->sendResponse($response);
+          return;
+        } else {
+          foreach ($assignments as $judge => $applicants) {
+            $this->logger->logApplicationAssignment($cycleId, $judge, $applicants);
+          }
+        }
+
+        $response['messages'][] = 'Applicants assigned successfully.';
+        $response['data'] = ['judges' => $cycle->judges(true, ['assignments' => true])];
+        $response['success'] = true;
 
       }
     } catch (\Throwable $th) {
@@ -116,6 +128,23 @@ class UcdlibAwardsAdminAjax {
     }
     $this->utils->sendResponse($response);
 
+  }
+
+  public function getCycle($payload, $response){
+    if ( empty($payload['cycle_id']) ){
+      $response['messages'][] = 'No cycle specified.';
+      $this->utils->sendResponse($response);
+      return;
+    }
+    $cycleId = $payload['cycle_id'];
+    $cycle = $this->plugin->cycles->getById($cycleId);
+    if ( !$cycle ){
+      $response['messages'][] = 'Cycle not found.';
+      $this->utils->sendResponse($response);
+      return;
+    }
+
+    return $cycle;
   }
 
   public function rubric(){

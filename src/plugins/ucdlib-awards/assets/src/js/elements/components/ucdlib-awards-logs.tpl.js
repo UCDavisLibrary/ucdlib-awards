@@ -1,4 +1,5 @@
 import { html } from 'lit';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
 export function render() {
 return html`
@@ -27,7 +28,7 @@ return html`
                   <ucdlib-icon icon="${log.icon}"></ucdlib-icon>
                 </div>
                 <div class='log-content'>
-                  <div class='log-text'>${log.displayText}</div>
+                  <div class='log-text'>${unsafeHTML(log.displayText)}</div>
                   <div class='log-date'>${log.displayDate}</div>
                 </div>
               </div>

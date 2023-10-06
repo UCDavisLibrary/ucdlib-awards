@@ -12,6 +12,7 @@ import focalLink from "@ucd-lib/theme-sass/4_component/_focal-link.css.js";
 import icons from "@ucd-lib/theme-sass/4_component/_icons.css.js";
 import marketingHighlight from "@ucd-lib/theme-sass/4_component/_marketing-highlight.css.js";
 import priorityLinks from "@ucd-lib/theme-sass/4_component/_priority-links.css.js";
+import responsiveTable from "@ucd-lib/theme-sass/4_component/_responsive-table.css.js";
 import verticalLink from "@ucd-lib/theme-sass/4_component/_vertical-link.css.js";
 import layouts from "@ucd-lib/theme-sass/5_layout/_index.css.js";
 import spaceUtils from "@ucd-lib/theme-sass/6_utility/_u-space.css.js";
@@ -32,6 +33,7 @@ export function styles() {
     icons,
     marketingHighlight,
     priorityLinks,
+    responsiveTable,
     verticalLink,
     layouts,
     spaceUtils,
