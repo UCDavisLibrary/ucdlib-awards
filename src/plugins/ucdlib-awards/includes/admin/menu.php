@@ -236,6 +236,7 @@ class UcdlibAwardsAdminMenu {
         'applicationStatus' => $requestedCycle->cycleId
       ];
       $pageProps['applicants'] = $this->plugin->users->toArrays($applicants, $args);
+      $pageProps['judges'] = $requestedCycle->judges(true);
     }
 
     $context['pageProps'] = $pageProps;

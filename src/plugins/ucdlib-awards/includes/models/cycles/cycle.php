@@ -421,11 +421,16 @@ class UcdlibAwardsCycle {
     if ( !empty($args['userMeta']) ){
       $userMeta = $this->userMeta();
       $userMetaByUserId = [];
+      $assignedJudgesMeta = [];
       foreach( $userMeta as $meta ){
         if ( !isset($userMetaByUserId[ $meta->user_id ]) ){
           $userMetaByUserId[ $meta->user_id ] = [];
         }
         $userMetaByUserId[ $meta->user_id ][] = $meta;
+
+        if ( in_array($meta->meta_key, ['assignedApplicant', 'evaluatedApplicant']) ){
+          $assignedJudgeIdsMeta[] = $meta;
+        }
       }
     }
 
@@ -437,6 +442,10 @@ class UcdlibAwardsCycle {
 
       if ( isset($userMetaByUserId[ $applicant->id ]) ){
         $applicant->setCycleMeta( $userMetaByUserId[ $applicant->id ], $this->cycleId );
+      }
+
+      if ( isset($assignedJudgeIdsMeta) ){
+        $applicant->setAssignedJudgeIdsMeta( $assignedJudgeIdsMeta );
       }
 
     }

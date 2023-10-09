@@ -11,6 +11,8 @@ export default class UcdlibAwardsJudgesAssignments extends Mixin(LitElement)
     return {
       judges: { type: Array },
       _judges: {state: true},
+      applicants: { type: Array },
+      _applicants: {state: true},
       categories: { type: Array }
     }
   }
@@ -21,16 +23,54 @@ export default class UcdlibAwardsJudgesAssignments extends Mixin(LitElement)
 
     this.judges = [];
     this._judges = [];
+    this.applicants = [];
+    this._applicants = [];
     this.categories = [];
+
+    this.statuses = [
+      {prop: 'assignments', label: 'Assigned'},
+      {prop: 'evaluations', label: 'Evaluated'}
+    ];
   }
 
   willUpdate(props) {
-    if ( props.has('judges') ) {
+    if ( props.has('judges') || props.has('categories') ) {
+      const applicants = [];
       this._judges = this.judges.map(judge => {
+
+        this.statuses.forEach(status => {
+          if ( judge[status.prop] ) {
+            judge[status.prop].forEach(applicantId => {
+              const applicant = this.applicants.find(a => a.id == applicantId);
+              if ( applicant ) {
+                if ( applicants.find(a => a.id === applicantId)) {
+                  const a = applicants.find(a => a.id === applicantId);
+                  a.byJudgeStatus.push({judgeId: judge.id, status});
+                } else {
+                  const categorySuperscript = this.categories.findIndex(c => c.value == applicant.category?.value) + 1;
+                  applicants.push(
+                    {...applicant,
+                      categorySuperscript,
+                      byJudgeStatus: [{judgeId: judge.id, status}]});
+                }
+              }
+            });
+          }
+        });
+
         const j = {...judge};
-        j.categorySuperscript = this.categories.findIndex(c => c.value === j.category) + 1;
+        if ( this.categories.length ) {
+          j.categorySuperscript = this.categories.findIndex(c => c.value === j.category) + 1;
+        }
         return j;
       });
+
+      applicants.sort((a, b) => {
+        if ( a.name < b.name ) return -1;
+        if ( a.name > b.name ) return 1;
+        return 0;
+      });
+      this._applicants = applicants;
     }
   }
 

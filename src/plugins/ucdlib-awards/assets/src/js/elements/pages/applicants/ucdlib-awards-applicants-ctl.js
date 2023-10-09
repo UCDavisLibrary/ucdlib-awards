@@ -88,8 +88,8 @@ export default class UcdlibAwardsApplicantsCtl extends Mixin(LitElement)
     }
     if ( !data ) return;
     if ( data.categories ) this.categories = data.categories;
+    if ( data.judges ) this.judges = data.judges;
     if ( data.applicants ) {
-      // todo: remove this
       let applicants = data.applicants.map(applicant => {
         applicant.user_id = parseInt(applicant.user_id);
         applicant.is_admin = parseInt(applicant.is_admin);

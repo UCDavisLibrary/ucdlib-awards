@@ -18,6 +18,7 @@ return html`
         @selected-applicants-change=${this._onSelectedApplicantsChange}
         .applicants=${this.displayedApplicants}
         .showCategories=${this.hasCategories}
+        .judges=${this.judges}
       >
       </ucdlib-awards-applicants-display>
     </div>

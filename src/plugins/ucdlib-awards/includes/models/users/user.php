@@ -22,6 +22,11 @@ class UcdlibAwardsUser {
 
     $this->table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USERS );
     $this->metaTable = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USER_META );
+
+    $this->assignedJudgesProps = [
+      ['meta_key' => 'assignedApplicant', 'outKey' => 'assigned'],
+      ['meta_key' => 'evaluatedApplicant', 'outKey' => 'evaluated']
+    ];
   }
 
   public function hasUserLogin() {
@@ -74,16 +79,90 @@ class UcdlibAwardsUser {
   }
 
   public function applicationStatus($cycleId=null){
-    # assigned to x reviewers
-    # reviewed by x/y reviewers
-    $meta = $this->cycleMeta($cycleId);
-    if ( !empty($meta['hasSubmittedApplication']) ){
-      return ['value' => 'submitted', 'label' => 'Submitted'];
+    $out = [
+      'value' => 'not-submitted',
+      'label' => 'Not Submitted',
+      'assignedJudgeIds' => [],
+      'evaluatedJudgeIds' => []
+    ];
 
+    $assignedJudgeIds = $this->assignedJudgeIds($cycleId);
+    $out['assignedJudgeIds'] = $assignedJudgeIds['assigned'];
+    $out['evaluatedJudgeIds'] = $assignedJudgeIds['evaluated'];
+
+    if ( count($out['assignedJudgeIds']) ){
+      $assignedCt = count($out['assignedJudgeIds']);
+      $evaluatedCt = count($out['evaluatedJudgeIds']);
+      $out['label'] = $evaluatedCt . '/' . $assignedCt . ' Evaluations Completed';
+
+      $completed = array_intersect( $out['assignedJudgeIds'], $out['evaluatedJudgeIds'] );
+      if ( count($completed) == $assignedCt ){
+        $out['value'] = 'evaluated';
+      } else {
+        $out['value'] = 'assigned';
+      }
+      return $out;
     }
 
-    // status two: x/y reviewers
+    $meta = $this->cycleMeta($cycleId);
+    if ( !empty($meta['hasSubmittedApplication']) ){
+      $out['value'] = 'submitted';
+      $out['label'] = 'Submitted';
+      return $out;
+    }
     return null;
+  }
+
+  private $assignedJudgesProps;
+  protected $assignedJudgeIds;
+  public function assignedJudgeIds($cycleId){
+    if ( isset($this->assignedJudgeIds[$cycleId]) ){
+      return $this->assignedJudgeIds[$cycleId];
+    }
+    $props = $this->assignedJudgesProps;
+    $meta_keys = array_column( $props, 'meta_key' );
+    $out = [];
+    foreach ($props as $prop) {
+      $out[$prop['outKey']] = [];
+    }
+
+    if ( !$this->record() ) return $out;
+    $meta_value = strval( $this->record()->user_id );
+    global $wpdb;
+    $sql = "SELECT * FROM $this->metaTable WHERE meta_key IN (%s, %s) AND meta_value = %s AND cycle_id = %d";
+    $meta = $wpdb->get_results( $wpdb->prepare( $sql, $meta_keys[0], $meta_keys[1], $meta_value, $cycleId ) );
+    foreach( $meta as $m ){
+      foreach ($props as $prop) {
+        if ( $m->meta_key == $prop['meta_key'] ){
+          $out[$prop['outKey']][] = $m->user_id;
+        }
+      }
+    }
+    $this->assignedJudgeIds[$cycleId] = $out;
+  }
+
+  public function setAssignedJudgeIdsMeta($userMeta){
+    $byCycle = [];
+    foreach( $userMeta as $m ){
+      if ( empty($m->cycle_id) ) continue;
+      if ( !isset($byCycle[$m->cycle_id]) ){
+        $byCycle[$m->cycle_id] = [];
+        foreach ($this->assignedJudgesProps as $p) {
+          $byCycle[$m->cycle_id][$p['outKey']] = [];
+        }
+      }
+      foreach ($this->assignedJudgesProps as $prop) {
+        if ( $m->meta_key == $prop['meta_key'] && $m->meta_value == $this->record()->user_id){
+          $byCycle[$m->cycle_id][$prop['outKey']][] = $m->user_id;
+        }
+      }
+    }
+    if ( !isset($this->assignedJudgeIds) ){
+      $this->assignedJudgeIds = [];
+    }
+    foreach ($byCycle as $cycleId => $props) {
+      $this->assignedJudgeIds[$cycleId] = $props;
+    }
   }
 
   /**
@@ -170,6 +249,7 @@ class UcdlibAwardsUser {
       $cycleId = $additionalProps['applicationStatus'];
       $out['applicationStatus'] = $this->applicationStatus($cycleId);
     }
+
     return $out;
   }
 

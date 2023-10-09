@@ -34,6 +34,7 @@ return html`
       <ucdlib-awards-judges-assignments
         .judges=${this.judgeAssignmentFiltered}
         .categories=${this.categories}
+        .applicants=${this.applicants}
       ></ucdlib-awards-judges-assignments>
     </div>
   </div>

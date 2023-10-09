@@ -14,6 +14,8 @@ export default class UcdlibAwardsApplicantsDisplay extends Mixin(LitElement)
       showCategories: { type: Boolean },
       sortDirection: { type: Object },
       expandedRecords: { type: Array },
+      judges: { type: Array },
+      assignmentStatusApplicant: {type: String},
       _applicants: { state: true },
       _allSelected: { state: true }
     }
@@ -24,6 +26,7 @@ export default class UcdlibAwardsApplicantsDisplay extends Mixin(LitElement)
     this.render = templates.render.bind(this);
     this.renderSortIcon = templates.renderSortIcon.bind(this);
     this.renderApplicantRow = templates.renderApplicantRow.bind(this);
+    this.renderAssignmentModalContent = templates.renderAssignmentModalContent.bind(this);
     this.applicants = [];
     this._applicants = [];
     this.selectedApplicants = [];
@@ -31,6 +34,8 @@ export default class UcdlibAwardsApplicantsDisplay extends Mixin(LitElement)
     this.showCategories = false;
     this.sortDirection = {};
     this.expandedRecords = [];
+    this.judges = [];
+    this.assignmentStatusApplicant = '';
   }
 
   willUpdate(props) {
@@ -41,7 +46,7 @@ export default class UcdlibAwardsApplicantsDisplay extends Mixin(LitElement)
       props.has('expandedRecords')) {
 
       let applicants = this.applicants.map(applicant => {
-
+        applicant = {...applicant};
         applicant.selected = this.selectedApplicants.includes(applicant.user_id);
         applicant.expanded = this.expandedRecords.includes(applicant.user_id);
         applicant.submitted = new Date(applicant.applicationEntry?.date_created_sql || '');
@@ -63,6 +68,16 @@ export default class UcdlibAwardsApplicantsDisplay extends Mixin(LitElement)
       this._applicants = applicants;
       this._allSelected = this._applicants.length && this._applicants.every(applicant => applicant.selected);
       console.log('applicants', this._applicants);
+    }
+  }
+
+  _onAssignmentView(applicant_id){
+    if ( !applicant_id ) return;
+    this.assignmentStatusApplicant = applicant_id;
+
+    const modal = this.querySelector('ucdlib-awards-modal');
+    if ( modal ) {
+      modal.show();
     }
   }
 

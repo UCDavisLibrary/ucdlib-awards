@@ -84,6 +84,9 @@ const customStyles = css`
     ucdlib-awards-judges-display .has-mb-details {
       align-items: center;
     }
+    ucdlib-awards-judges-assignments .judge-name {
+      font-weight: 400;
+    }
   }
 `;
 

@@ -98,7 +98,7 @@ export default class UcdlibAwardsJudgesDisplay extends Mixin(LitElement)
     if ( !jid ) return;
     if ( jid === 'all' ){
       if ( this._allSelected ) {
-        this.sele = [];
+        this.selectedJudges = [];
       } else {
         this.selectedJudges = this._judges.map(judge => judge.id);
       }
