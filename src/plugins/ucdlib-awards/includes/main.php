@@ -1,5 +1,6 @@
 <?php
 require_once( __DIR__ . '/admin/main.php' );
+require_once( __DIR__ . '/evaluation/main.php' );
 require_once( __DIR__ . '/assets.php' );
 require_once( __DIR__ . '/auth.php' );
 require_once( __DIR__ . '/award-loader.php' );
@@ -54,6 +55,7 @@ class UcdlibAwards {
     $this->auth = new UcdlibAwardsAuth( $this );
     $this->admin = new UcdlibAwardsAdmin( $this );
     $this->assets = new UcdlibAwardsAssets( $this );
+    $this->evaluation = new UcdlibAwardsEvaluation( $this );
     $this->formsCtl = new UcdlibAwardsFormsMain( $this );
   }
 

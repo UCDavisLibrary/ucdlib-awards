@@ -36,6 +36,15 @@ class UcdlibAwardsAwardAbstract {
   ];
 
   /**
+   * @description Evaluation menu options
+   */
+  protected $_evaluationMenuTitle = "Awards Evaluation";
+  protected $_evaluationMenuPageTitle = "UC Davis Library Award";
+  protected $_evaluationMenuSlugs = [
+    'main' => 'awards-evaluation'
+  ];
+
+  /**
    * CUSTOMIZE END
    */
 
@@ -61,6 +70,18 @@ class UcdlibAwardsAwardAbstract {
 
   final public function getDashboardSettings() {
     return $this->_dashboardSettings;
+  }
+
+  final public function getEvaluationMenuSlugs() {
+    return $this->_evaluationMenuSlugs;
+  }
+
+  final public function getEvaluationMenuTitle() {
+    return $this->_evaluationMenuTitle;
+  }
+
+  final public function getEvaluationMenuPageTitle() {
+    return $this->_evaluationMenuPageTitle;
   }
 
 }

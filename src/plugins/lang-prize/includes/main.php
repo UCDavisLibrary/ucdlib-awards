@@ -16,4 +16,10 @@ class LangPrize extends UcdlibAwardsAwardAbstract {
     'judges' => 'lang-prize-admin-judges'
   ];
 
+  protected $_evaluationMenuTitle = "Lang Prize Evaluation";
+  protected $_evaluationMenuPageTitle = "UC Davis Lang Prize";
+  protected $_evaluationMenuSlugs = [
+    'main' => 'lang-prize-evaluation'
+  ];
+
 }

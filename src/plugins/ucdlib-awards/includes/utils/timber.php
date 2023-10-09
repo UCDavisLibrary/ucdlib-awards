@@ -9,4 +9,9 @@ class UcdlibAwardsTimber {
     Timber::render( $template, $context );
   }
 
+  public static function renderEvaluationPage( $page, $context ){
+    $template = '@' . UcdlibAwardsConfig::$twigNamespace . '/evaluation/pages/' . $page . '.twig';
+    Timber::render( $template, $context );
+  }
+
 }
