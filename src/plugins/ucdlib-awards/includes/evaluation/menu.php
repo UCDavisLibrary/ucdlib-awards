@@ -31,30 +31,57 @@ class UcdlibAwardsEvaluationMenu {
 
   public function renderMain(){
     $context = $this->context();
+    $context['pageProps'] = [
+      'wpAjax' => $this->ajaxUtils->getAjaxElementProperty('evaluation')
+    ];
+
+    if ( $context['isAdmin'] ){
+      $context['pageProps']['hideWpMenus'] = false;
+      $context['pageProps']['judges'] = $context['judges'];
+
+    } else {
+      $context['pageProps']['hideWpMenus'] = true;
+    }
+
+    if ( $context['isJudge'] ){
+      $userId = $context['currentUser']->record()->user_id;
+      foreach ($context['judges'] as $judge) {
+        if ( $judge['id'] == $userId ){
+          $context['pageProps']['judge'] = $judge;
+          break;
+        }
+      }
+    }
     UcdlibAwardsTimber::renderEvaluationPage( 'evaluation', $context );
   }
 
 
 
   /**
-   * @description Returns the base context for the admin pages.
+   * @description Returns the base context for all evaluation pages.
    */
   protected $context;
   public function context(){
     if ( !empty($this->context) ) return $this->context;
 
     $currentUser = $this->plugin->users->currentUser();
+    $activeCycle = $this->plugin->cycles->activeCycle();
+    $isJudge = false;
+    $judges = [];
+    if ( $activeCycle ) {
+      $isJudge = $currentUser->isJudge( $activeCycle->cycleId );
+      $judges = $activeCycle->judges(true);
+    }
 
     $this->context = [
       'currentUser' => $currentUser,
+      'activeCycle' => $activeCycle,
       'isAdmin' => $currentUser->isAdmin(),
-      'requestedCycle' => null,
+      'isJudge' => $isJudge,
+      'judges' => $judges,
       'pageContainerProps' => [
         'pageTitle' => $this->award->getAdminMenuPageTitle(),
-        'siteLogo' => dirname( get_template_directory_uri() ) . "/assets/img/site-icon.png",
-        'isAdminPage' => true,
-        'requestedCycle' => null,
-        'wpAjax' => $this->ajaxUtils->getAjaxElementProperty('adminGeneral')
+        'siteLogo' => dirname( get_template_directory_uri() ) . "/assets/img/site-icon.png"
       ],
       'award' => $this->award,
     ];

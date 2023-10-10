@@ -5,7 +5,7 @@ export function render() {
 return html`
   <ucdlib-pages selected=${this.page}>
     <div id='logs-loading'>
-      <div>
+      <div class='loading-icon'>
         <ucdlib-icon icon="ucd-public:fa-circle-notch"></ucdlib-icon>
       </div>
     </div>

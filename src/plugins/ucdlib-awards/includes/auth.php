@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @description Custom authentication on top of OpenID Connect Generic plugin.
+ * @description Custom authentication actions including mods to the OpenID Connect Generic plugin.
  */
 class UcdlibAwardsAuth {
 

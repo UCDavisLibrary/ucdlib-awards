@@ -1,1 +1,18 @@
-<p>hello world</p>
+<ucdlib-awards-page>
+  <script type="application/json"> {{pageContainerProps|json_encode()}}</script>
+
+  <ucdlib-awards-evaluation>
+    <script type="application/json"> {{pageProps|json_encode()}}</script>
+  </ucdlib-awards-evaluation>
+
+  {% if not isJudge and not isAdmin %}
+    <ucdlib-awards-forbidden></ucdlib-awards-forbidden>
+  {% endif %}
+</ucdlib-awards-page>
+{% if pageProps.hideWpMenus %}
+  <style>
+    html.wp-toolbar {
+      display: none;
+    }
+  </style>
+{% endif %}

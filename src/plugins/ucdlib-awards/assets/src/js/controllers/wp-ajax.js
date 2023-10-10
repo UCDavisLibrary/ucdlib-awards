@@ -22,7 +22,6 @@ export default class wpAjax {
       console.error('Error parsing JSON script', error);
     }
     if ( !hostProps.wpAjax ){
-      console.error('Missing wpAjax props');
       return;
     }
     this.nonce = hostProps.wpAjax.nonce;

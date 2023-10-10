@@ -22,4 +22,8 @@ class LangPrize extends UcdlibAwardsAwardAbstract {
     'main' => 'lang-prize-evaluation'
   ];
 
+  protected $_dashboardSettings = [
+    'logTypeFilter' => ['application']
+  ];
+
 }

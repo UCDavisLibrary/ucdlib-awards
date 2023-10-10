@@ -48,7 +48,8 @@ class UcdlibAwardsAssets {
       // Only load assets on our admin pages
       $page = isset($_GET['page']) ? $_GET['page'] : '';
       $adminSlugs = array_values($this->plugin->award->getAdminMenuSlugs());
-      if ( !in_array( $page, $adminSlugs ) ) return;
+      $evaluationSlugs = array_values($this->plugin->award->getEvaluationMenuSlugs());
+      if ( !in_array( $page, array_merge($adminSlugs, $evaluationSlugs) ) ) return;
 
       // main JS bundle
       $jsSlug = $this->plugin->config::$adminJsSlug;

@@ -6,7 +6,14 @@
 class UcdlibAwardsUser {
 
   public function __construct( $username=null, $record=null ){
+
+    $this->metaCache = [];
+    $this->plugin = $GLOBALS['ucdlibAwards'];
+
+    $this->table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USERS );
+    $this->metaTable = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USER_META );
     $this->id = null;
+
     if ( $username ){
       $this->username = $username;
       if ( $record ) {
@@ -15,18 +22,33 @@ class UcdlibAwardsUser {
       }
     } else {
       $this->wpUser = wp_get_current_user();
-      $this->username = $this->wpUser->user_login;
-    }
-    $this->metaCache = [];
-    $this->plugin = $GLOBALS['ucdlibAwards'];
+      $this->username = empty($this->wpUser) ? 0 : $this->wpUser->user_login;
 
-    $this->table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USERS );
-    $this->metaTable = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USER_META );
+      // if does not have record by username, try by email, and update username
+      // this occurs for judges who have not yet logged in
+      if ( !empty($this->wpUser) && !$this->record() ){
+        global $wpdb;
+        $sql = "SELECT * FROM $this->table WHERE email = %s";
+        $record = $wpdb->get_row( $wpdb->prepare( $sql, $this->wpUser->user_email ) );
+        if ( $record ){
+          $wpdb->update( $this->table, ['wp_user_login' => $this->wpUser->user_login], ['user_id' => $record->user_id] );
+          $this->username = $this->wpUser->user_login;
+          $this->record = null;
+        }
+
+      }
+    }
 
     $this->assignedJudgesProps = [
       ['meta_key' => 'assignedApplicant', 'outKey' => 'assigned'],
       ['meta_key' => 'evaluatedApplicant', 'outKey' => 'evaluated']
     ];
+  }
+
+  public function userIdMatches( $userId ){
+    $record = $this->record();
+    if ( empty($record) ) return false;
+    return $record->user_id == $userId;
   }
 
   public function hasUserLogin() {
@@ -218,6 +240,14 @@ class UcdlibAwardsUser {
     return $this->isAdmin;
   }
 
+  public function isJudge( $cycleId ){
+    $meta = $this->cycleMeta($cycleId);
+    if ( !empty($meta['isJudge']) ){
+      return true;
+    }
+    return false;
+  }
+
   /**
    * @description Get the user record as an associative array
    */
@@ -361,7 +391,7 @@ class UcdlibAwardsUser {
     }
     global $wpdb;
     $usersTable = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USERS );
-    $this->record = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $usersTable WHERE wp_user_login = %s", $this->username ) );
+    $this->record = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $usersTable WHERE wp_user_login = %s", strval($this->username) ) );
     if ( isset($this->record->user_id) ){
       $this->id = $this->record->user_id;
     }
