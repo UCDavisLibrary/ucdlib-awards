@@ -428,7 +428,10 @@ class UcdlibAwardsCycle {
         }
         $userMetaByUserId[ $meta->user_id ][] = $meta;
 
-        if ( in_array($meta->meta_key, ['assignedApplicant', 'evaluatedApplicant']) ){
+        $applicantKeys = array_map(function($item){
+          return $item['meta_key'];
+        }, $this->plugin->config::$assignedJudgesProps);
+        if ( in_array($meta->meta_key, $applicantKeys) ){
           $assignedJudgeIdsMeta[] = $meta;
         }
       }

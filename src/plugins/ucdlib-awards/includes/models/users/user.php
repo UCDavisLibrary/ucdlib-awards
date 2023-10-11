@@ -39,10 +39,7 @@ class UcdlibAwardsUser {
       }
     }
 
-    $this->assignedJudgesProps = [
-      ['meta_key' => 'assignedApplicant', 'outKey' => 'assigned'],
-      ['meta_key' => 'evaluatedApplicant', 'outKey' => 'evaluated']
-    ];
+    $this->assignedJudgesProps = $this->plugin->config::$assignedJudgesProps;
   }
 
   public function userIdMatches( $userId ){
@@ -278,6 +275,10 @@ class UcdlibAwardsUser {
     if ( !empty($additionalProps['applicationStatus']) ){
       $cycleId = $additionalProps['applicationStatus'];
       $out['applicationStatus'] = $this->applicationStatus($cycleId);
+    }
+    if ( !empty($additionalProps['assignedJudgeIds']) ){
+      $cycleId = $additionalProps['assignedJudgeIds'];
+      $out['assignedJudgeIds'] = $this->assignedJudgeIds($cycleId);
     }
 
     return $out;

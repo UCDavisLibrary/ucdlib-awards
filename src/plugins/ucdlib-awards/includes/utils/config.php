@@ -29,6 +29,13 @@ class UcdlibAwardsConfig {
     'forms' => 'forminator-cform'
   ];
 
+  public static $assignedJudgesProps = [
+    ['meta_key' => 'assignedApplicant', 'outKey' => 'assigned'],
+    ['meta_key' => 'conflictOfInterestApplicant', 'outKey' => 'conflictOfInterest'],
+    ['meta_key' => 'evaluationInProgressApplicant', 'outKey' => 'evaluationInProgress'],
+    ['meta_key' => 'evaluatedApplicant', 'outKey' => 'evaluated']
+  ];
+
   /**
    * @description Get App env (dev or prod) - determines what assets to load
    */

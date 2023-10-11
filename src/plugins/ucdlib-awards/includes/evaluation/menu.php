@@ -31,6 +31,8 @@ class UcdlibAwardsEvaluationMenu {
 
   public function renderMain(){
     $context = $this->context();
+    $activeCycle = $context['activeCycle'];
+
     $context['pageProps'] = [
       'wpAjax' => $this->ajaxUtils->getAjaxElementProperty('evaluation')
     ];
@@ -52,6 +54,15 @@ class UcdlibAwardsEvaluationMenu {
         }
       }
     }
+
+    if ( $context['isJudge'] || $context['isAdmin'] ){
+      if ( $activeCycle->hasRubric() ){
+        $context['pageProps']['rubricItems'] = $activeCycle->rubric()->items();
+        $context['pageProps']['rubricScoringCalculation'] = $activeCycle->rubric()->scoringCalculation();
+        $context['pageProps']['rubricUploadedFile'] = $activeCycle->rubric()->uploadedFile();
+      }
+    }
+
     UcdlibAwardsTimber::renderEvaluationPage( 'evaluation', $context );
   }
 
@@ -70,7 +81,7 @@ class UcdlibAwardsEvaluationMenu {
     $judges = [];
     if ( $activeCycle ) {
       $isJudge = $currentUser->isJudge( $activeCycle->cycleId );
-      $judges = $activeCycle->judges(true);
+      $judges = $activeCycle->judges(true, ['assignments' => true]);
     }
 
     $this->context = [

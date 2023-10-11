@@ -31,6 +31,7 @@ class UcdlibAwardsEvaluationAjax {
           $response['messages'][] = 'No active cycle found.';
           $this->utils->sendResponse($response);
         }
+        $cycleId = $cycle->cycleId;
 
         $payload = json_decode( stripslashes($_POST['data']), true );
         if ( empty($payload['judge_id']) ){
@@ -48,6 +49,24 @@ class UcdlibAwardsEvaluationAjax {
           $this->utils->sendResponse($response);
         }
 
+        $args = [
+          'applicationEntry' => true,
+          'userMeta' => true
+        ];
+        $allApplicants = $cycle->getApplicants($args);
+        $applicants = array_filter($allApplicants, function($applicant) use ($judgeId, $cycleId){
+          $assignedJudges = $applicant->assignedJudgeIds($cycleId)['assigned'];
+          return in_array($judgeId, $assignedJudges);
+        });
+
+        $args = [
+          'applicationEntryBrief' => $cycleId,
+          'assignedJudgeIds' => $cycleId
+        ];
+        $response['data'] = [
+          'applicants' => $this->plugin->users->toArrays($applicants, $args)
+        ];
+        $response['success'] = true;
 
       }
     } catch (\Throwable $th) {

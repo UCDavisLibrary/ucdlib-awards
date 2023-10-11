@@ -209,6 +209,9 @@ ucdlib-icon.panel__custom-icon {
   font-size: .9rem;
   color: #13639e;
 }
+.hint-text--grey {
+  color: #3c3c3c;
+}
 .overflow-elipsis {
   overflow-y: hidden;
   text-overflow: ellipsis;
@@ -277,6 +280,9 @@ ucdlib-icon.panel__custom-icon {
   50% { opacity: 1; }
   75% { opacity: 0.5; }
   100% { opacity: 0.4; }
+}
+.input-max-width {
+  max-width: 300px;
 }
 `;
 
