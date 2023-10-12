@@ -8,7 +8,9 @@ return html`
     <div class="l-second panel o-box">
       <ucdlib-awards-applicants-actions
         @search-query-change=${this._onSearchQueryChange}
+        @action-submit=${this._onActionSubmit}
         .selectedApplicants=${this.selectedApplicants}
+        .doingAction=${this.doingAction}
       >
 
       </ucdlib-awards-applicants-actions>

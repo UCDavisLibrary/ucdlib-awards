@@ -14,6 +14,7 @@ export default class UcdlibAwardsApplicantsActions extends Mixin(LitElement)
       selectedAction: { type: String},
       selectedApplicants: { type: Array },
       disableActionSubmit: { type: Boolean },
+      doingAction: { type: Boolean },
       _actions: {state: true}
     }
   }
@@ -27,23 +28,14 @@ export default class UcdlibAwardsApplicantsActions extends Mixin(LitElement)
     this.selectedAction = '';
     this.selectedApplicants = [];
     this.disableActionSubmit = false;
+    this.doingAction = false;
 
     this.actions = [
       {
-        label: 'Action 1',
-        slug: 'action-1',
+        label: 'Delete',
+        slug: 'delete',
         bulk: true
       },
-      {
-        label: 'Action 2',
-        slug: 'action-2',
-        bulk: false
-      },
-      {
-        label: 'Action 3',
-        slug: 'action-3',
-        bulk: true
-      }
     ];
   }
 
@@ -80,6 +72,22 @@ export default class UcdlibAwardsApplicantsActions extends Mixin(LitElement)
         searchQuery: this.searchQuery
       }
     }));
+  }
+
+  _onActionSubmit(e){
+    e.preventDefault();
+
+    const action = this.actions.find(action => action.slug === this.selectedAction);
+    if ( !action ) {
+      console.error('Unable to find action', this.selectedAction);
+      return;
+    }
+
+    const detail = {
+      action: this.selectedAction
+    }
+
+    this.dispatchEvent(new CustomEvent('action-submit', {detail}));
   }
 
 }

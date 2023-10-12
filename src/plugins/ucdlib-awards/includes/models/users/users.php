@@ -17,6 +17,10 @@ class UcdlibAwardsUsers {
     $this->metaTable = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USER_META );
   }
 
+  public function clearCache(){
+    $this->userCache = [];
+  }
+
   /**
    * @description Get the logged in user
    */

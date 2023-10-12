@@ -22,7 +22,9 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
       rubricScoringCalculation: { type: String },
       rubricUploadedFile: { type: String },
       applicants: { type: Array },
-      selectedApplicant: { type: Object }
+      selectedApplicant: { type: Object },
+      appicationEntryCache: { type: Object},
+      applicationFormId: { type: String }
     }
   }
 
@@ -49,6 +51,8 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
     this.rubricUploadedFile = '';
     this.applicants = [];
     this.selectedApplicant = {};
+    this.appicationEntryCache = {};
+    this.applicationFormId = '';
   }
 
   willUpdate(props) {
@@ -71,14 +75,53 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
   }
 
   async _onApplicantSelect(applicant_id){
+    const errorMessage = "There was an error retrieving the applicant. Please try again later."
+    this.page = 'loading';
     const applicant = this.applicants.find(applicant => applicant.user_id === applicant_id);
     if ( !applicant ) {
-      this.errorMessage = "There was an error retrieving the applicant. Please try again later."
+      this.errorMessage = errorMessage;
       this.page = 'error';
       return;
     }
+
+    const entryId = applicant.applicationEntry?.entry_id;
+    const formId = applicant.applicationEntry?.form_id;
+    const promises = [
+      this.getApplicantEntry(entryId, formId)
+    ];
+    const responses = await Promise.allSettled(promises);
+    responses.forEach((response, index) => {
+      if ( response.status === 'fulfilled' ) {
+        if ( !response.value.success ) {
+          this.page = 'error';
+          console.error('Error retrieving applicant entry', response.value);
+          return;
+        }
+      } else {
+        this.page = 'error';
+        console.error('Error retrieving applicant entry', response.reason);
+      }
+    });
+
+    if ( this.page === 'error' ) {
+      this.errorMessage = errorMessage;
+      return;
+    }
+
+    console.log(this.appicationEntryCache[entryId]);
+    delete this.appicationEntryCache[entryId];
     this.selectedApplicant = {...applicant};
     this.page = 'applicant';
+  }
+
+  async getApplicantEntry(entryId, formId){
+    if ( this.appicationEntryCache[entryId] ) {
+      return this.appicationEntryCache[entryId];
+    }
+    if ( !formId ) formId = this.applicationFormId;
+    const response = await this.wpAjax.request('getApplicationEntry', {"entry_id": entryId, "form_id": formId});
+    this.appicationEntryCache[entryId] = response;
+    return response;
   }
 
   async _onAdminJudgeSelect(e){

@@ -23,56 +23,86 @@ class UcdlibAwardsEvaluationAjax {
     }
 
     try {
+      $cycle = $this->plugin->cycles->activeCycle();
+      if ( !$cycle ){
+        $response['messages'][] = 'No active cycle found.';
+        $this->utils->sendResponse($response);
+      }
+      $payload = json_decode( stripslashes($_POST['data']), true );
       $action = $_POST['subAction'];
       if ( $action === 'getApplicants' ){
-
-        $cycle = $this->plugin->cycles->activeCycle();
-        if ( !$cycle ){
-          $response['messages'][] = 'No active cycle found.';
-          $this->utils->sendResponse($response);
-        }
-        $cycleId = $cycle->cycleId;
-
-        $payload = json_decode( stripslashes($_POST['data']), true );
-        if ( empty($payload['judge_id']) ){
-          $response['messages'][] = 'No judge ID specified.';
-          $this->utils->sendResponse($response);
-        }
-        $judgeId = $payload['judge_id'];
-
-        $currentUser = $this->plugin->users->currentUser();
-        if (
-          !$currentUser->userIdMatches($judgeId) &&
-          !$currentUser->isAdmin()
-           ){
-          $response['messages'][] = 'You are not authorized to view this data.';
-          $this->utils->sendResponse($response);
-        }
-
-        $args = [
-          'applicationEntry' => true,
-          'userMeta' => true
-        ];
-        $allApplicants = $cycle->getApplicants($args);
-        $applicants = array_filter($allApplicants, function($applicant) use ($judgeId, $cycleId){
-          $assignedJudges = $applicant->assignedJudgeIds($cycleId)['assigned'];
-          return in_array($judgeId, $assignedJudges);
-        });
-
-        $args = [
-          'applicationEntryBrief' => $cycleId,
-          'assignedJudgeIds' => $cycleId
-        ];
-        $response['data'] = [
-          'applicants' => $this->plugin->users->toArrays($applicants, $args)
-        ];
-        $response['success'] = true;
-
+        $response = $this->getApplicants($response, $cycle, $payload);
+      } else if ( $action === 'getApplicationEntry' ){
+        $response = $this->getApplicationEntry($response, $cycle, $payload);
+      } else {
+        $response['messages'][] = 'Invalid subAction specified.';
       }
     } catch (\Throwable $th) {
       error_log('Error in UcdlibAwardsEvaluationAjax::evaluation(): ' . $th->getMessage());
     }
     $this->utils->sendResponse($response);
+  }
+
+  public function getApplicationEntry($response, $cycle, $payload){
+
+    foreach (['form_id', 'entry_id'] as $key) {
+      if ( empty($payload[$key]) ){
+        $response['messages'][] = 'No ' . $key . ' specified.';
+        $this->utils->sendResponse($response);
+      }
+    }
+
+    $formsModel = $this->plugin->forms;
+    $formEntry = $formsModel->getEntry($payload['form_id'], $payload['entry_id']);
+    if ( empty($formEntry) ){
+      $response['messages'][] = 'No form entry found.';
+      $this->utils->sendResponse($response);
+    }
+
+    $response['data'] = [
+      'test' => $formsModel->exportEntry($formEntry)
+    ];
+    $response['success'] = true;
+    return $response;
+  }
+
+  public function getApplicants($response, $cycle, $payload){
+
+    $cycleId = $cycle->cycleId;
+    if ( empty($payload['judge_id']) ){
+      $response['messages'][] = 'No judge ID specified.';
+      $this->utils->sendResponse($response);
+    }
+    $judgeId = $payload['judge_id'];
+
+    $currentUser = $this->plugin->users->currentUser();
+    if (
+      !$currentUser->userIdMatches($judgeId) &&
+      !$currentUser->isAdmin()
+       ){
+      $response['messages'][] = 'You are not authorized to view this data.';
+      $this->utils->sendResponse($response);
+    }
+
+    $args = [
+      'applicationEntry' => true,
+      'userMeta' => true
+    ];
+    $allApplicants = $cycle->getApplicants($args);
+    $applicants = array_filter($allApplicants, function($applicant) use ($judgeId, $cycleId){
+      $assignedJudges = $applicant->assignedJudgeIds($cycleId)['assigned'];
+      return in_array($judgeId, $assignedJudges);
+    });
+
+    $args = [
+      'applicationEntryBrief' => $cycleId,
+      'assignedJudgeIds' => $cycleId
+    ];
+    $response['data'] = [
+      'applicants' => $this->plugin->users->toArrays($applicants, $args)
+    ];
+    $response['success'] = true;
+    return $response;
   }
 
 }

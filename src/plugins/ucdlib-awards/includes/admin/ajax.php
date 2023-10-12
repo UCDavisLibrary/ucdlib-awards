@@ -14,7 +14,64 @@ class UcdlibAwardsAdminAjax {
     add_action( 'wp_ajax_' . $this->actions['adminLogs'], [$this, 'logs'] );
     add_action( 'wp_ajax_' . $this->actions['adminRubric'], [$this, 'rubric'] );
     add_action( 'wp_ajax_' . $this->actions['adminJudges'], [$this, 'judges'] );
+    add_action( 'wp_ajax_' . $this->actions['adminApplicants'], [$this, 'applicants'] );
 
+  }
+
+  public function applicants(){
+    check_ajax_referer( $this->actions['adminApplicants'] );
+    $response = $this->utils->getResponseTemplate();
+    try {
+      $this->validateRequest($response);
+      $action = $_POST['subAction'];
+      if ($action === 'delete') {
+        $payload = json_decode( stripslashes($_POST['data']), true );
+        $cycle = $this->getCycle($payload, $response);
+        $cycleId = $cycle->cycleId;
+
+        if ( empty($payload['applicant_ids'])){
+          $response['messages'][] = 'No applicant ids specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        $userIds = is_array($payload['applicant_ids']) ? $payload['applicant_ids'] : [$payload['applicant_ids']];
+        $allApplicantIds = array_map(function($applicant){
+          return $applicant->record()->user_id;
+        }, $cycle->allApplicants());
+        $missingApplicantIds = array_diff($userIds, $allApplicantIds);
+        if ( count($missingApplicantIds) ){
+          $response['messages'][] = 'One or more applicants could not be deleted because they could not be found.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+        $cycle->deleteApplicants($userIds);
+        foreach ($userIds as $userId) {
+          $this->logger->logApplicationDelete($cycleId, $userId);
+        }
+        if ( count($userIds) > 1 ){
+          $response['messages'][] = 'Applicants deleted successfully.';
+        } else {
+          $response['messages'][] = 'Applicant deleted successfully.';
+        }
+        $args = [
+          'applicationEntry' => true,
+          'userMeta' => true
+        ];
+        $applicants = $requestedCycle->getApplicants($args);
+        $args = [
+          'applicationEntryBrief' => $requestedCycle->cycleId,
+          'applicationCategory' => $requestedCycle->cycleId,
+          'applicationStatus' => $requestedCycle->cycleId
+        ];
+        $response['data'] = ['applicants' => $this->plugin->users->toArrays($applicants, $args)];
+        $response['success'] = true;
+
+      }
+    } catch (\Throwable $th) {
+      error_log('Error in UcdlibAwardsAdminAjax::applicants(): ' . $th->getMessage());
+    }
+    $this->utils->sendResponse($response);
   }
 
   public function judges(){

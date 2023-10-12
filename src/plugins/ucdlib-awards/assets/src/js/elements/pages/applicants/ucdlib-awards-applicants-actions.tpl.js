@@ -35,25 +35,27 @@ export function renderActionPanel(){
         <span>Actions</span>
       </h2>
       <section>
-        <div ?hidden=${this.selectedApplicants.length} class='u-space-mb hint-text'>
-          Select at least one applicant to perform an action
-        </div>
-        <div class="field-container">
-          <select
-            @change=${(e) => this.selectedAction = e.target.value}
-            .value=${this.selectedAction}
-          >
-            ${this._actions.map(action => html`
-              <option
-                value=${action.slug}
-                ?selected=${action.slug === this.selectedAction}
-                ?disabled=${action.disabled}
-              >${action.label}
-              </option>
-            `)}
-          </select>
-        </div>
-        <button type="button" ?disabled=${this.disableActionSubmit} class="btn btn--primary btn--block border-box">Apply</button>
+        <form @submit=${this._onActionSubmit}>
+          <div ?hidden=${this.selectedApplicants.length} class='u-space-mb hint-text'>
+            Select at least one applicant to perform an action
+          </div>
+          <div class="field-container">
+            <select
+              @change=${(e) => this.selectedAction = e.target.value}
+              .value=${this.selectedAction}
+            >
+              ${this._actions.map(action => html`
+                <option
+                  value=${action.slug}
+                  ?selected=${action.slug === this.selectedAction}
+                  ?disabled=${action.disabled}
+                >${action.label}
+                </option>
+              `)}
+            </select>
+          </div>
+          <button ?disabled=${this.disableActionSubmit || this.doingAction} type="submit" class="btn marketing-highlight__cta border-box category-brand--redwood width-100">Apply</button>
+        </form>
       </section>
     </div>
   `;

@@ -13,6 +13,9 @@ const customStyles = css`
   ucdlib-awards-evaluation .expand-icon {
     transition: transform 0.2s;
   }
+  ucdlib-awards-evaluation .applicant-list {
+    max-width: 700px;
+  }
   ucdlib-awards-evaluation .applicant-list-row {
     padding: .5rem;
   }

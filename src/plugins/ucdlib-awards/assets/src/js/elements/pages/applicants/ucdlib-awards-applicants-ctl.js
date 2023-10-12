@@ -20,7 +20,9 @@ export default class UcdlibAwardsApplicantsCtl extends Mixin(LitElement)
       hasCategories: { type: Boolean },
       applicants: { type: Array },
       displayedApplicants: { type: Array },
-      selectedApplicants: { type: Array }
+      selectedApplicants: { type: Array },
+      doingAction: { type: Boolean },
+      cycleId: { type: Number }
     }
   }
 
@@ -36,6 +38,8 @@ export default class UcdlibAwardsApplicantsCtl extends Mixin(LitElement)
     this.applicants = [];
     this.displayedApplicants = [];
     this.selectedApplicants = [];
+    this.doingAction = false;
+    this.cycleId = 0;
   }
 
   willUpdate(props) {
@@ -58,8 +62,51 @@ export default class UcdlibAwardsApplicantsCtl extends Mixin(LitElement)
     });
   }
 
+  async _onActionSubmit(e){
+    if ( this.doingAction ) return;
+    this.doingAction = true;
+
+    const action = e.detail.action;
+    if ( action === 'delete' ) {
+      await this.deleteSelectedApplicants();
+    }
+
+    this.selectedApplicants = [];
+    this.doingAction = false;
+    this.renderRoot.querySelector('ucdlib-awards-applicants-actions').selectedAction = '';
+    this.renderRoot.querySelector('ucdlib-awards-applicants-display').selectedApplicants = [];
+  }
+
   _onSelectedApplicantsChange(e) {
     this.selectedApplicants = e.detail.selectedApplicants;
+  }
+
+  async deleteSelectedApplicants(){
+    const response = await this.wpAjax.request('delete', {cycle_id: this.cycleId, applicant_ids: this.selectedApplicants});
+    if ( response.success ) {
+      this.applicants = response.data.applicants;
+      this.selectedApplicants = [];
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: response.messages[0],
+          type: 'success'
+        }
+      }));
+    } else {
+      console.error('Error deleting applicants', response);
+      let msg = 'Unable to delete applicants';
+      if ( response.messages.length) msg += `: ${response.messages?.[0] || ''}`;
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: msg,
+          type: 'error'
+        }
+      }));
+    }
   }
 
     /**
@@ -89,6 +136,7 @@ export default class UcdlibAwardsApplicantsCtl extends Mixin(LitElement)
     if ( !data ) return;
     if ( data.categories ) this.categories = data.categories;
     if ( data.judges ) this.judges = data.judges;
+    if ( data.cycleId ) this.cycleId = data.cycleId;
     if ( data.applicants ) {
       let applicants = data.applicants.map(applicant => {
         applicant.user_id = parseInt(applicant.user_id);

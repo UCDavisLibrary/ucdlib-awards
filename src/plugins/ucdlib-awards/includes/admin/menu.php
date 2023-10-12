@@ -224,6 +224,7 @@ class UcdlibAwardsAdminMenu {
       'wpAjax' => $this->ajaxUtils->getAjaxElementProperty('adminApplicants'),
     ];
     if ( $requestedCycle ){
+      $pageProps['cycleId'] = $requestedCycle->cycleId;
       $pageProps['categories'] = $requestedCycle->categories();
       $args = [
         'applicationEntry' => true,

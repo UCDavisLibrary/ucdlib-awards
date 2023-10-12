@@ -240,6 +240,38 @@ class UcdlibAwardsCycle {
     return $this->judgeIds;
   }
 
+  public function deleteApplicants($applicantIds){
+    if ( empty($applicantIds) ) return;
+    if ( !is_array($applicantIds) ) $applicantIds = [$applicantIds];
+    global $wpdb;
+
+    // remove from user meta
+    $table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USER_META );
+    $meta_keys = ['isApplicant', 'hasSubmittedApplication'];
+    $sql = "DELETE FROM $table WHERE cycle_id = %d AND user_id IN (" . implode(',', $applicantIds) . ") AND meta_key IN ('" . implode("','", $meta_keys) . "')";
+    $wpdb->query( $wpdb->prepare( $sql, $this->cycleId ) );
+
+    // remove from judge user meta assignments
+    // THIS DIDNT WORK
+    $table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USER_META );
+    $meta_keys = array_map(function($item){
+      return $item['meta_key'];
+    }, $this->plugin->config::$assignedJudgesProps);
+    $sql = "DELETE FROM $table WHERE cycle_id = %d AND meta_value IN ('" . implode("','", $meta_keys) . "') AND meta_key IN ('" . implode("','", $meta_keys) . "')";
+    $wpdb->query( $wpdb->prepare( $sql, $this->cycleId ) );
+
+    // remove from scores
+    $this->removeApplicantScores( $applicantIds );
+
+    // remove applications
+    if ( $this->applicationFormId() ){
+      $this->plugin->forms->deleteEntriesByApplicantId( $this->applicationFormId(), $applicantIds );
+    }
+
+    $this->clearCache();
+    $this->plugin->users->clearCache();
+  }
+
   public function removeJudges($judgeIds){
     if ( empty($judgeIds) ) return;
     if ( !is_array($judgeIds) ) $judgeIds = [$judgeIds];
@@ -268,6 +300,20 @@ class UcdlibAwardsCycle {
     global $wpdb;
     $table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::SCORES );
     $sql = "DELETE FROM $table WHERE rubric_id IN (" . implode(',', $rubricItemIds) . ") AND judge_id IN (" . implode(',', $judgeIds) . ")";
+    $wpdb->query( $sql );
+  }
+
+  public function removeApplicantScores($applicantIds){
+    if ( empty($applicantIds) ) return;
+    if ( !is_array($applicantIds) ) $applicantIds = [$applicantIds];
+
+    if ( !$this->hasRubric() ) return;
+    $rubricItemIds = $this->rubric()->itemIds();
+    if ( empty($rubricItemIds) ) return;
+
+    global $wpdb;
+    $table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::SCORES );
+    $sql = "DELETE FROM $table WHERE rubric_id IN (" . implode(',', $rubricItemIds) . ") AND applicant_id IN (" . implode(',', $applicantIds) . ")";
     $wpdb->query( $sql );
   }
 
