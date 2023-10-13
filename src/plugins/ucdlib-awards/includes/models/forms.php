@@ -56,7 +56,7 @@ class UcdlibAwardsForms {
     }
   }
 
-  public function exportEntry($entry){
+  public function exportEntry($entry, $collapseGroups=false){
     if ( !$this->forminatorActivated ) return [];
     if ( !is_object($entry) || get_class($entry) !== 'Forminator_Form_Entry_Model' ) return [];
     $formModel = Forminator_Base_Form_Model::get_model( $entry->form_id );
@@ -82,8 +82,35 @@ class UcdlibAwardsForms {
         $data = self::add_meta_value( $data, $mapper, $entry );
       }
     }
-    return $data;
-    return 'steve is great';
+    if ( !$collapseGroups ) return $data;
+
+    $collapsedData = [];
+    $groupSlugs = [];
+    foreach ($data as $d) {
+      if ( empty($d['partOfGroup']) ){
+        $collapsedData[] = $d;
+        continue;
+      }
+      $k = $d['groupFieldSlug'];
+      if ( in_array($k, $groupSlugs) ) continue;
+      $groupSlugs[] = $k;
+      $group = [
+        'meta_key' => $k,
+        'label' => $d['groupLabel'],
+        'type' => 'group',
+        'value' => '',
+        'sub_metas' => []
+      ];
+      foreach ($data as $d2) {
+        if ( !empty($d2['partOfGroup']) && $d2['groupFieldSlug'] === $k ){
+          $d2['label'] = $d2['fieldLabel'];
+          $group['sub_metas'][] = $d2;
+        }
+      }
+      $collapsedData[] = $group;
+    }
+
+    return $collapsedData;
 
   }
 
@@ -177,8 +204,14 @@ class UcdlibAwardsForms {
 			$mapper['type']     = $field_type;
 
 			if ( $group_field ) {
-				$mapper['label'] = $group_field->get_label_for_entry() . ' - ' . $mapper['label'];
-			}
+        $mapper['fieldLabel'] = $mapper['label'];
+        $mapper['groupLabel'] = $group_field->get_label_for_entry();
+				$mapper['label'] = $mapper['groupLabel'] . ' - ' . $mapper['label'];
+        $mapper['partOfGroup'] = true;
+        $mapper['groupFieldSlug'] = $group_field->slug;
+			} else {
+        $mapper['partOfGroup'] = false;
+      }
 
 			// fields that should be displayed as multi column (sub_metas).
 			if ( 'name' === $field_type ) {
@@ -368,12 +401,12 @@ class UcdlibAwardsForms {
 			return $data;
 		}
 
+		$mapperValues = [];
 		foreach ( $copies as $slug => $copy ) {
 			// meta_key based.
 			$meta_value = $entry->get_meta( $slug, '' );
-
 			if ( ! isset( $mapper['sub_metas'] ) ) {
-        $mapper['value'] = Forminator_Form_Entry_Model::meta_value_to_string( $mapper['type'], $meta_value );
+				$mapperValues[] = Forminator_Form_Entry_Model::meta_value_to_string( $mapper['type'], $meta_value );
 			} else {
 
 				// sub_metas available.
@@ -391,6 +424,7 @@ class UcdlibAwardsForms {
 			}
 		}
 
+    $mapper['value'] = implode( ' / ', $mapperValues );
     $data[] = $mapper;
 
 		return $data;

@@ -252,12 +252,11 @@ class UcdlibAwardsCycle {
     $wpdb->query( $wpdb->prepare( $sql, $this->cycleId ) );
 
     // remove from judge user meta assignments
-    // THIS DIDNT WORK
     $table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USER_META );
     $meta_keys = array_map(function($item){
       return $item['meta_key'];
     }, $this->plugin->config::$assignedJudgesProps);
-    $sql = "DELETE FROM $table WHERE cycle_id = %d AND meta_value IN ('" . implode("','", $meta_keys) . "') AND meta_key IN ('" . implode("','", $meta_keys) . "')";
+    $sql = "DELETE FROM $table WHERE cycle_id = %d AND meta_value IN ('" . implode("','", $applicantIds) . "') AND meta_key IN ('" . implode("','", $meta_keys) . "')";
     $wpdb->query( $wpdb->prepare( $sql, $this->cycleId ) );
 
     // remove from scores

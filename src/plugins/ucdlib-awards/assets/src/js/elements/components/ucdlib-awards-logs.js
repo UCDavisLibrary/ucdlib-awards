@@ -134,6 +134,9 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
     if ( log.log_subtype === 'submit' ) {
       log.displayText = `Application submitted by ${this.getUserName(log.user_id_subject)}`;
     }
+    if ( log.log_subtype === 'delete' ) {
+      log.displayText = `Applicant ${this.getUserName(log.user_id_object)} deleted by ${this.getUserName(log.user_id_subject)}`;
+    }
     return log;
   }
 

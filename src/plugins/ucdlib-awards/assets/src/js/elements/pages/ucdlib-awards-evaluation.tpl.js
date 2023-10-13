@@ -32,15 +32,34 @@ return html`
 `;}
 
 export function renderApplicantEvaluationForm(){
-  if ( !this.selectedApplicant || !Object.keys(this.selectedApplicant).length ) return html``;
+  if ( !this.selectedApplicant || !this.selectedApplicant.applicationEntry?.entry_id ) return html``;
 
   const applicant = this.selectedApplicant;
+  const applicationEntry = this.applicationEntryCache[applicant.applicationEntry.entry_id];
+  if ( !applicationEntry || !applicationEntry.success ) return html``;
+
+  const applicationHtml = applicationEntry.data.htmlDoc;
+  const blob = new Blob([applicationHtml], {type: 'text/html'});
+  const applicationDl = URL.createObjectURL(blob);
+
+  const showCOI = ['new', 'conflict-of-interest'].includes(applicant.applicationStatus.slug) ? true : false;
+
   return html`
     <div>
-      <ol class="breadcrumbs">
+      <ol class="breadcrumbs u-space-pl--flush">
         <li><a class='pointer' @click=${() => this.page = 'applicant-select'}>Your Assigned Applicants</a></li>
         <li>${applicant.name}</li>
       </ol>
+      <div class='flex-center flex-space-between flex-wrap'>
+        <h3 class='u-space-mr'>${applicant.name}</h3>
+        <ul class="list--download" style='margin-bottom:.25em;'>
+          <li><a class="icon icon--link icon--download pointer" href=${applicationDl} target='_blank'>Download Application</a></li>
+        </ul>
+      </div>
+      <div ?hidden=${this.showCOI}>
+        Conflict of interest. Must affirm before can save/submit. If says "yes", then button appears to notify awards admin.
+      </div>
+
     </div>
   `
 }

@@ -23,7 +23,7 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
       rubricUploadedFile: { type: String },
       applicants: { type: Array },
       selectedApplicant: { type: Object },
-      appicationEntryCache: { type: Object},
+      applicationEntryCache: { type: Object},
       applicationFormId: { type: String }
     }
   }
@@ -51,7 +51,7 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
     this.rubricUploadedFile = '';
     this.applicants = [];
     this.selectedApplicant = {};
-    this.appicationEntryCache = {};
+    this.applicationEntryCache = {};
     this.applicationFormId = '';
   }
 
@@ -108,19 +108,19 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
       return;
     }
 
-    console.log(this.appicationEntryCache[entryId]);
-    delete this.appicationEntryCache[entryId];
+    console.log(this.applicationEntryCache[entryId]);
+    //delete this.applicationEntryCache[entryId];
     this.selectedApplicant = {...applicant};
     this.page = 'applicant';
   }
 
   async getApplicantEntry(entryId, formId){
-    if ( this.appicationEntryCache[entryId] ) {
-      return this.appicationEntryCache[entryId];
+    if ( this.applicationEntryCache[entryId] ) {
+      return this.applicationEntryCache[entryId];
     }
     if ( !formId ) formId = this.applicationFormId;
     const response = await this.wpAjax.request('getApplicationEntry', {"entry_id": entryId, "form_id": formId});
-    this.appicationEntryCache[entryId] = response;
+    this.applicationEntryCache[entryId] = response;
     return response;
   }
 
@@ -151,26 +151,31 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
 
         // status label
         applicant.applicationStatus = {
+          slug: 'unknown',
           label: 'Unknown',
           brand: 'double-decker'
         };
         if ( applicant.assignedJudgeIds?.conflictOfInterest?.includes?.(judgeId) ){
           applicant.applicationStatus = {
+            slug: 'conflict-of-interest',
             label: 'Conflict of Interest',
             brand: 'double-decker'
           };
         } else if ( applicant.assignedJudgeIds?.evaluated?.includes?.(judgeId) ){
           applicant.applicationStatus = {
+            slug: 'completed',
             label: 'Completed',
             brand: 'redwood'
           };
         } else if ( applicant.assignedJudgeIds?.evaluationInProgress?.includes?.(judgeId) ){
           applicant.applicationStatus = {
+            slug: 'in-progress',
             label: 'In Progress',
             brand: 'admin-blue'
           };
         } else if ( applicant.assignedJudgeIds?.assigned?.includes?.(judgeId) ){
           applicant.applicationStatus = {
+            slug: 'new',
             label: 'New',
             brand: 'admin-blue'
           };

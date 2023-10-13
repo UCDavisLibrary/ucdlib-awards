@@ -84,7 +84,7 @@ export default class UcdlibAwardsApplicantsCtl extends Mixin(LitElement)
   async deleteSelectedApplicants(){
     const response = await this.wpAjax.request('delete', {cycle_id: this.cycleId, applicant_ids: this.selectedApplicants});
     if ( response.success ) {
-      this.applicants = response.data.applicants;
+      this._setApplicants(response.data.applicants);
       this.selectedApplicants = [];
       this.dispatchEvent(new CustomEvent('toast-request', {
         bubbles: true,
@@ -138,20 +138,23 @@ export default class UcdlibAwardsApplicantsCtl extends Mixin(LitElement)
     if ( data.judges ) this.judges = data.judges;
     if ( data.cycleId ) this.cycleId = data.cycleId;
     if ( data.applicants ) {
-      let applicants = data.applicants.map(applicant => {
-        applicant.user_id = parseInt(applicant.user_id);
-        applicant.is_admin = parseInt(applicant.is_admin);
-        applicant.name = `${applicant.first_name || ''} ${applicant.last_name || ''}`;
-        applicant.category = applicant.applicationCategory?.label || '';
-        applicant.applicationStatusLabel = applicant.applicationStatus?.label || '';
-        return applicant;
-      });
-      this.applicants = applicants;
-      this.displayedApplicants = applicants;
-
+      this._setApplicants(data.applicants);
     }
     console.log('data', data);
 
+  }
+
+  _setApplicants(serverResponse){
+    let applicants = serverResponse.map(applicant => {
+      applicant.user_id = parseInt(applicant.user_id);
+      applicant.is_admin = parseInt(applicant.is_admin);
+      applicant.name = `${applicant.first_name || ''} ${applicant.last_name || ''}`;
+      applicant.category = applicant.applicationCategory?.label || '';
+      applicant.applicationStatusLabel = applicant.applicationStatus?.label || '';
+      return applicant;
+    });
+    this.applicants = applicants;
+    this.displayedApplicants = applicants;
   }
 
 }

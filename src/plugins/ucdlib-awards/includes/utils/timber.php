@@ -14,4 +14,18 @@ class UcdlibAwardsTimber {
     Timber::render( $template, $context );
   }
 
+  public static function getApplicationHtml( $applicant, $data, $award ){
+    $context = [
+      'applicant' => $applicant,
+      'questions' => $data,
+      'award' => $award
+    ];
+    $template = '@' . UcdlibAwardsConfig::$twigNamespace . '/evaluation/application.twig';
+    $compiled = Timber::compile( $template, $context );
+
+    // remove trailing line break
+    $compiled = preg_replace('/\s+$/m', '', $compiled);
+    return $compiled;
+  }
+
 }

@@ -59,8 +59,20 @@ class UcdlibAwardsEvaluationAjax {
       $this->utils->sendResponse($response);
     }
 
+    $applicantId = $formEntry->get_meta('forminator_addon_ucdlib-awards_applicant_id');
+    $applicant = $this->plugin->users->getByUserIds($applicantId);
+    if ( empty($applicant) ){
+      $response['messages'][] = 'No applicant found.';
+      $this->utils->sendResponse($response);
+    }
+    $applicant = $applicant[0];
+
+    $entryValues = $formsModel->exportEntry($formEntry, true);
     $response['data'] = [
-      'test' => $formsModel->exportEntry($formEntry)
+      'entryValues' => $entryValues,
+      'formId' => $payload['form_id'],
+      'entryId' => $payload['entry_id'],
+      'htmlDoc' =>  UcdlibAwardsTimber::getApplicationHtml($applicant, $entryValues, $this->plugin->award)
     ];
     $response['success'] = true;
     return $response;

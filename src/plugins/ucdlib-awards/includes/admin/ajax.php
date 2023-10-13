@@ -58,11 +58,11 @@ class UcdlibAwardsAdminAjax {
           'applicationEntry' => true,
           'userMeta' => true
         ];
-        $applicants = $requestedCycle->getApplicants($args);
+        $applicants = $cycle->getApplicants($args);
         $args = [
-          'applicationEntryBrief' => $requestedCycle->cycleId,
-          'applicationCategory' => $requestedCycle->cycleId,
-          'applicationStatus' => $requestedCycle->cycleId
+          'applicationEntryBrief' => $cycle->cycleId,
+          'applicationCategory' => $cycle->cycleId,
+          'applicationStatus' => $cycle->cycleId
         ];
         $response['data'] = ['applicants' => $this->plugin->users->toArrays($applicants, $args)];
         $response['success'] = true;
