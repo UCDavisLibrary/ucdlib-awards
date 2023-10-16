@@ -37,6 +37,11 @@ const customStyles = css`
   ucdlib-awards-evaluation .applicant-list-cell__status {
     font-weight: 700;
   }
+  ucdlib-awards-evaluation .coi {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 2px solid #c10230;
+  }
   @media (min-width: 992px) {
   ucdlib-awards-evaluation .applicant-list-row--head {
     display: grid;

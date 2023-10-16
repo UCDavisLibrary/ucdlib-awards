@@ -151,6 +151,7 @@ export default class UcdlibAwardsApplicantsCtl extends Mixin(LitElement)
       applicant.name = `${applicant.first_name || ''} ${applicant.last_name || ''}`;
       applicant.category = applicant.applicationCategory?.label || '';
       applicant.applicationStatusLabel = applicant.applicationStatus?.label || '';
+      applicant.hasConflictOfInterest = (applicant.applicationStatus?.conflictOfInterestJudgeIds || []).length > 0;
       return applicant;
     });
     this.applicants = applicants;

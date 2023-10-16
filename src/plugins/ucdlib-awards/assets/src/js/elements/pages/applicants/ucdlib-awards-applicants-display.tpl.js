@@ -51,7 +51,10 @@ export function renderApplicantRow(applicant){
       <input type="checkbox" @input=${() => this.toggleApplicantSelect(applicant.user_id)} .checked=${applicant.selected}>
     </div>
     <div class='flex-grow'>
-      <div>${applicant.name}</div>
+      <div>
+        <div>${applicant.name}</div>
+        <div ?hidden=${!applicant.hasConflictOfInterest} class='double-decker bold small-text'>Conflict of Interest</div>
+      </div>
       <div class='${expanded ? 'mb-details' : 'hidden'}'>
         <div class='flex-center' ?hidden=${!this.showCategories}>
           <div class='u-space-mr--small primary bold'>Category:</div>
@@ -114,6 +117,7 @@ export function renderAssignmentModalContent() {
 
   const assignedJudgeIds = applicant.applicationStatus?.assignedJudgeIds || [];
   const evaluatedJudgeIds = applicant.applicationStatus?.evaluatedJudgeIds || [];
+  const conflictOfInterestJudgeIds = applicant.applicationStatus?.conflictOfInterestJudgeIds || [];
 
   const judgeIds = [
     ...assignedJudgeIds,
@@ -132,7 +136,10 @@ export function renderAssignmentModalContent() {
       <h4>Judge Assignments for ${name}</h4>
       <ul class='list--arrow'>
         ${judges.map(judge => html`
-          <li>${judge.name} <span ?hidden=${!evaluatedJudgeIds.includes(judge.id)}>(Evaluation Completed)</span></li>
+          <li>${judge.name}
+            <span ?hidden=${!evaluatedJudgeIds.includes(judge.id)}> - Evaluation Completed</span>
+            <span ?hidden=${!conflictOfInterestJudgeIds.includes(judge.id)}> - <span class='double-decker'>Conflict of Interest</span></span>
+          </li>
         `)}
       </ul>
 </div>`

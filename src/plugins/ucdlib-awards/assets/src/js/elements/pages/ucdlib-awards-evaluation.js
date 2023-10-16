@@ -23,8 +23,12 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
       rubricUploadedFile: { type: String },
       applicants: { type: Array },
       selectedApplicant: { type: Object },
-      applicationEntryCache: { type: Object},
-      applicationFormId: { type: String }
+      applicationEntryCache: { state: true},
+      scoreCache: { state: true},
+      applicationFormId: { type: String },
+      awardsTitle: { type: String },
+      coiCheck: { type: String },
+      coiDetails: {type: String}
     }
   }
 
@@ -52,7 +56,11 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
     this.applicants = [];
     this.selectedApplicant = {};
     this.applicationEntryCache = {};
+    this.scoreCache = {};
     this.applicationFormId = '';
+    this.awardsTitle = '';
+    this.coiCheck = '';
+    this.coiDetails = '';
   }
 
   willUpdate(props) {
@@ -74,9 +82,55 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
     this._rubricItems = [...this._rubricItems];
   }
 
+  async _onCoiYesSubmit(e){
+    e.preventDefault();
+    const payload = {"judge_id": this.judge.id, "applicant_id": this.selectedApplicant.user_id, "coi_details": this.coiDetails};
+    const response = await this.wpAjax.request('setConflictOfInterest', payload);
+    if ( response.success ) {
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: 'The administrator has been notified.',
+          type: 'success'
+        }
+      }));
+      const entryId = this.selectedApplicant.applicationEntry?.entry_id;
+      delete this.applicationEntryCache[entryId];
+      this.retrieveAndShowApplicants();
+    } else {
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: 'There was an error notifying the administrator. Please try again later.',
+          type: 'error'
+        }
+      }));
+    }
+
+  }
+
+  _onCoiCheck(e){
+    this.coiCheck = e.target.value;
+    if ( this.coiCheck == 'no') {
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: 'Thank you for your response. You may now proceed with evaluating this applicant.',
+          type: 'success'
+        }
+      }));
+    }
+
+  }
+
   async _onApplicantSelect(applicant_id){
     const errorMessage = "There was an error retrieving the applicant. Please try again later."
     this.page = 'loading';
+    this.coiCheck = '';
+    this.coiDetails = '';
     const applicant = this.applicants.find(applicant => applicant.user_id === applicant_id);
     if ( !applicant ) {
       this.errorMessage = errorMessage;
@@ -87,7 +141,8 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
     const entryId = applicant.applicationEntry?.entry_id;
     const formId = applicant.applicationEntry?.form_id;
     const promises = [
-      this.getApplicantEntry(entryId, formId)
+      this.getApplicantEntry(entryId, formId),
+      this.getScores(applicant_id)
     ];
     const responses = await Promise.allSettled(promises);
     responses.forEach((response, index) => {
@@ -108,18 +163,36 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
       return;
     }
 
-    console.log(this.applicationEntryCache[entryId]);
-    //delete this.applicationEntryCache[entryId];
     this.selectedApplicant = {...applicant};
     this.page = 'applicant';
   }
 
-  async getApplicantEntry(entryId, formId){
+  async getScores(applicantId, judgeId){
+    if ( !applicantId ) {
+      applicantId = this.selectedApplicant.user_id;
+    }
+    if ( !judgeId ) {
+      judgeId = this.judge.id;
+    }
+    const cacheKey = `a${applicantId}-j${judgeId}`;
+    if ( this.scoreCache[cacheKey] ) {
+      return this.scoreCache[cacheKey];
+    }
+    const payload = {"applicant_id": applicantId, "judge_id": judgeId};
+    const response = await this.wpAjax.request('getScores', payload);
+    this.scoreCache[cacheKey] = response;
+    console.log('getScores', response);
+    return response;
+  }
+
+  async getApplicantEntry(entryId, formId, judgeId){
     if ( this.applicationEntryCache[entryId] ) {
       return this.applicationEntryCache[entryId];
     }
     if ( !formId ) formId = this.applicationFormId;
-    const response = await this.wpAjax.request('getApplicationEntry', {"entry_id": entryId, "form_id": formId});
+    if ( !judgeId ) judgeId = this.judge?.id;
+    const payload = {"entry_id": entryId, "form_id": formId, "judge_id": judgeId};
+    const response = await this.wpAjax.request('getApplicationEntry', payload);
     this.applicationEntryCache[entryId] = response;
     return response;
   }
@@ -268,6 +341,9 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
     }
     if ( data.rubricUploadedFile ) {
       this.rubricUploadedFile = data.rubricUploadedFile;
+    }
+    if ( data.awardsTitle ) {
+      this.awardsTitle = data.awardsTitle;
     }
 
     if ( !this.rubricItems.length ) {

@@ -43,6 +43,7 @@ class UcdlibAwardsAwardAbstract {
   protected $_evaluationMenuSlugs = [
     'main' => 'awards-evaluation'
   ];
+  protected $_adminCanImpersonateJudge = false;
 
   /**
    * CUSTOMIZE END
@@ -82,6 +83,10 @@ class UcdlibAwardsAwardAbstract {
 
   final public function getEvaluationMenuPageTitle() {
     return $this->_evaluationMenuPageTitle;
+  }
+
+  final public function getAdminCanImpersonateJudge() {
+    return $this->_adminCanImpersonateJudge;
   }
 
 }

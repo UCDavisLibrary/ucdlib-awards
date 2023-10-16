@@ -34,7 +34,8 @@ class UcdlibAwardsEvaluationMenu {
     $activeCycle = $context['activeCycle'];
 
     $context['pageProps'] = [
-      'wpAjax' => $this->ajaxUtils->getAjaxElementProperty('evaluation')
+      'wpAjax' => $this->ajaxUtils->getAjaxElementProperty('evaluation'),
+      'awardsTitle' => $this->award->getTitle()
     ];
 
     if ( $context['isAdmin'] ){

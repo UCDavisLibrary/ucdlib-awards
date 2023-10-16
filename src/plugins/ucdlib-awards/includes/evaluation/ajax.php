@@ -34,6 +34,10 @@ class UcdlibAwardsEvaluationAjax {
         $response = $this->getApplicants($response, $cycle, $payload);
       } else if ( $action === 'getApplicationEntry' ){
         $response = $this->getApplicationEntry($response, $cycle, $payload);
+      } else if ( $action === 'setConflictOfInterest' ){
+        $response = $this->setConflictOfInterest($response, $cycle, $payload);
+      } else if ( $action === 'getScores' ){
+        $response = $this->getScores($response, $cycle, $payload);
       } else {
         $response['messages'][] = 'Invalid subAction specified.';
       }
@@ -43,7 +47,67 @@ class UcdlibAwardsEvaluationAjax {
     $this->utils->sendResponse($response);
   }
 
+  public function getScores($response, $cycle, $payload){
+    $this->doAuth($response, $cycle, $payload);
+    $cycleId = $cycle->cycleId;
+
+    if ( empty($payload['applicant_id']) ){
+      $response['messages'][] = 'No applicant ID specified.';
+      $this->utils->sendResponse($response);
+    }
+    $applicantId = $payload['applicant_id'];
+    $judgeId = $payload['judge_id'];
+    $rubric = $cycle->rubric();
+    $scores = $rubric->getScoresByUser($judgeId, $applicantId);
+    $response['data'] = [
+      'scores' => $scores
+    ];
+    $response['success'] = true;
+    return $response;
+  }
+
+  public function setConflictOfInterest($response, $cycle, $payload){
+    $this->doAuth($response, $cycle, $payload, true);
+    $cycleId = $cycle->cycleId;
+
+    if ( empty($payload['applicant_id']) ){
+      $response['messages'][] = 'No applicant ID specified.';
+      $this->utils->sendResponse($response);
+    }
+    $applicant = $this->plugin->users->getByUserIds($payload['applicant_id']);
+    if ( empty($applicant) ){
+      $response['messages'][] = 'No applicant found.';
+      $this->utils->sendResponse($response);
+    }
+    $applicant = $applicant[0];
+
+    $judge = $this->plugin->users->getByUserIds($payload['judge_id']);
+    if ( empty($judge) ){
+      $response['messages'][] = 'No judge found.';
+      $this->utils->sendResponse($response);
+    }
+    $judge = $judge[0];
+
+    $assignedJudges = $applicant->assignedJudgeIds($cycleId)['assigned'];
+    if ( !in_array($payload['judge_id'], $assignedJudges) ){
+      $response['messages'][] = 'Judge is not assigned to this applicant.';
+      $this->utils->sendResponse($response);
+    }
+
+    $judge->updateMeta('conflictOfInterestApplicant', $payload['applicant_id'], $cycleId);
+    if ( !empty($payload['coi_details']) ){
+      $metaKey = 'conflictOfInterestApplicant' . $payload['applicant_id'] . 'Details';
+      $judge->updateMeta($metaKey, $payload['coi_details'], $cycleId);
+    }
+
+    $this->logger->logConflictOfInterest($cycleId, $judge->record()->user_id, $payload['applicant_id']);
+    $response['success'] = true;
+
+    return $response;
+  }
+
   public function getApplicationEntry($response, $cycle, $payload){
+    $this->doAuth($response, $cycle, $payload);
 
     foreach (['form_id', 'entry_id'] as $key) {
       if ( empty($payload[$key]) ){
@@ -80,21 +144,9 @@ class UcdlibAwardsEvaluationAjax {
 
   public function getApplicants($response, $cycle, $payload){
 
-    $cycleId = $cycle->cycleId;
-    if ( empty($payload['judge_id']) ){
-      $response['messages'][] = 'No judge ID specified.';
-      $this->utils->sendResponse($response);
-    }
+    $this->doAuth($response, $cycle, $payload);
     $judgeId = $payload['judge_id'];
-
-    $currentUser = $this->plugin->users->currentUser();
-    if (
-      !$currentUser->userIdMatches($judgeId) &&
-      !$currentUser->isAdmin()
-       ){
-      $response['messages'][] = 'You are not authorized to view this data.';
-      $this->utils->sendResponse($response);
-    }
+    $cycleId = $cycle->cycleId;
 
     $args = [
       'applicationEntry' => true,
@@ -115,6 +167,32 @@ class UcdlibAwardsEvaluationAjax {
     ];
     $response['success'] = true;
     return $response;
+  }
+
+  public function doAuth($response, $cycle, $payload, $isWriteAction = false){
+    $cycleId = $cycle->cycleId;
+    if ( empty($payload['judge_id']) ){
+      $response['messages'][] = 'No judge ID specified.';
+      $this->utils->sendResponse($response);
+    }
+    $judgeId = $payload['judge_id'];
+
+    $currentUser = $this->plugin->users->currentUser();
+    if (
+      !$currentUser->userIdMatches($judgeId) &&
+      !$currentUser->isAdmin()
+       ){
+      $response['messages'][] = 'You are not authorized to perform this action.';
+      $this->utils->sendResponse($response);
+    }
+
+    if (
+      $isWriteAction &&
+      !$currentUser->userIdMatches($judgeId) &&
+      !$this->plugin->award->getAdminCanImpersonateJudge() ){
+        $response['messages'][] = 'You are not authorized to perform this action.';
+        $this->utils->sendResponse($response);
+    }
   }
 
 }

@@ -81,6 +81,8 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
       log = this._parseRubricLog(log);
     } else if ( log.log_type == 'evaluation-admin' ) {
       log = this._parseEvaluationAdminLog(log);
+    } else if ( log.log_type == 'evaluation' ) {
+      log = this._parseEvaluationLog(log);
     }
 
     if ( !log.displayText ) {
@@ -124,6 +126,15 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
       log.displayText = `${this.getUserName(log.user_id_object)} removed as judge by ${this.getUserName(log.user_id_subject)}`;
     } else if ( log.log_subtype === 'application-assignment' ) {
       log.displayText = `Applicant ${this.getUserName(log.user_id_subject)} assigned to ${this.getUserName(log.user_id_object)} for evaluation`;
+    }
+    return log;
+  }
+
+  _parseEvaluationLog(log){
+    log.icon = 'ucd-public:fa-gavel';
+    log.iconColor = 'redbud';
+    if ( log.log_subtype === 'conflict-of-interest' ){
+      log.displayText = `Conflict of interest declared by ${this.getUserName(log.user_id_subject)} for applicant ${this.getUserName(log.user_id_object)}`;
     }
     return log;
   }

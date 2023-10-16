@@ -112,7 +112,7 @@ class UcdlibAwardsAdminAjax {
         }
         $this->logger->logJudgeAddition($cycleId, $user->id);
         $response['messages'][] = 'Judge added successfully.';
-        $response['data'] = ['judges' => $cycle->judges(true)];
+        $response['data'] = ['judges' => $cycle->judges(true, ['assignments' => true, 'conflictsOfInterest' => true])];
         $response['success'] = true;
       } else if ($action == 'delete'){
 
@@ -144,7 +144,7 @@ class UcdlibAwardsAdminAjax {
         } else {
           $response['messages'][] = 'Judge deleted successfully.';
         }
-        $response['data'] = ['judges' => $cycle->judges(true)];
+        $response['data'] = ['judges' => $cycle->judges(true, ['assignments' => true, 'conflictsOfInterest' => true])];
         $response['success'] = true;
       } else if ( $action === 'assign' ){
 
@@ -176,7 +176,7 @@ class UcdlibAwardsAdminAjax {
         }
 
         $response['messages'][] = 'Applicants assigned successfully.';
-        $response['data'] = ['judges' => $cycle->judges(true, ['assignments' => true])];
+        $response['data'] = ['judges' => $cycle->judges(true, ['assignments' => true, 'conflictsOfInterest' => true])];
         $response['success'] = true;
 
       }

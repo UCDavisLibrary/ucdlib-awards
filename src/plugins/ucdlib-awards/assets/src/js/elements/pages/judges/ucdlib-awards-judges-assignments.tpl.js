@@ -23,13 +23,7 @@ return html`
             ${this._applicants.map(applicant => html`
               <tr>
                 <td>${applicant.name}<sup ?hidden=${!this.categories.length}>${applicant.categorySuperscript || ''}</sup></td>
-                ${this._judges.map(judge => html`
-                  <td>
-                    ${applicant.byJudgeStatus.find(s => s.judgeId == judge.id) ? html`
-                      <span>${applicant.byJudgeStatus.find(s => s.judgeId == judge.id).status.label}</span>
-                    ` : ''}
-                  </td>
-                `)}
+                ${this._judges.map(judge => this.renderCell(judge, applicant))}
               </tr>
             `)}
           </tbody>
@@ -45,3 +39,15 @@ return html`
   </ucdlib-awards-modal>
 
 `;}
+
+export function renderCell(judge, applicant) {
+  const status = applicant.byJudgeStatus.find(s => s.judgeId == judge.id);
+  console.log('status', status);
+  if ( !status ) return html`<td></td>`;
+  return html`
+    <td>
+      <span class='${status.status.color ? status.status.color : ''}'>${status.status.label}</span>
+    </td>
+  `;
+
+}

@@ -90,6 +90,17 @@ class UcdlibAwardsLogs {
             'description' => 'Application assigned to judge'
           ]
         ]
+      ],
+      'evaluation' => [
+        'slug' => 'evaluation',
+        'label' => 'Evaluation',
+        'subTypes' => [
+          'conflict-of-interest' => [
+            'slug' => 'conflict-of-interest',
+            'label' => 'Conflict of Interest',
+            'description' => 'Conflict of interest declared'
+          ]
+        ]
       ]
     ];
 
@@ -206,6 +217,21 @@ class UcdlibAwardsLogs {
       $record->log_value = json_decode($record->log_value, true);
     }
     return $records;
+  }
+
+  public function logConflictOfInterest( $cycleId, $judgeId, $applicantId ){
+    $log = [
+      'log_type' => 'evaluation',
+      'log_subtype' => 'conflict-of-interest',
+      'cycle_id' => $cycleId,
+      'user_id_subject' => $judgeId,
+      'user_id_object' => $applicantId,
+      'date_created' =>  date('Y-m-d H:i:s')
+    ];
+
+    global $wpdb;
+    $wpdb->insert( $this->table, $log );
+    return true;
   }
 
   public function logApplicationAssignment($cycleId, $judgeId, $applicantIds){

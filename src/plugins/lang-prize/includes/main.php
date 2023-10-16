@@ -21,9 +21,10 @@ class LangPrize extends UcdlibAwardsAwardAbstract {
   protected $_evaluationMenuSlugs = [
     'main' => 'lang-prize-evaluation'
   ];
+  protected $_adminCanImpersonateJudge = true; // remove me
 
   protected $_dashboardSettings = [
-    'logTypeFilter' => ['application']
+    'logTypeFilter' => ['application', 'evaluation']
   ];
 
 }

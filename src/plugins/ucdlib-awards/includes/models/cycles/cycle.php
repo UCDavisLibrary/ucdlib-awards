@@ -332,6 +332,21 @@ class UcdlibAwardsCycle {
     return $out;
   }
 
+  public function conflictOfInterestMap(){
+    $judgeIds = $this->judgeIds();
+    $assignments = $this->userMetaItem('conflictOfInterestApplicant');
+    $out = [];
+    foreach( $judgeIds as $judgeId ){
+      $out[ $judgeId ] = [];
+      foreach( $assignments as $assignment ){
+        if ( $assignment->user_id == $judgeId ){
+          $out[ $judgeId ][] = $assignment->meta_value;
+        }
+      }
+    }
+    return $out;
+  }
+
   public function judges($returnArray=false, $arrayFields=[]){
     $judges = [];
 
@@ -351,6 +366,9 @@ class UcdlibAwardsCycle {
 
     if ( !empty($arrayFields['assignments'])){
       $assignmentsByJudge = $this->judgeAssignmentMap();
+    }
+    if ( !empty($arrayFields['conflictsOfInterest']) ){
+      $conflictsOfInterestByJudge = $this->conflictOfInterestMap();
     }
 
     foreach( $users as $user ){
@@ -373,6 +391,14 @@ class UcdlibAwardsCycle {
           $judge['assignments'] = $assignmentsByJudge[ $judge['id'] ];
         } else {
           $judge['assignments'] = [];
+        }
+      }
+
+      if ( !empty($arrayFields['conflictsOfInterest']) ){
+        if ( !empty($conflictsOfInterestByJudge[ $judge['id'] ]) ){
+          $judge['conflictsOfInterest'] = $conflictsOfInterestByJudge[ $judge['id'] ];
+        } else {
+          $judge['conflictsOfInterest'] = [];
         }
       }
 

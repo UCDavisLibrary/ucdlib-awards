@@ -20,6 +20,7 @@ export default class UcdlibAwardsJudgesAssignments extends Mixin(LitElement)
   constructor() {
     super();
     this.render = templates.render.bind(this);
+    this.renderCell = templates.renderCell.bind(this);
 
     this.judges = [];
     this._judges = [];
@@ -28,8 +29,9 @@ export default class UcdlibAwardsJudgesAssignments extends Mixin(LitElement)
     this.categories = [];
 
     this.statuses = [
-      {prop: 'assignments', label: 'Assigned'},
-      {prop: 'evaluations', label: 'Evaluated'}
+      {prop: 'conflictsOfInterest', label: 'Conflict of Interest', color: 'double-decker'},
+      {prop: 'evaluations', label: 'Evaluated'},
+      {prop: 'assignments', label: 'Assigned'}
     ];
   }
 

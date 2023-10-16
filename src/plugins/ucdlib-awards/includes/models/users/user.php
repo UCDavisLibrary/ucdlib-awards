@@ -102,12 +102,14 @@ class UcdlibAwardsUser {
       'value' => 'not-submitted',
       'label' => 'Not Submitted',
       'assignedJudgeIds' => [],
-      'evaluatedJudgeIds' => []
+      'evaluatedJudgeIds' => [],
+      'conflictOfInterestJudgeIds' => []
     ];
 
     $assignedJudgeIds = $this->assignedJudgeIds($cycleId);
     $out['assignedJudgeIds'] = $assignedJudgeIds['assigned'];
     $out['evaluatedJudgeIds'] = $assignedJudgeIds['evaluated'];
+    $out['conflictOfInterestJudgeIds'] = $assignedJudgeIds['conflictOfInterest'];
 
     if ( count($out['assignedJudgeIds']) ){
       $assignedCt = count($out['assignedJudgeIds']);
@@ -158,6 +160,7 @@ class UcdlibAwardsUser {
       }
     }
     $this->assignedJudgeIds[$cycleId] = $out;
+    return $this->assignedJudgeIds[$cycleId];
   }
 
   public function setAssignedJudgeIdsMeta($userMeta){

@@ -42,7 +42,8 @@ export function renderApplicantEvaluationForm(){
   const blob = new Blob([applicationHtml], {type: 'text/html'});
   const applicationDl = URL.createObjectURL(blob);
 
-  const showCOI = ['new', 'conflict-of-interest'].includes(applicant.applicationStatus.slug) ? true : false;
+  let showCOI = ['new', 'conflict-of-interest'].includes(applicant.applicationStatus.slug) ? true : false;
+  if ( showCOI && this.coiCheck === 'no' ) showCOI = false;
 
   return html`
     <div>
@@ -50,14 +51,66 @@ export function renderApplicantEvaluationForm(){
         <li><a class='pointer' @click=${() => this.page = 'applicant-select'}>Your Assigned Applicants</a></li>
         <li>${applicant.name}</li>
       </ol>
-      <div class='flex-center flex-space-between flex-wrap'>
+      <div class='flex-center flex-space-between flex-wrap u-space-mb'>
         <h3 class='u-space-mr'>${applicant.name}</h3>
         <ul class="list--download" style='margin-bottom:.25em;'>
           <li><a class="icon icon--link icon--download pointer" href=${applicationDl} target='_blank'>Download Application</a></li>
         </ul>
       </div>
-      <div ?hidden=${this.showCOI}>
-        Conflict of interest. Must affirm before can save/submit. If says "yes", then button appears to notify awards admin.
+      <div ?hidden=${!showCOI} class='coi'>
+        ${applicant.applicationStatus.slug == 'new' ? html`
+          <div>
+            <div>
+              <label>Do you have a potential conflict of interest that could prevent you from impartially evaluating this applicant?</label>
+              <div class="radio">
+                <ul class="list--reset">
+                  <li>
+                    <input
+                      id="coi-check-yes"
+                      name='coi'
+                      type="radio"
+                      value='yes'
+                      class="radio"
+                      @input=${this._onCoiCheck}
+                      .checked=${this.coiCheck === 'yes'}>
+                      <label for="coi-check-yes">Yes</label>
+                  </li>
+                  <li>
+                    <input
+                      id="coi-check-no"
+                      name='coi'
+                      type="radio"
+                      value='no'
+                      class="radio"
+                      @input=${this._onCoiCheck}
+                      .checked=${this.coiCheck === 'no'}>
+                      <label for="coi-check-no">No</label>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div ?hidden=${this.coiCheck !== 'yes'} class='u-space-mt'>
+              <p>Thank you for your response. Click the button below to notify a ${this.awardsTitle} administrator who will then reassign this applicant.</p>
+              <form @submit=${this._onCoiYesSubmit}>
+                <div class="field-container">
+                  <label>Details</label>
+                  <textarea
+                    rows="3"
+                    placeholder="Please provide any details you would like to share with the administrator."
+                    @input=${e => this.coiDetails = e.target.value}
+                    .value=${this.coiDetails}>
+                  </textarea>
+                </div>
+               <button type='submit' class="btn btn--alt3 border-box">Notify administrator</button>
+              </form>
+            </div>
+          </div>
+        ` : html`
+          <div>
+            You indicated that you have a potential conflict of interest with this applicant.
+            A ${this.awardsTitle} administrator will reassign this applicant to another judge.
+          </div>
+        `}
       </div>
 
     </div>

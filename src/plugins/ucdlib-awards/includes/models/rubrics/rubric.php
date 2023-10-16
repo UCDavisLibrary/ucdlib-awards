@@ -5,6 +5,7 @@ class UcdlibAwardsRubric {
   public function __construct( $args=[] ){
 
     $this->table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::RUBRIC_ITEMS );
+    $this->scoresTable = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::SCORES );
 
     if ( !empty($args['plugin']) ){
       $this->plugin = $args['plugin'];
@@ -19,6 +20,36 @@ class UcdlibAwardsRubric {
       $this->items();
     }
 
+  }
+
+  public function getScoresByUser( $judgeId, $applicantId ){
+    $cacheKey = "rubric_scores_by_user_{$judgeId}_{$applicantId}";
+    $cached = wp_cache_get( $cacheKey, 'ucdlib_awards' );
+    $itemIds = $this->itemIds();
+    if ( empty($itemIds) ) return [];
+
+    $scores = [];
+    if ( $cached ){
+      $scores = $cached;
+    } else {
+      global $wpdb;
+      $sql = "SELECT * FROM $this->scoresTable WHERE rubric_id IN (" . implode(',', $itemIds) . ") AND judge_id = $judgeId AND applicant_id = $applicantId";
+      $scores = $wpdb->get_results( $sql );
+      wp_cache_set( $cacheKey, $scores, 'ucdlib_awards' );
+    }
+    $itemsById = [];
+    foreach( $this->items() as $item ){
+      $itemsById[$item->rubric_item_id] = $item;
+    }
+    foreach( $scores as $score ){
+      $score->rubric_item = $itemsById[$score->rubric_item_id];
+    }
+
+    // sort by item->item_order
+    usort($scores, function($a, $b){
+      return $a->rubric_item->item_order - $b->rubric_item->item_order;
+    });
+    return $scores;
   }
 
   protected $items;
