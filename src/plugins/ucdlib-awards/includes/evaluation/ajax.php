@@ -38,6 +38,8 @@ class UcdlibAwardsEvaluationAjax {
         $response = $this->setConflictOfInterest($response, $cycle, $payload);
       } else if ( $action === 'getScores' ){
         $response = $this->getScores($response, $cycle, $payload);
+      } else if ( $action === 'setScores' ){
+        $response = $this->setScores($response, $cycle, $payload);
       } else {
         $response['messages'][] = 'Invalid subAction specified.';
       }
@@ -58,7 +60,7 @@ class UcdlibAwardsEvaluationAjax {
     $applicantId = $payload['applicant_id'];
     $judgeId = $payload['judge_id'];
     $rubric = $cycle->rubric();
-    $scores = $rubric->getScoresByUser($judgeId, $applicantId);
+    $scores = $rubric->getScoresByUser($judgeId, $applicantId, false);
     $response['data'] = [
       'scores' => $scores
     ];
@@ -66,27 +68,76 @@ class UcdlibAwardsEvaluationAjax {
     return $response;
   }
 
+  public function setScores($response, $cycle, $payload){
+    $this->doAuth($response, $cycle, $payload, true);
+    $cycleId = $cycle->cycleId;
+    $rubric = $cycle->rubric();
+
+    $submitActions = ['save', 'finalize'];
+    if ( empty($payload['submit_action']) || !in_array($payload['submit_action'], $submitActions) ){
+      $response['messages'][] = 'No submit action specified.';
+      $this->utils->sendResponse($response);
+    }
+    $submitAction = $payload['submit_action'];
+
+    $applicant = $this->getApplicant($response, $cycle, $payload);
+    $judge = $this->getJudge($response, $cycle, $payload);
+
+    $assignedJudges = $applicant->assignedJudgeIds($cycleId)['assigned'];
+    if ( !in_array($payload['judge_id'], $assignedJudges) ){
+      $response['messages'][] = 'Judge is not assigned to this applicant.';
+      $this->utils->sendResponse($response);
+    }
+
+    $applicationStatus = $applicant->applicationStatus($cycleId);
+    if ( in_array($payload['judge_id'], $applicationStatus['conflictOfInterestJudgeIds']) ){
+      $response['messages'][] = 'Judge has a potential conflict of interest with applicant.';
+      $this->utils->sendResponse($response);
+    }
+    if ( in_array($payload['judge_id'], $applicationStatus['evaluatedJudgeIds']) ){
+      $response['messages'][] = 'Judge has already evaluated this applicant.';
+      $this->utils->sendResponse($response);
+    }
+
+    if ( empty($payload['scores']) || !is_array($payload['scores']) ){
+      $response['messages'][] = 'No scores submitted.';
+      $this->utils->sendResponse($response);
+    }
+
+    foreach ($payload['scores'] as $rubricItemId => $itemScores) {
+      if (!in_array($rubricItemId, $rubric->itemIds())){
+        $response['messages'][] = 'Invalid rubric item ID submitted - ' . $rubricItemId;
+      }
+      $rubricItem = $rubric->getItemById($rubricItemId);
+      if ( !is_array($itemScores) || !isset($itemScores['score']) ){
+        $response['messages'][] = 'Invalid scores submitted for rubric item - ' . $rubricItem->title;
+      }
+      if ( !$rubric->isValidScore($rubricItemId, $itemScores['score']) ){
+        $response['messages'][] = 'Invalid score submitted for rubric item - ' . $rubricItem->title;
+      }
+    }
+    if ( $submitAction === 'finalize' && count($payload['scores']) !== count($rubric->itemIds()) ){
+      $response['messages'][] = 'A score must be submitted for all rubric items.';
+    }
+    if ( count($response['messages']) > 0 ){
+      $this->utils->sendResponse($response);
+    }
+
+    $rubric->setScoresByUser($judge->record()->user_id, $applicant->record()->user_id, $payload['scores']);
+    if ( $submitAction === 'finalize' ){
+      $judge->updateMeta('evaluatedApplicant', $payload['applicant_id'], $cycleId);
+    }
+
+    $response['success'] = true;
+    return $response;
+  }
+
   public function setConflictOfInterest($response, $cycle, $payload){
     $this->doAuth($response, $cycle, $payload, true);
     $cycleId = $cycle->cycleId;
+    $applicant = $this->getApplicant($response, $cycle, $payload);
 
-    if ( empty($payload['applicant_id']) ){
-      $response['messages'][] = 'No applicant ID specified.';
-      $this->utils->sendResponse($response);
-    }
-    $applicant = $this->plugin->users->getByUserIds($payload['applicant_id']);
-    if ( empty($applicant) ){
-      $response['messages'][] = 'No applicant found.';
-      $this->utils->sendResponse($response);
-    }
-    $applicant = $applicant[0];
-
-    $judge = $this->plugin->users->getByUserIds($payload['judge_id']);
-    if ( empty($judge) ){
-      $response['messages'][] = 'No judge found.';
-      $this->utils->sendResponse($response);
-    }
-    $judge = $judge[0];
+    $judge = $this->getJudge($response, $cycle, $payload);
 
     $assignedJudges = $applicant->assignedJudgeIds($cycleId)['assigned'];
     if ( !in_array($payload['judge_id'], $assignedJudges) ){
@@ -104,6 +155,45 @@ class UcdlibAwardsEvaluationAjax {
     $response['success'] = true;
 
     return $response;
+  }
+
+  private function getJudge($response, $cycle, $payload){
+    $cycleId = $cycle->cycleId;
+    if ( empty($payload['judge_id']) ){
+      $response['messages'][] = 'No judge ID specified.';
+      $this->utils->sendResponse($response);
+    }
+    $judge = $this->plugin->users->getByUserIds($payload['judge_id']);
+    if ( empty($judge) ){
+      $response['messages'][] = 'No judge found.';
+      $this->utils->sendResponse($response);
+    }
+    $judge = $judge[0];
+
+    if ( !$judge->isJudge($cycleId) ){
+      $response['messages'][] = 'User is not a judge.';
+      $this->utils->sendResponse($response);
+    }
+    return $judge;
+  }
+
+  private function getApplicant($response, $cycle, $payload){
+    $cycleId = $cycle->cycleId;
+    if ( empty($payload['applicant_id']) ){
+      $response['messages'][] = 'No applicant ID specified.';
+      $this->utils->sendResponse($response);
+    }
+    $applicant = $this->plugin->users->getByUserIds($payload['applicant_id']);
+    if ( empty($applicant) ){
+      $response['messages'][] = 'No applicant found.';
+      $this->utils->sendResponse($response);
+    }
+    $applicant = $applicant[0];
+    if ( empty($applicant->applicationEntry($cycleId)) ) {
+      $response['messages'][] = 'No application entry found.';
+      $this->utils->sendResponse($response);
+    }
+    return $applicant;
   }
 
   public function getApplicationEntry($response, $cycle, $payload){

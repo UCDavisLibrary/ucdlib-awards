@@ -196,6 +196,9 @@ ucdlib-icon.panel__custom-icon {
 .border-bottom-blue {
   border-bottom: 1px solid #022851;
 }
+.border-bottom-light-blue {
+  border-bottom: 1px solid #cce0f3;
+}
 .gold-box {
   border: 1px solid #ffbf00;
 }
@@ -283,6 +286,17 @@ ucdlib-icon.panel__custom-icon {
 }
 .input-max-width {
   max-width: 300px;
+}
+.show-on-desktop {
+  display: none !important;
+}
+@media (min-width: 992px) {
+  .show-on-desktop {
+    display: block !important;
+  }
+  .show-on-mobile {
+    display: none !important;
+  }
 }
 `;
 

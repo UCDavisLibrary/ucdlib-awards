@@ -22,7 +22,44 @@ class UcdlibAwardsRubric {
 
   }
 
-  public function getScoresByUser( $judgeId, $applicantId ){
+  public function setScoresByUser($judgeId, $applicantId, $scores){
+    $rows = [];
+    if ( empty($judgeId) || empty($applicantId) ) return;
+    if ( empty($scores) || !is_array($scores) ) return;
+    foreach( $scores as $rubricItemId => $itemScores ){
+      $o = [
+        'rubric_id' => $rubricItemId,
+        'judge_id' => $judgeId,
+        'applicant_id' => $applicantId,
+        'note' => isset($itemScores['note']) ? $itemScores['note'] : '',
+        'date_created' => date('Y-m-d H:i:s'),
+        'date_updated' => date('Y-m-d H:i:s')
+      ];
+      if (!isset($itemScores['score'])){
+        continue;
+      }
+      $o['score'] = $itemScores['score'];
+      $rows[] = $o;
+    }
+    error_log( print_r($rows, true) );
+    if ( empty($rows) ) return;
+    $this->deleteScoresByUser( $judgeId, $applicantId );
+    global $wpdb;
+    foreach( $rows as $row ){
+      $wpdb->insert( $this->scoresTable, $row );
+    }
+
+  }
+
+  public function deleteScoresByUser( $judgeId, $applicantId ){
+    $itemIds = $this->itemIds();
+    if ( empty($itemIds) || empty($judgeId) || empty($applicantId)) return;
+    global $wpdb;
+    $sql = "DELETE FROM $this->scoresTable WHERE rubric_id IN (" . implode(',', $itemIds) . ") AND judge_id = $judgeId AND applicant_id = $applicantId";
+    $wpdb->query( $sql );
+  }
+
+  public function getScoresByUser( $judgeId, $applicantId, $returnRubricItems=false ){
     $cacheKey = "rubric_scores_by_user_{$judgeId}_{$applicantId}";
     $cached = wp_cache_get( $cacheKey, 'ucdlib_awards' );
     $itemIds = $this->itemIds();
@@ -37,19 +74,44 @@ class UcdlibAwardsRubric {
       $scores = $wpdb->get_results( $sql );
       wp_cache_set( $cacheKey, $scores, 'ucdlib_awards' );
     }
-    $itemsById = [];
-    foreach( $this->items() as $item ){
-      $itemsById[$item->rubric_item_id] = $item;
-    }
+    $scoresByRubricId = [];
     foreach( $scores as $score ){
-      $score->rubric_item = $itemsById[$score->rubric_item_id];
+      $scoresByRubricId[$score->rubric_id] = $score;
     }
 
-    // sort by item->item_order
-    usort($scores, function($a, $b){
-      return $a->rubric_item->item_order - $b->rubric_item->item_order;
-    });
-    return $scores;
+    $out = [];
+    foreach( $this->items() as $item ){
+      $score = isset($scoresByRubricId[$item->rubric_item_id]) ? $scoresByRubricId[$item->rubric_item_id] : false;
+      $o = [
+        'rubric_item_id' => $item->rubric_item_id,
+        'score' => $score
+      ];
+      if ( $returnRubricItems ){
+        $o['rubric_item'] = $item;
+      }
+      $out[] = $o;
+    }
+    return $out;
+  }
+
+  public function getItemById( $itemId ){
+    foreach( $this->items() as $item ){
+      if ( $item->rubric_item_id == $itemId ){
+        return $item;
+      }
+    }
+    return false;
+  }
+
+  public function isValidScore($itemId, $score){
+    $item = $this->getItemById( $itemId );
+    if ( !$item ) return false;
+    $validScores = [];
+    for( $i=$item->range_min; $i<=$item->range_max; $i+=$item->range_step ){
+      $validScores[] = $i;
+    }
+    $score = intval($score);
+    return in_array($score, $validScores);
   }
 
   protected $items;

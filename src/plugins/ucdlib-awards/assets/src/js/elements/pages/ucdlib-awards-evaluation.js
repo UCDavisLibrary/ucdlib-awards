@@ -28,7 +28,10 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
       applicationFormId: { type: String },
       awardsTitle: { type: String },
       coiCheck: { type: String },
-      coiDetails: {type: String}
+      coiDetails: {type: String},
+      evaluationFormData: { type: Object },
+      canSubmitEvaluation: { type: Boolean },
+      evaluationFormErrorMessages: { type: Array }
     }
   }
 
@@ -40,6 +43,7 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
     this.renderEvaluationStatusPanel = templates.renderEvaluationStatusPanel.bind(this);
     this.renderApplicantList = templates.renderApplicantList.bind(this);
     this.renderApplicantEvaluationForm = templates.renderApplicantEvaluationForm.bind(this);
+    this.renderEvaluationFormItem = templates.renderEvaluationFormItem.bind(this);
 
     this.mutationObserver = new MutationObserverController(this);
     this.wpAjax = new wpAjaxController(this);
@@ -61,6 +65,9 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
     this.awardsTitle = '';
     this.coiCheck = '';
     this.coiDetails = '';
+    this.evaluationFormData = {};
+    this.canSubmitEvaluation = false;
+    this.evaluationFormErrorMessages = [];
   }
 
   willUpdate(props) {
@@ -71,8 +78,21 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
         item.expanded = false;
         item.hasDetails = item.description ? true : false;
         return item;
+      });
+    }
+    if ( props.has('selectedApplicant') || props.has('coiCheck') ){
+      let canSubmitEvaluation = false;
+
+      const statuses = ['new', 'in-progress'];
+      if ( !statuses.includes(this.selectedApplicant.applicationStatus?.slug) ) {
+        canSubmitEvaluation = false;
+      } else if ( this.coiCheck === 'yes' ) {
+        canSubmitEvaluation = false;
+      } else if ( this.coiCheck === 'no' ) {
+        canSubmitEvaluation = true;
       }
-    );
+
+      this.canSubmitEvaluation = canSubmitEvaluation;
     }
   }
 
@@ -126,11 +146,52 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
 
   }
 
+  async _onEvaluationSubmit(e){
+    e.preventDefault();
+    if ( !this.canSubmitEvaluation ) return;
+    this.evaluationFormErrorMessages = [];
+    const submitter = e.submitter;
+    if ( !submitter ) {
+      this.evaluationFormErrorMessages = ['Unable to submit/save evaluation. Please try using a different browser.'];
+      return;
+    }
+    const submitAction = submitter.getAttribute('data-submit-action');
+    const payload = {
+      "judge_id": this.judge.id,
+      "applicant_id": this.selectedApplicant.user_id,
+      "scores": this.evaluationFormData,
+      "submit_action": submitAction
+    }
+    const response = await this.wpAjax.request('setScores', payload);
+    console.log(response);
+    if ( response.success ){
+
+    } else {
+      this.evaluationFormErrorMessages = response.messages;
+    }
+  }
+
+  resetApplicantData(){
+    this.coiCheck = '';
+    this.coiDetails = '';
+    this.evaluationFormData = {};
+    this.selectedApplicant = {};
+    this.evaluationFormErrorMessages = [];
+  }
+
+  setEvaluationFormItem(rubricItemId, prop, value, noUpdate=false){
+    rubricItemId = String(rubricItemId);
+    if ( !prop || !rubricItemId ) return;
+    this.evaluationFormData[rubricItemId] = this.evaluationFormData[rubricItemId] || {};
+    this.evaluationFormData[rubricItemId][prop] = value;
+    if ( noUpdate ) return;
+    this.requestUpdate();
+  }
+
   async _onApplicantSelect(applicant_id){
     const errorMessage = "There was an error retrieving the applicant. Please try again later."
     this.page = 'loading';
-    this.coiCheck = '';
-    this.coiDetails = '';
+    this.resetApplicantData();
     const applicant = this.applicants.find(applicant => applicant.user_id === applicant_id);
     if ( !applicant ) {
       this.errorMessage = errorMessage;
@@ -144,6 +205,7 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
       this.getApplicantEntry(entryId, formId),
       this.getScores(applicant_id)
     ];
+    let scores = [];
     const responses = await Promise.allSettled(promises);
     responses.forEach((response, index) => {
       if ( response.status === 'fulfilled' ) {
@@ -151,6 +213,8 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
           this.page = 'error';
           console.error('Error retrieving applicant entry', response.value);
           return;
+        } else if ( index === 1 ) {
+          scores = response.value.data.scores;
         }
       } else {
         this.page = 'error';
@@ -162,9 +226,14 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
       this.errorMessage = errorMessage;
       return;
     }
-
     this.selectedApplicant = {...applicant};
+    scores.forEach(score => {
+      if ( !score.score ) return;
+      this.setEvaluationFormItem(score.rubric_item_id, 'score', score.score, false);
+      this.setEvaluationFormItem(score.rubric_item_id, 'note', score.note, false);
+    });
     this.page = 'applicant';
+    this.requestUpdate();
   }
 
   async getScores(applicantId, judgeId){
@@ -181,7 +250,6 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
     const payload = {"applicant_id": applicantId, "judge_id": judgeId};
     const response = await this.wpAjax.request('getScores', payload);
     this.scoreCache[cacheKey] = response;
-    console.log('getScores', response);
     return response;
   }
 

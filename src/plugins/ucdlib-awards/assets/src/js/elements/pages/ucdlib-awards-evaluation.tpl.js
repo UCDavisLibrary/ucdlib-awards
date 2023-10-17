@@ -112,9 +112,72 @@ export function renderApplicantEvaluationForm(){
           </div>
         `}
       </div>
+      <form @submit=${this._onEvaluationSubmit}>
+        <div
+          ?hidden=${!this.evaluationFormErrorMessages.length}
+          class="brand-textbox category-brand__background category-brand--double-decker u-space-mb">
+          <ul class='u-space-mt--flush list--flush'>
+            ${this.evaluationFormErrorMessages.map(msg => html`<li>${msg}</li>`)}
+          </ul>
+        </div>
+        <div class='show-on-desktop'>
+          <div class="l-3col l-3col--25-25-50">
+            <div class="l-first o-box">
+              <div class='primary bold'>Rubric Item</div>
+            </div>
+            <div class="l-second o-box">
+              <div class='primary bold'>Score</div>
+            </div>
+            <div class="l-third o-box">
+              <div class='primary bold'>Notes</div>
+            </div>
+          </div>
+        </div>
+        ${this.rubricItems.map(item => this.renderEvaluationFormItem(item))}
+        <div class='button-row u-space-mt'>
+          <button type='submit' ?disabled=${!this.canSubmitEvaluation} data-submit-action='save' class="btn btn--alt3 border-box">Save</button>
+          <button type='submit' ?disabled=${!this.canSubmitEvaluation} data-submit-action='finalize' class="btn btn--alt3 border-box">Submit Evaluation</button>
+        </div>
+      </form>
 
     </div>
   `
+}
+
+export function renderEvaluationFormItem(item){
+  const rubricTitle = item.title;
+  const rubricRange = `${item.range_min} - ${item.range_max}`;
+  const id = item.rubric_item_id;
+  const score = this.evaluationFormData[item.rubric_item_id]?.score || '';
+  const note = this.evaluationFormData[item.rubric_item_id]?.note || '';
+  return html`
+    <div class="l-3col l-3col--25-25-50 border-bottom-light-blue u-space-py">
+      <div class="l-first o-box">
+        <div class='primary bold show-on-mobile'>Rubric Item</div>
+        <div>${rubricTitle}</div>
+        <div>${rubricRange}</div>
+      </div>
+      <div class="l-second o-box">
+        <div class='primary bold show-on-mobile'>Score</div>
+        <input
+          type='number'
+          min=${item.range_min}
+          max=${item.range_max}
+          step=${item.range_step}
+          value=${score}
+          @input=${e => this.setEvaluationFormItem(id, 'score', e.target.value)} />
+      </div>
+      <div class="l-third o-box">
+        <div class='primary bold show-on-mobile'>Notes</div>
+        <textarea
+          rows="3"
+          placeholder="Add an optional note"
+          @input=${e => this.setEvaluationFormItem(id, 'note', e.target.value)}
+          .value=${note}>
+        </textarea>
+      </div>
+    </div>
+  `;
 }
 
 // admin can select a judge to view their assigned applicants
