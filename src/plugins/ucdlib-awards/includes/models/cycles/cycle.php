@@ -347,6 +347,22 @@ class UcdlibAwardsCycle {
     return $out;
   }
 
+  public function completedEvaluationsMap(){
+    $judgeIds = $this->judgeIds();
+    $assignments = $this->userMetaItem('evaluatedApplicant');
+    $out = [];
+    foreach( $judgeIds as $judgeId ){
+      $out[ $judgeId ] = [];
+      foreach( $assignments as $assignment ){
+        if ( $assignment->user_id == $judgeId ){
+          $out[ $judgeId ][] = $assignment->meta_value;
+        }
+      }
+    }
+    return $out;
+
+  }
+
   public function judges($returnArray=false, $arrayFields=[]){
     $judges = [];
 
@@ -370,6 +386,10 @@ class UcdlibAwardsCycle {
     if ( !empty($arrayFields['conflictsOfInterest']) ){
       $conflictsOfInterestByJudge = $this->conflictOfInterestMap();
     }
+    if ( !empty($arrayFields['completedEvaluations']) ){
+      $completedEvaluationsByJudge = $this->completedEvaluationsMap();
+    }
+
 
     foreach( $users as $user ){
       $judge = [
@@ -399,6 +419,14 @@ class UcdlibAwardsCycle {
           $judge['conflictsOfInterest'] = $conflictsOfInterestByJudge[ $judge['id'] ];
         } else {
           $judge['conflictsOfInterest'] = [];
+        }
+      }
+
+      if ( !empty($arrayFields['completedEvaluations']) ){
+        if ( !empty($completedEvaluationsByJudge[ $judge['id'] ]) ){
+          $judge['completedEvaluations'] = $completedEvaluationsByJudge[ $judge['id'] ];
+        } else {
+          $judge['completedEvaluations'] = [];
         }
       }
 
@@ -524,6 +552,49 @@ class UcdlibAwardsCycle {
 
     }
     return $allApplicants;
+  }
+
+  public function unassignApplicants($applicant_ids, $judge_ids){
+    if ( !is_array($applicant_ids) ) $applicant_ids = [$applicant_ids];
+    if ( !is_array($judge_ids) ) $judge_ids = [$judge_ids];
+    if ( empty($applicant_ids) || empty($judge_ids) ) return;
+    $metaKey = 'assignedApplicant';
+
+    $existingAssignments = $this->userMetaItem($metaKey);
+    $existingAssignmentsByJudgeId = [];
+    foreach( $existingAssignments as $assignment ){
+      if ( !isset($existingAssignmentsByJudgeId[ $assignment->user_id ]) ){
+        $existingAssignmentsByJudgeId[ $assignment->user_id ] = [];
+      }
+      $existingAssignmentsByJudgeId[ $assignment->user_id ][] = $assignment->meta_value;
+    }
+
+    $assignmentsToRemove = [];
+    foreach( $judge_ids as $judge_id ){
+      if ( !isset($existingAssignmentsByJudgeId[ $judge_id ]) ){
+        $existingAssignmentsByJudgeId[ $judge_id ] = [];
+      }
+      $assignmentsToRemove[ $judge_id ] = array_intersect( $applicant_ids, $existingAssignmentsByJudgeId[ $judge_id ] );
+    }
+    $assignmentsToRemove = array_filter( $assignmentsToRemove );
+
+    global $wpdb;
+    $table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USER_META );
+    foreach ($assignmentsToRemove as $judge_id => $applicant_ids) {
+      foreach( $applicant_ids as $applicant_id ){
+        $wpdb->delete(
+          $table,
+          [
+            'user_id' => $judge_id,
+            'cycle_id' => $this->cycleId,
+            'meta_key' => $metaKey,
+            'meta_value' => $applicant_id
+          ]
+        );
+      }
+    }
+    $this->userMeta = null;
+    return $assignmentsToRemove;
   }
 
   public function assignApplicants($applicant_ids, $judge_ids){

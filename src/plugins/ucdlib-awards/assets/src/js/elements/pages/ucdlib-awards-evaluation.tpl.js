@@ -1,4 +1,5 @@
 import { html } from 'lit';
+import datetimeUtils from "../../utils/datetime.js"
 
 export function render() {
 return html`
@@ -41,8 +42,9 @@ export function renderApplicantEvaluationForm(){
   const applicationHtml = applicationEntry.data.htmlDoc;
   const blob = new Blob([applicationHtml], {type: 'text/html'});
   const applicationDl = URL.createObjectURL(blob);
+  const status = applicant.applicationStatus.slug;
 
-  let showCOI = ['new', 'conflict-of-interest'].includes(applicant.applicationStatus.slug) ? true : false;
+  let showCOI = ['new', 'conflict-of-interest'].includes(status) ? true : false;
   if ( showCOI && this.coiCheck === 'no' ) showCOI = false;
 
   return html`
@@ -56,6 +58,9 @@ export function renderApplicantEvaluationForm(){
         <ul class="list--download" style='margin-bottom:.25em;'>
           <li><a class="icon icon--link icon--download pointer" href=${applicationDl} target='_blank'>Download Application</a></li>
         </ul>
+      </div>
+      <div ?hidden=${status != 'completed'} class='brand-textbox category-brand__background category-brand--farmers-market u-space-mb'>
+        Evaluation submitted on ${datetimeUtils.mysqlToLocaleString(this.evaluationSubmissionDate, true)}
       </div>
       <div ?hidden=${!showCOI} class='coi'>
         ${applicant.applicationStatus.slug == 'new' ? html`

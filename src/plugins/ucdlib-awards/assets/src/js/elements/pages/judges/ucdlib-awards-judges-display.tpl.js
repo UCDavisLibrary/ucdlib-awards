@@ -42,7 +42,6 @@ export function render() {
     const email = judge.email || '';
     const assigned = judge.assignedCt;
     const evaluated = judge.evaluatedCt;
-    const hasConflictOfInterest = (judge.conflictsOfInterest || []).length > 0;
 
     return html`
     <div class='row ${this.showCategories ? 'with-categories' : ''} ${expanded ? 'has-mb-details' : ''}'>
@@ -53,7 +52,7 @@ export function render() {
         <div>
           <div>${judge.name}</div>
           <div ?hidden=${!email} class='small-text overflow-anywhere'><a href='mailto:${email}'>${email}</a></div>
-          <div ?hidden=${!hasConflictOfInterest} class='small-text double-decker bold'>Conflict of Interest</div>
+          <div ?hidden=${!judge.hasConflictOfInterest} class='small-text double-decker bold'>Conflict of Interest</div>
         </div>
         <div class='${expanded ? 'mb-details' : 'hidden'}'>
           <div class='flex-center' ?hidden=${!this.showCategories}>

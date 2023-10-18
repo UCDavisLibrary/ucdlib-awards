@@ -50,16 +50,21 @@ return html`
       ${this.siteLogo ? html`<img src=${this.siteLogo}>` : ''}
       <h2 class='heading--weighted-underline'><span class='heading--weighted--weighted'>${this.pageTitle}</span></h2>
     </div>
-    <div ?hidden=${!this.hasCycles} class='page-cycle-select'>
-      <label>Application Cycle</label>
-      <select
-        @change=${this._onCycleSelect}>
-        ${this.cycles.map(cycle => html`
-          <option
-            ?selected=${cycle.cycle_id == this.selectedCycle.cycle_id}
-            value=${cycle.cycle_id}>${cycle.title}${cycle.cycle_id == this.activeCycle.cycle_id ? ' - ACTIVE' : ''}</option>
-        `)}
-      </select>
+    <div ?hidden=${!this.isAdminPage}>
+      <div ?hidden=${!this.hasCycles} class='page-cycle-select'>
+        <label>Application Cycle</label>
+        <select
+          @change=${this._onCycleSelect}>
+          ${this.cycles.map(cycle => html`
+            <option
+              ?selected=${cycle.cycle_id == this.selectedCycle.cycle_id}
+              value=${cycle.cycle_id}>${cycle.title}${cycle.cycle_id == this.activeCycle.cycle_id ? ' - ACTIVE' : ''}</option>
+          `)}
+        </select>
+      </div>
+      <div class='u-space-mt--small'>
+        <a href='https://drive.google.com/drive/folders/1BBR-kWM-u8xYAkjJjnoQPIXu0CefQqbG?usp=share_link' target='_blank'>View Platform Documentation</a>
+      </div>
     </div>
   </div>
   <div ?hidden=${this.hideCycleNotification} class="basic-notification">

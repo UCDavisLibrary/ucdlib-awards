@@ -64,6 +64,12 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
         slug: 'view-assignments',
         bulk: true,
         applicants: false
+      },
+      {
+        label: 'Unassign Applications',
+        slug: 'unassign',
+        bulk: true,
+        applicants: true
       }
     ];
   }

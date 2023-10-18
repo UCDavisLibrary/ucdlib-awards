@@ -135,6 +135,8 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
     log.iconColor = 'redbud';
     if ( log.log_subtype === 'conflict-of-interest' ){
       log.displayText = `Conflict of interest declared by ${this.getUserName(log.user_id_subject)} for applicant ${this.getUserName(log.user_id_object)}`;
+    } else if ( log.log_subtype === 'completed' ) {
+      log.displayText = `Evaluation completed by ${this.getUserName(log.user_id_subject)} for applicant ${this.getUserName(log.user_id_object)}`;
     }
     return log;
   }

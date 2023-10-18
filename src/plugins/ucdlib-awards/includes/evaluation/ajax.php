@@ -59,13 +59,25 @@ class UcdlibAwardsEvaluationAjax {
     }
     $applicantId = $payload['applicant_id'];
     $judgeId = $payload['judge_id'];
-    $rubric = $cycle->rubric();
-    $scores = $rubric->getScoresByUser($judgeId, $applicantId, false);
     $response['data'] = [
-      'scores' => $scores
+      'scores' => $this->_getScores($judgeId, $applicantId, $cycle),
+      'submittedDate' => $this->_getSubmittedDate($judgeId, $applicantId, $cycle)
     ];
     $response['success'] = true;
     return $response;
+  }
+
+  private function _getSubmittedDate($judgeId, $applicantId, $cycle){
+    $cycleId = $cycle->cycleId;
+    $judge = $this->plugin->users->getByUserIds($judgeId);
+    $judge = $judge[0];
+    $metaKey = 'evaluatedApplicantDate_' . $applicantId;
+    return $judge->cycleMetaItem($metaKey, $cycleId) ?? '';
+  }
+
+  private function _getScores($judgeId, $applicantId, $cycle){
+    $rubric = $cycle->rubric();
+    return $rubric->getScoresByUser($judgeId, $applicantId, false);
   }
 
   public function setScores($response, $cycle, $payload){
@@ -125,10 +137,20 @@ class UcdlibAwardsEvaluationAjax {
 
     $rubric->setScoresByUser($judge->record()->user_id, $applicant->record()->user_id, $payload['scores']);
     if ( $submitAction === 'finalize' ){
-      $judge->updateMeta('evaluatedApplicant', $payload['applicant_id'], $cycleId);
+      $judge->updateMetaWithValue('evaluatedApplicant', $payload['applicant_id'], $cycleId);
+      $judge->updateMeta('evaluatedApplicantDate_' . $payload['applicant_id'], date('Y-m-d H:i:s'), $cycleId);
+      $judge->deleteMetaWithValue('evaluationInProgressApplicant', $payload['applicant_id'], $cycleId);
+      $this->logger->logCompletedEvaluation($cycleId, $judge->record()->user_id, $payload['applicant_id']);
+    } else {
+      $judge->updateMetaWithValue('evaluationInProgressApplicant', $payload['applicant_id'], $cycleId);
     }
 
     $response['success'] = true;
+    $response['data'] = [
+      'applicants' => $this->_getApplicants($payload['judge_id'], $cycle),
+      'scores' => $this->_getScores($payload['judge_id'], $payload['applicant_id'], $cycle),
+      'submittedDate' => $this->_getSubmittedDate($payload['judge_id'], $payload['applicant_id'], $cycle)
+    ];
     return $response;
   }
 
@@ -238,6 +260,16 @@ class UcdlibAwardsEvaluationAjax {
     $judgeId = $payload['judge_id'];
     $cycleId = $cycle->cycleId;
 
+    $response['data'] = [
+      'applicants' => $this->_getApplicants($judgeId, $cycle)
+    ];
+    $response['success'] = true;
+    return $response;
+  }
+
+  private function _getApplicants($judgeId, $cycle){
+    $cycleId = $cycle->cycleId;
+
     $args = [
       'applicationEntry' => true,
       'userMeta' => true
@@ -252,11 +284,8 @@ class UcdlibAwardsEvaluationAjax {
       'applicationEntryBrief' => $cycleId,
       'assignedJudgeIds' => $cycleId
     ];
-    $response['data'] = [
-      'applicants' => $this->plugin->users->toArrays($applicants, $args)
-    ];
-    $response['success'] = true;
-    return $response;
+    return $this->plugin->users->toArrays($applicants, $args);
+
   }
 
   public function doAuth($response, $cycle, $payload, $isWriteAction = false){

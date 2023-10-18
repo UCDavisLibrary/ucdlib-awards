@@ -41,7 +41,6 @@ class UcdlibAwardsRubric {
       $o['score'] = $itemScores['score'];
       $rows[] = $o;
     }
-    error_log( print_r($rows, true) );
     if ( empty($rows) ) return;
     $this->deleteScoresByUser( $judgeId, $applicantId );
     global $wpdb;

@@ -31,7 +31,8 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
       coiDetails: {type: String},
       evaluationFormData: { type: Object },
       canSubmitEvaluation: { type: Boolean },
-      evaluationFormErrorMessages: { type: Array }
+      evaluationFormErrorMessages: { type: Array },
+      evaluationSubmissionDate: { type: String }
     }
   }
 
@@ -68,6 +69,7 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
     this.evaluationFormData = {};
     this.canSubmitEvaluation = false;
     this.evaluationFormErrorMessages = [];
+    this.evaluationSubmissionDate = '';
   }
 
   willUpdate(props) {
@@ -84,8 +86,11 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
       let canSubmitEvaluation = false;
 
       const statuses = ['new', 'in-progress'];
-      if ( !statuses.includes(this.selectedApplicant.applicationStatus?.slug) ) {
+      const status = this.selectedApplicant.applicationStatus?.slug;
+      if ( !statuses.includes(status) ) {
         canSubmitEvaluation = false;
+      } else if ( status === 'in-progress' ){
+        canSubmitEvaluation = true;
       } else if ( this.coiCheck === 'yes' ) {
         canSubmitEvaluation = false;
       } else if ( this.coiCheck === 'no' ) {
@@ -162,10 +167,39 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
       "scores": this.evaluationFormData,
       "submit_action": submitAction
     }
+    this.canSubmitEvaluation = false;
     const response = await this.wpAjax.request('setScores', payload);
+    this.canSubmitEvaluation = true;
     console.log(response);
     if ( response.success ){
+      this.applicants = response.data.applicants.map(applicant => this.formatApplicant(applicant));
+      response.data.scores.forEach(score => {
+        if ( !score.score ) return;
+        this.setEvaluationFormItem(score.rubric_item_id, 'score', score.score.score, false);
+        this.setEvaluationFormItem(score.rubric_item_id, 'note', score.score.note, false);
+      });
 
+      if ( submitAction === 'save' ){
+        this.dispatchEvent(new CustomEvent('toast-request', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            message: 'Your evaluation has been saved.',
+            type: 'success'
+          }
+        }));
+      } else {
+        this.dispatchEvent(new CustomEvent('toast-request', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            message: 'Your evaluation has been submitted.',
+            type: 'success'
+          }
+        }));
+        this.page = 'applicant-select';
+
+      }
     } else {
       this.evaluationFormErrorMessages = response.messages;
     }
@@ -177,6 +211,7 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
     this.evaluationFormData = {};
     this.selectedApplicant = {};
     this.evaluationFormErrorMessages = [];
+    this.evaluationSubmissionDate = '';
   }
 
   setEvaluationFormItem(rubricItemId, prop, value, noUpdate=false){
@@ -215,6 +250,7 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
           return;
         } else if ( index === 1 ) {
           scores = response.value.data.scores;
+          this.evaluationSubmissionDate = response.value.data.submittedDate;
         }
       } else {
         this.page = 'error';
@@ -229,8 +265,8 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
     this.selectedApplicant = {...applicant};
     scores.forEach(score => {
       if ( !score.score ) return;
-      this.setEvaluationFormItem(score.rubric_item_id, 'score', score.score, false);
-      this.setEvaluationFormItem(score.rubric_item_id, 'note', score.note, false);
+      this.setEvaluationFormItem(score.rubric_item_id, 'score', score.score.score, false);
+      this.setEvaluationFormItem(score.rubric_item_id, 'note', score.score.note, false);
     });
     this.page = 'applicant';
     this.requestUpdate();
@@ -284,49 +320,51 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
     }
   }
 
+  formatApplicant(applicant, judgeId){
+    if ( !judgeId ) judgeId = this.judge.id;
+    // status label
+    applicant.applicationStatus = {
+      slug: 'unknown',
+      label: 'Unknown',
+      brand: 'double-decker'
+    };
+    if ( applicant.assignedJudgeIds?.conflictOfInterest?.includes?.(judgeId) ){
+      applicant.applicationStatus = {
+        slug: 'conflict-of-interest',
+        label: 'Conflict of Interest',
+        brand: 'double-decker'
+      };
+    } else if ( applicant.assignedJudgeIds?.evaluated?.includes?.(judgeId) ){
+      applicant.applicationStatus = {
+        slug: 'completed',
+        label: 'Completed',
+        brand: 'redwood'
+      };
+    } else if ( applicant.assignedJudgeIds?.evaluationInProgress?.includes?.(judgeId) ){
+      applicant.applicationStatus = {
+        slug: 'in-progress',
+        label: 'In Progress',
+        brand: 'admin-blue'
+      };
+    } else if ( applicant.assignedJudgeIds?.assigned?.includes?.(judgeId) ){
+      applicant.applicationStatus = {
+        slug: 'new',
+        label: 'New',
+        brand: 'admin-blue'
+      };
+    }
+
+    // name
+    applicant.name = `${applicant.first_name} ${applicant.last_name}`;
+
+    return applicant;
+  }
+
   async getApplicantsByJudgeId(judgeId){
     if ( !judgeId ) judgeId = this.judge.id;
     const response = await this.wpAjax.request('getApplicants', {"judge_id": judgeId});
     if ( response.success ) {
-      response.data.applicants = response.data.applicants.map(applicant => {
-
-        // status label
-        applicant.applicationStatus = {
-          slug: 'unknown',
-          label: 'Unknown',
-          brand: 'double-decker'
-        };
-        if ( applicant.assignedJudgeIds?.conflictOfInterest?.includes?.(judgeId) ){
-          applicant.applicationStatus = {
-            slug: 'conflict-of-interest',
-            label: 'Conflict of Interest',
-            brand: 'double-decker'
-          };
-        } else if ( applicant.assignedJudgeIds?.evaluated?.includes?.(judgeId) ){
-          applicant.applicationStatus = {
-            slug: 'completed',
-            label: 'Completed',
-            brand: 'redwood'
-          };
-        } else if ( applicant.assignedJudgeIds?.evaluationInProgress?.includes?.(judgeId) ){
-          applicant.applicationStatus = {
-            slug: 'in-progress',
-            label: 'In Progress',
-            brand: 'admin-blue'
-          };
-        } else if ( applicant.assignedJudgeIds?.assigned?.includes?.(judgeId) ){
-          applicant.applicationStatus = {
-            slug: 'new',
-            label: 'New',
-            brand: 'admin-blue'
-          };
-        }
-
-        // name
-        applicant.name = `${applicant.first_name} ${applicant.last_name}`;
-
-        return applicant;
-      });
+      response.data.applicants = response.data.applicants.map(applicant => this.formatApplicant(applicant));
     }
     return response;
   }

@@ -33,6 +33,7 @@ const customStyles = css`
   width: 100%;
   margin-bottom: 1rem;
   margin-top: .5rem;
+  box-sizing: border-box;
 }
 @media (min-width: 768px) {
   .page-cycle-select {

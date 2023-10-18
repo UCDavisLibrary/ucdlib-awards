@@ -88,6 +88,11 @@ class UcdlibAwardsLogs {
             'slug' => 'application-assignment',
             'label' => 'Application Assignment',
             'description' => 'Application assigned to judge'
+          ],
+          'application-unassigned' => [
+            'slug' => 'application-unassigned',
+            'label' => 'Application Unassigned',
+            'description' => 'Application unassigned from judge'
           ]
         ]
       ],
@@ -99,6 +104,11 @@ class UcdlibAwardsLogs {
             'slug' => 'conflict-of-interest',
             'label' => 'Conflict of Interest',
             'description' => 'Conflict of interest declared'
+          ],
+          'completed' => [
+            'slug' => 'completed',
+            'label' => 'Completed',
+            'description' => 'Evaluation completed'
           ]
         ]
       ]
@@ -232,6 +242,49 @@ class UcdlibAwardsLogs {
     global $wpdb;
     $wpdb->insert( $this->table, $log );
     return true;
+  }
+
+  public function logCompletedEvaluation( $cycleId, $judgeId, $applicantId ){
+    $log = [
+      'log_type' => 'evaluation',
+      'log_subtype' => 'completed',
+      'cycle_id' => $cycleId,
+      'user_id_subject' => $judgeId,
+      'user_id_object' => $applicantId,
+      'date_created' =>  date('Y-m-d H:i:s')
+    ];
+
+    global $wpdb;
+    $wpdb->insert( $this->table, $log );
+    return true;
+  }
+
+  public function logApplicationUnassignment($cycleId, $judgeId, $applicantIds){
+    if ( !is_array($applicantIds) ) $applicantIds = [$applicantIds];
+    if ( empty($applicantIds) ) return false;
+    $log = [
+      'log_type' => 'evaluation-admin',
+      'log_subtype' => 'application-unassigned',
+      'cycle_id' => $cycleId,
+      'user_id_object' => $judgeId,
+      'date_created' =>  date('Y-m-d H:i:s')
+    ];
+
+    $details = [
+      'judge' => $judgeId
+    ];
+    $currentUser = $this->plugin->users->currentUser();
+    if ( $currentUser->record() ){
+      $details['unassignedBy'] = $currentUser->record()->user_id;
+    }
+
+    global $wpdb;
+    foreach( $applicantIds as $applicantId ){
+      $log['user_id_subject'] = $applicantId;
+      $details['applicant'] = $applicantId;
+      $log['log_value'] = json_encode($details);
+      $wpdb->insert( $this->table, $log );
+    }
   }
 
   public function logApplicationAssignment($cycleId, $judgeId, $applicantIds){

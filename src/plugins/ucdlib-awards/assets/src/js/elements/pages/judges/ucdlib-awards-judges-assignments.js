@@ -29,8 +29,8 @@ export default class UcdlibAwardsJudgesAssignments extends Mixin(LitElement)
     this.categories = [];
 
     this.statuses = [
-      {prop: 'conflictsOfInterest', label: 'Conflict of Interest', color: 'double-decker'},
-      {prop: 'evaluations', label: 'Evaluated'},
+      {prop: 'assignedAndHasConflict', label: 'Conflict of Interest', color: 'double-decker'},
+      {prop: 'assignedAndEvaluated', label: 'Evaluated', color: 'redwood'},
       {prop: 'assignments', label: 'Assigned'}
     ];
   }

@@ -112,7 +112,7 @@ class UcdlibAwardsAdminAjax {
         }
         $this->logger->logJudgeAddition($cycleId, $user->id);
         $response['messages'][] = 'Judge added successfully.';
-        $response['data'] = ['judges' => $cycle->judges(true, ['assignments' => true, 'conflictsOfInterest' => true])];
+        $response['data'] = ['judges' => $cycle->judges(true, ['assignments' => true, 'conflictsOfInterest' => true, 'completedEvaluations' => true])];
         $response['success'] = true;
       } else if ($action == 'delete'){
 
@@ -144,7 +144,7 @@ class UcdlibAwardsAdminAjax {
         } else {
           $response['messages'][] = 'Judge deleted successfully.';
         }
-        $response['data'] = ['judges' => $cycle->judges(true, ['assignments' => true, 'conflictsOfInterest' => true])];
+        $response['data'] = ['judges' => $cycle->judges(true, ['assignments' => true, 'conflictsOfInterest' => true, 'completedEvaluations' => true])];
         $response['success'] = true;
       } else if ( $action === 'assign' ){
 
@@ -176,9 +176,39 @@ class UcdlibAwardsAdminAjax {
         }
 
         $response['messages'][] = 'Applicants assigned successfully.';
-        $response['data'] = ['judges' => $cycle->judges(true, ['assignments' => true, 'conflictsOfInterest' => true])];
+        $response['data'] = ['judges' => $cycle->judges(true, ['assignments' => true, 'conflictsOfInterest' => true, 'completedEvaluations' => true])];
         $response['success'] = true;
+      } else if ( $action === 'unassign' ){
+        $payload = json_decode( stripslashes($_POST['data']), true );
+        $cycle = $this->getCycle($payload, $response);
+        $cycleId = $cycle->cycleId;
 
+        if ( empty($payload['judge_ids'])){
+          $response['messages'][] = 'No judge ids specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        if ( empty($payload['applicant_ids']) ){
+          $response['messages'][] = 'No applicants specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        $removed = $cycle->unassignApplicants( $payload['applicant_ids'], $payload['judge_ids'] );
+        if ( empty($removed) ){
+          $response['messages'][] = 'All applicant(s) are already unassigned from specified judge(s).';
+          $this->utils->sendResponse($response);
+          return;
+        } else {
+          foreach ($removed as $judge => $applicants) {
+            $this->logger->logApplicationUnassignment($cycleId, $judge, $applicants);
+          }
+        }
+
+        $response['messages'][] = 'Applicants assigned successfully.';
+        $response['data'] = ['judges' => $cycle->judges(true, ['assignments' => true, 'conflictsOfInterest' => true, 'completedEvaluations' => true])];
+        $response['success'] = true;
       }
     } catch (\Throwable $th) {
       error_log('Error in UcdlibAwardsAdminAjax::cycles(): ' . $th->getMessage());

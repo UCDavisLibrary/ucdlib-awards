@@ -103,21 +103,24 @@ class UcdlibAwardsUser {
       'label' => 'Not Submitted',
       'assignedJudgeIds' => [],
       'evaluatedJudgeIds' => [],
-      'conflictOfInterestJudgeIds' => []
+      'assignedAndEvaluatedJudgeIds' => [],
+      'conflictOfInterestJudgeIds' => [],
+      'assignedAndConflictOfInterestJudgeIds' => []
     ];
 
     $assignedJudgeIds = $this->assignedJudgeIds($cycleId);
     $out['assignedJudgeIds'] = $assignedJudgeIds['assigned'];
     $out['evaluatedJudgeIds'] = $assignedJudgeIds['evaluated'];
     $out['conflictOfInterestJudgeIds'] = $assignedJudgeIds['conflictOfInterest'];
+    $out['assignedAndEvaluatedJudgeIds'] = array_intersect( $out['assignedJudgeIds'], $out['evaluatedJudgeIds'] );
+    $out['assignedAndConflictOfInterestJudgeIds'] = array_intersect( $out['assignedJudgeIds'], $out['conflictOfInterestJudgeIds'] );
 
     if ( count($out['assignedJudgeIds']) ){
       $assignedCt = count($out['assignedJudgeIds']);
-      $evaluatedCt = count($out['evaluatedJudgeIds']);
+      $evaluatedCt = count($out['assignedAndEvaluatedJudgeIds']);
       $out['label'] = $evaluatedCt . '/' . $assignedCt . ' Evaluations Completed';
 
-      $completed = array_intersect( $out['assignedJudgeIds'], $out['evaluatedJudgeIds'] );
-      if ( count($completed) == $assignedCt ){
+      if ( count($out['assignedAndEvaluatedJudgeIds']) == $assignedCt ){
         $out['value'] = 'evaluated';
       } else {
         $out['value'] = 'assigned';
@@ -445,6 +448,58 @@ class UcdlibAwardsUser {
     return true;
   }
 
+  // checks if value exists for key in meta table
+  // if does not, inserts it
+  public function updateMetaWithValue($key, $value, $cycleId) {
+    global $wpdb;
+
+    // create account if it doesn't exist
+    if ( !$this->record() ){
+      $this->createFromWpAccount();
+    }
+    if ( !$this->record() ){
+      return false;
+    }
+
+    $is_json = 0;
+    if ( is_string($value) ){
+      $value = $value;
+    } else {
+      $value = json_encode( $value );
+      $is_json = 1;
+    }
+
+    // check if meta record already exists
+    $isUpdate = false;
+    $sql = "SELECT * FROM $this->metaTable WHERE user_id = %d AND cycle_id = %d AND meta_key = %s AND meta_value = %s";
+    $metaRecord = $wpdb->get_row( $wpdb->prepare($sql, $this->record()->user_id, $cycleId, $key, $value ) );
+    if ( $metaRecord ){
+      $isUpdate = true;
+    }
+
+    // update or insert meta record
+    $record = [
+      'user_id' => $this->record()->user_id,
+      'cycle_id' => $cycleId,
+      'meta_key' => $key,
+      'meta_value' => $value,
+      'date_updated' => date('Y-m-d H:i:s')
+    ];
+
+    if ( $isUpdate ){
+      $wpdb->update( $this->metaTable, $record, ['meta_id' => $metaRecord->meta_id] );
+    } else {
+      $record['date_created'] = date('Y-m-d H:i:s');
+      $wpdb->insert( $this->metaTable, $record );
+    }
+
+    // clear metacache
+    if ( isset($this->metaCache[$cycleId]) ){
+      unset($this->metaCache[$cycleId]);
+    }
+    return true;
+  }
+
   public function updateMeta($key, $value, $cycleId){
     global $wpdb;
 
@@ -482,6 +537,32 @@ class UcdlibAwardsUser {
       $record['date_created'] = date('Y-m-d H:i:s');
       $wpdb->insert( $this->metaTable, $record );
     }
+
+    // clear metacache
+    if ( isset($this->metaCache[$cycleId]) ){
+      unset($this->metaCache[$cycleId]);
+    }
+    return true;
+  }
+
+  public function deleteMetaWithValue($key, $value, $cycleId){
+    global $wpdb;
+
+    // delete meta record
+    $wpdb->delete( $this->metaTable, ['user_id' => $this->record()->user_id, 'cycle_id' => $cycleId, 'meta_key' => $key, 'meta_value' => $value] );
+
+    // clear metacache
+    if ( isset($this->metaCache[$cycleId]) ){
+      unset($this->metaCache[$cycleId]);
+    }
+    return true;
+  }
+
+  public function deleteMeta($key, $cycleId){
+    global $wpdb;
+
+    // delete meta record
+    $wpdb->delete( $this->metaTable, ['user_id' => $this->record()->user_id, 'cycle_id' => $cycleId, 'meta_key' => $key] );
 
     // clear metacache
     if ( isset($this->metaCache[$cycleId]) ){

@@ -47,6 +47,26 @@ export default class UcdlibAwardsJudgesCtl extends Mixin(LitElement)
     if ( props.has('categories') ) {
       this.hasCategories = this.categories.length > 0;
     }
+
+    if ( props.has('judges') ){
+      this._parseJudges();
+    }
+  }
+
+  _parseJudges(){
+    this.judges = (this.judges || []).map(judge => {
+      judge.assignments = judge.assignments || [];
+      judge.completedEvaluations = judge.completedEvaluations || [];
+      judge.conflictsOfInterest = judge.conflictsOfInterest || [];
+
+      judge.assignedAndEvaluated = judge.completedEvaluations.filter(e => judge.assignments.includes(e));
+      judge.assignedAndHasConflict = judge.conflictsOfInterest.filter(c => judge.assignments.includes(c));
+
+      judge.assignedCt = judge.assignments.length || 0;
+      judge.evaluatedCt = judge.assignedAndEvaluated.length || 0;
+      judge.hasConflictOfInterest = judge.assignedAndHasConflict.length > 0;
+      return judge;
+    });
   }
 
   async _onAddJudge(e){
@@ -101,6 +121,8 @@ export default class UcdlibAwardsJudgesCtl extends Mixin(LitElement)
       this.deleteSelectedJudges();
     } else if ( action === 'assign' ) {
       this.assignApplicants(e.detail.applicants);
+    } else if ( action === 'unassign' ) {
+      this.unassignApplicants(e.detail.applicants);
     } else if ( action === 'view-assignments' ) {
       this.judgeAssignmentFiltered = this.judges.filter(judge => this.selectedJudges.includes(judge.id));
       this.renderRoot.querySelector('ucdlib-awards-judges-assignments').show();
@@ -112,6 +134,39 @@ export default class UcdlibAwardsJudgesCtl extends Mixin(LitElement)
     this.doingAction = false;
     this.renderRoot.querySelector('ucdlib-awards-judges-actions').selectedAction = '';
     this.renderRoot.querySelector('ucdlib-awards-judges-display').selectedJudges = [];
+  }
+
+  async unassignApplicants(applicants){
+    const payload = {
+      cycle_id: this.cycleId,
+      judge_ids: this.selectedJudges,
+      applicant_ids: applicants
+    }
+    const response = await this.wpAjax.request('unassign', payload);
+    this.renderRoot.querySelector('ucdlib-awards-judges-actions').selectedApplicants = [];
+    if ( response.success ) {
+      this.judges = response.data.judges;
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: response.messages[0],
+          type: 'success'
+        }
+      }));
+    } else {
+      console.error('Error unassigning applicants', response);
+      let msg = 'Unable to unassign applicants';
+      if ( response.messages.length) msg += `: ${response.messages?.[0] || ''}`;
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: msg,
+          type: 'error'
+        }
+      }));
+    }
   }
 
   async assignApplicants(applicants){
