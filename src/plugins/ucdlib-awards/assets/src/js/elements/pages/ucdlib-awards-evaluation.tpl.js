@@ -228,6 +228,31 @@ export function renderApplicantList(){
 export function renderEvaluationStatusPanel(){
   if ( !this.judge || !Object.keys(this.judge).length ) return html``;
 
+  let assignedCt = 0;
+  let evaluatedCt = 0;
+  this.applicants.forEach(applicant => {
+    const assigned = applicant.assignedJudgeIds?.assigned || [];
+    const evaluated = applicant.assignedJudgeIds?.evaluated || [];
+    const conflictOfInterest = applicant.assignedJudgeIds?.conflictOfInterest || [];
+
+    if ( !assigned.includes(this.judge.id) || conflictOfInterest.includes(this.judge.id) ) return;
+    assignedCt++;
+    if ( evaluated.includes(this.judge.id) ) evaluatedCt++;
+
+  });
+
+  const status = {text: '', color: ''};
+  if ( !assignedCt ) {
+    status.text = 'No applicants have been assigned to you yet.';
+    status.color = 'redwood';
+  } else if ( assignedCt === evaluatedCt ) {
+    status.text = 'You have evaluated all of your assigned applicants.';
+    status.color = 'redwood';
+  } else {
+    status.text = `You have evaluated ${evaluatedCt}/${assignedCt} of your assigned applicants.`;
+    status.color = 'admin-blue';
+  }
+
   return html`
     <div class="panel panel--icon panel--icon-custom o-box category-brand--poppy">
       <h2 class="panel__title">
@@ -235,10 +260,15 @@ export function renderEvaluationStatusPanel(){
         <span>Evaluation Status</span>
       </h2>
       <section>
-        <div>
-          <label>Judge</label>
-          <div>${this.judge.name}</div>
+        <div class='flex-center'>
+          <ucdlib-icon icon="ucd-public:fa-user" class="icon--medium primary u-space-mr--small"></ucdlib-icon>
+          <div>
+            <label class='u-space-pb--flush'>Judge</label>
+            <div>${this.judge.name}</div>
+          </div>
         </div>
+        <div class='${status.color} bold o-box'>${status.text}</div>
+
         <div class='u-space-mt'>
           <a ?hidden=${!this.judges.length} class='pointer' @click=${() => this.page = 'judge-select'}>Select a different judge</a>
         </div>

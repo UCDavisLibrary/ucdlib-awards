@@ -299,6 +299,12 @@ ucdlib-icon.panel__custom-icon {
     display: none !important;
   }
 }
+.icon--medium {
+  width: 2rem;
+  height: 2rem;
+  min-width: 2rem;
+  min-height: 2rem;
+}
 `;
 
 export default customStyles;

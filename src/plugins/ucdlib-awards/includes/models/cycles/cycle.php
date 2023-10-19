@@ -155,6 +155,80 @@ class UcdlibAwardsCycle {
     $this->cycleMeta = null;
   }
 
+  protected $applicationSummary;
+  public function applicationSummary(){
+    if ( isset($this->applicationSummary) ) return $this->applicationSummary;
+
+    $entriesByUserId = $this->getEntriesByApplicantId();
+    $assignments = $this->judgeAssignmentMap(true);
+    $evaluations = $this->completedEvaluationsMap(true);
+    $applications = array_map(function($entry) use ($assignments, $evaluations){
+      $categorySlug = !empty($entry->meta_data['forminator_addon_ucdlib-awards_category']['value']) ? $entry->meta_data['forminator_addon_ucdlib-awards_category']['value'] : '';
+      $applicantId = $entry->meta_data['forminator_addon_ucdlib-awards_applicant_id']['value'];
+
+      $assignedJudges = !empty($assignments[ $applicantId ]) ? $assignments[ $applicantId ] : [];
+      $completedEvaluations = !empty($evaluations[ $applicantId ]) ? $evaluations[ $applicantId ] : [];
+      $completedEvaluations = array_intersect($completedEvaluations, $assignedJudges);
+      if ( empty($assignedJudges) ){
+        $status = 'unassigned';
+      } else {
+        $status = count($completedEvaluations) . '/' . count($assignedJudges);
+      }
+      $applicant = [
+        'id' => $applicantId,
+        'categorySlug' => $categorySlug,
+        'status' => $status,
+        'evaluatedCt' => count($completedEvaluations)
+      ];
+      return $applicant;
+    }, $entriesByUserId);
+
+    // sort by evaluated count asc
+    usort($applications, function($a, $b){
+      return $a['evaluatedCt'] <=> $b['evaluatedCt'];
+    });
+
+    $out = [];
+
+    // tally by category if categories exist
+    $categories = $this->categories();
+    if ( !empty($categories) ){
+      foreach( $categories as $category ){
+        $o = ['category' => $category, 'categorySlug' => $category['value'], 'statusCts' => ['unassigned' => 0]];
+
+        foreach( $applications as $application ){
+          if ( $application['categorySlug'] == $category['value'] ){
+            if ( !isset($o['statusCts'][ $application['status'] ]) ){
+              $o['statusCts'][ $application['status'] ] = 0;
+            }
+            $o['statusCts'][ $application['status'] ]++;
+          }
+        }
+        $out[] = $o;
+      }
+    }
+    $o = ['categorySlug' => 'total', 'category' => null, 'statusCts' => ['unassigned' => 0]];
+    foreach( $applications as $application ){
+      if ( !isset($o['statusCts'][ $application['status'] ]) ){
+        $o['statusCts'][ $application['status'] ] = 0;
+      }
+      $o['statusCts'][ $application['status'] ]++;
+    }
+    $out[] = $o;
+
+    foreach ($out as &$o) {
+      $o['statusCtRows'] = [['slug' => 'unassigned', 'ct' => $o['statusCts']['unassigned'], 'label' => 'Unassigned']];
+      foreach ($o['statusCts'] as $slug => $ct) {
+        if ( $slug == 'unassigned' ) continue;
+        $o['statusCtRows'][] = ['slug' => $slug, 'ct' => $ct, 'label' => 'Evaluated ' . $slug];
+      }
+
+    }
+
+    $this->applicationSummary = $out;
+    return $this->applicationSummary;
+  }
+
   /**
    * @description returns current status of application window: 'active', 'upcoming', or 'past'
    */
@@ -317,18 +391,28 @@ class UcdlibAwardsCycle {
   }
 
 
-  public function judgeAssignmentMap(){
+  public function judgeAssignmentMap($byApplicant=false){
     $judgeIds = $this->judgeIds();
     $assignments = $this->userMetaItem('assignedApplicant');
     $out = [];
-    foreach( $judgeIds as $judgeId ){
-      $out[ $judgeId ] = [];
+    if ( $byApplicant ) {
       foreach( $assignments as $assignment ){
-        if ( $assignment->user_id == $judgeId ){
-          $out[ $judgeId ][] = $assignment->meta_value;
+        if ( !isset($out[ $assignment->meta_value ]) ){
+          $out[ $assignment->meta_value ] = [];
+        }
+        $out[ $assignment->meta_value ][] = $assignment->user_id;
+      }
+    } else {
+      foreach( $judgeIds as $judgeId ){
+        $out[ $judgeId ] = [];
+        foreach( $assignments as $assignment ){
+          if ( $assignment->user_id == $judgeId ){
+            $out[ $judgeId ][] = $assignment->meta_value;
+          }
         }
       }
     }
+
     return $out;
   }
 
@@ -347,20 +431,28 @@ class UcdlibAwardsCycle {
     return $out;
   }
 
-  public function completedEvaluationsMap(){
+  public function completedEvaluationsMap($byApplicant=false){
     $judgeIds = $this->judgeIds();
     $assignments = $this->userMetaItem('evaluatedApplicant');
     $out = [];
-    foreach( $judgeIds as $judgeId ){
-      $out[ $judgeId ] = [];
+    if ( $byApplicant ) {
       foreach( $assignments as $assignment ){
-        if ( $assignment->user_id == $judgeId ){
-          $out[ $judgeId ][] = $assignment->meta_value;
+        if ( !isset($out[ $assignment->meta_value ]) ){
+          $out[ $assignment->meta_value ] = [];
+        }
+        $out[ $assignment->meta_value ][] = $assignment->user_id;
+      }
+    } else {
+      foreach( $judgeIds as $judgeId ){
+        $out[ $judgeId ] = [];
+        foreach( $assignments as $assignment ){
+          if ( $assignment->user_id == $judgeId ){
+            $out[ $judgeId ][] = $assignment->meta_value;
+          }
         }
       }
     }
     return $out;
-
   }
 
   public function judges($returnArray=false, $arrayFields=[]){
@@ -488,6 +580,28 @@ class UcdlibAwardsCycle {
     return $this->applicationEntries;
   }
 
+  public function getEntriesByApplicantId(){
+    $entries = $this->applicationEntries();
+    usort($entries, function($a, $b){
+      return $b->date_created_sql <=> $a->date_created_sql;
+    });
+
+    $entriesByUserId = [];
+    $key_app = 'forminator_addon_ucdlib-awards_applicant_id';
+    $key_cycle = 'forminator_addon_ucdlib-awards_cycle_id';
+    foreach( $entries as $entry ){
+      if ( empty($entry->meta_data[$key_cycle]) ) continue;
+      if ( $entry->meta_data[$key_cycle]['value'] != $this->cycleId ) continue;
+      if (
+        !empty($entry->meta_data[$key_app]['value'])
+        && empty($entriesByUserId[ $entry->meta_data[$key_app]['value'] ])
+        ) {
+        $entriesByUserId[ $entry->meta_data[$key_app]['value'] ] = $entry;
+      }
+    }
+    return $entriesByUserId;
+  }
+
   /**
    * @description Get all applicants for the cycle with any additional specified metadata
    */
@@ -497,24 +611,7 @@ class UcdlibAwardsCycle {
     if ( empty($args) ) return $allApplicants;
 
     if ( !empty($args['applicationEntry']) ){
-      $entries = $this->applicationEntries();
-      usort($entries, function($a, $b){
-        return $b->date_created_sql <=> $a->date_created_sql;
-      });
-
-      $entriesByUserId = [];
-      $key_app = 'forminator_addon_ucdlib-awards_applicant_id';
-      $key_cycle = 'forminator_addon_ucdlib-awards_cycle_id';
-      foreach( $entries as $entry ){
-        if ( empty($entry->meta_data[$key_cycle]) ) continue;
-        if ( $entry->meta_data[$key_cycle]['value'] != $this->cycleId ) continue;
-        if (
-          !empty($entry->meta_data[$key_app]['value'])
-          && empty($entriesByUserId[ $entry->meta_data[$key_app]['value'] ])
-          ) {
-          $entriesByUserId[ $entry->meta_data[$key_app]['value'] ] = $entry;
-        }
-      }
+      $entriesByUserId = $this->getEntriesByApplicantId();
     }
 
     if ( !empty($args['userMeta']) ){

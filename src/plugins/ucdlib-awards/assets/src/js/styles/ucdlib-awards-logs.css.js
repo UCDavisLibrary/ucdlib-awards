@@ -36,7 +36,7 @@ const customStyles = css`
     }
     ucdlib-awards-logs .log .log-content .log-text {
       flex: 1;
-      margin-right: 1rem;
+      margin-right: 1.5rem;
     }
   }
 `;

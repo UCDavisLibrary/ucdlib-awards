@@ -1,4 +1,5 @@
 import { html, css } from 'lit';
+import { styleMap } from 'lit/directives/style-map.js';
 import headingStyles from "@ucd-lib/theme-sass/1_base_html/_headings.css.js";
 import headingClassesStyles from "@ucd-lib/theme-sass/2_base_class/_headings.css.js";
 import buttonStyles from "@ucd-lib/theme-sass/2_base_class/_buttons.css.js";
@@ -87,7 +88,7 @@ export function styles() {
  */
 export function render() {
   return html`
-  <div class="container" ?hidden="${!this.visible}">
+  <div class="container" ?hidden="${!this.visible}" style=${styleMap(this.containerStyles)}>
     <div class="film" @click="${this.hide}"></div>
     <div class="box-content" style='width:${this.contentWidth}'>
       <div class="header">

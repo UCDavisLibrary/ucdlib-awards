@@ -14,13 +14,27 @@ class UcdlibAwardsTimber {
     Timber::render( $template, $context );
   }
 
-  public static function getApplicationHtml( $applicant, $data, $award ){
+  public static function getApplicationHtml( $applicant, $award, $cycleId ){
     $context = [
       'applicant' => $applicant,
-      'questions' => $data,
-      'award' => $award
+      'award' => $award,
+      'cycleId' => $cycleId
     ];
     $template = '@' . UcdlibAwardsConfig::$twigNamespace . '/evaluation/application.twig';
+    $compiled = Timber::compile( $template, $context );
+
+    // remove trailing line break
+    $compiled = preg_replace('/\s+$/m', '', $compiled);
+    return $compiled;
+  }
+
+  public static function getApplicationsHtml( $applicants, $award, $cycleId ){
+    $context = [
+      'applicants' => $applicants,
+      'award' => $award,
+      'cycleId' => $cycleId
+    ];
+    $template = '@' . UcdlibAwardsConfig::$twigNamespace . '/evaluation/applications.twig';
     $compiled = Timber::compile( $template, $context );
 
     // remove trailing line break

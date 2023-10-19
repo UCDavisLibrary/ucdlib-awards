@@ -122,7 +122,7 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
       }));
       const entryId = this.selectedApplicant.applicationEntry?.entry_id;
       delete this.applicationEntryCache[entryId];
-      this.retrieveAndShowApplicants();
+      await this.retrieveAndShowApplicants();
     } else {
       this.dispatchEvent(new CustomEvent('toast-request', {
         bubbles: true,
@@ -310,6 +310,7 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
   async retrieveAndShowApplicants(){
     this.page = 'loading';
     const response = await this.getApplicantsByJudgeId();
+    if ( !response ) return;
     if ( response.success ) {
       this.page = 'applicant-select';
       this.applicants = response.data.applicants
@@ -363,6 +364,7 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
   async getApplicantsByJudgeId(judgeId){
     if ( !judgeId ) judgeId = this.judge.id;
     const response = await this.wpAjax.request('getApplicants', {"judge_id": judgeId});
+    if ( !response ) return;
     if ( response.success ) {
       response.data.applicants = response.data.applicants.map(applicant => this.formatApplicant(applicant));
     }
@@ -458,7 +460,7 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
     }
 
     if ( !this.judges.length && !this.applicants.length ){
-      await this.retrieveAndShowApplicants();
+      this.retrieveAndShowApplicants();
     }
 
   }

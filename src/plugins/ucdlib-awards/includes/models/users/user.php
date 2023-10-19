@@ -97,6 +97,22 @@ class UcdlibAwardsUser {
     return null;
   }
 
+  private $applicationEntryExports;
+  public function getApplicationEntryExport($cycleId){
+    if ( isset($this->applicationEntryExports[$cycleId]) ){
+      return $this->applicationEntryExports[$cycleId];
+    }
+    return [];
+  }
+
+  public function setApplicationEntryExport($cycleId, $export ){
+    if ( !isset($this->applicationEntryExports) ){
+      $this->applicationEntryExports = [];
+    }
+    $this->applicationEntryExports[$cycleId] = $export;
+
+  }
+
   public function applicationStatus($cycleId=null){
     $out = [
       'value' => 'not-submitted',

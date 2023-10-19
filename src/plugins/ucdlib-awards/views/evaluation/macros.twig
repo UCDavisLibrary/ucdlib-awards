@@ -1,0 +1,101 @@
+{% macro renderValue(question) %}
+
+  {% if question.type == 'upload' %}
+    {% set uploads = question.value|split('<br/>') %}
+    <div>
+      {% for upload in uploads %}
+        <div class='upload'><a href="{{upload}}">{{upload}}</a></div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div>{{question.value|replace({"\n":'<br />', "\r":'<br />'})|raw}}</div>
+  {% endif %}
+{% endmacro %}
+
+{% macro renderStyles() %}
+  {{"<style>
+    html {
+      font-size: 16px;
+      max-width: 1500px;
+    }
+    body {
+      padding: 1rem;
+    }
+    h1 {
+      margin: .75em 0 .25em;
+      padding: 0;
+      color: #022851;
+      font-size: 1rem;
+      font-style: normal;
+      font-weight: 800;
+      line-height: 1.2;
+      font-size: 1.91rem;
+    }
+    h2 {
+      margin: .75em 0 .25em;
+      padding: 0;
+      color: #022851;
+      font-size: 1rem;
+      font-style: normal;
+      font-weight: 800;
+      line-height: 1.2;
+      color: #13639e;
+      font-size: 1.6055rem;
+    }
+    h3 {
+      margin: .75em 0 .25em;
+      padding: 0;
+      color: #022851;
+      font-size: 1rem;
+      font-style: normal;
+      font-weight: 800;
+      line-height: 1.2;
+      color: #666;
+      font-size: 1.3325rem;
+    }
+    h4 {
+      margin: .75em 0 .25em;
+      padding: 0;
+      color: #022851;
+      font-size: 1rem;
+      font-style: normal;
+      font-weight: 800;
+      line-height: 1.2;
+      font-size: 1.092rem;
+    }
+    .application {
+      margin: 1rem;
+    }
+    .sub-metas {
+      margin-left: 1rem;
+    }
+    .upload {
+      margin-bottom: .5rem;
+      word-break: break-all;
+    }
+  </style>"|replace({"\n": "", "\r": "", "\t": ""})|raw
+  }}
+{% endmacro %}
+
+{% macro renderApplicant(applicant, cycleId) %}
+  <h2>{{applicant.name}}</h2>
+  <div class='application'>
+    {% for question in applicant.getApplicationEntryExport(cycleId) %}
+      <div>
+        <h3>{{question.label}}</h3>
+        {% if question.sub_metas %}
+          <div class='sub-metas'>
+            {% for sub_question in question.sub_metas %}
+              <div>
+                <h4>{{sub_question.label}}</h4>
+                {{ _self.renderValue(sub_question) }}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          {{ _self.renderValue(question) }}
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+{% endmacro %}

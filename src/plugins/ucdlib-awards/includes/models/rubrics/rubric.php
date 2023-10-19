@@ -58,6 +58,23 @@ class UcdlibAwardsRubric {
     $wpdb->query( $sql );
   }
 
+  protected $hasScores;
+  public function hasScores(){
+    if ( isset($this->hasScores) ){
+      return $this->hasScores;
+    }
+    $itemIds = $this->itemIds();
+    if ( empty($itemIds) ) {
+      $this->hasScores = false;
+      return false;
+    }
+    global $wpdb;
+    $sql = "SELECT COUNT(*) FROM $this->scoresTable WHERE rubric_id IN (" . implode(',', $itemIds) . ")";
+    $count = $wpdb->get_var( $sql );
+    $this->hasScores = $count > 0;
+    return $this->hasScores;
+  }
+
   public function getScoresByUser( $judgeId, $applicantId, $returnRubricItems=false ){
     $cacheKey = "rubric_scores_by_user_{$judgeId}_{$applicantId}";
     $cached = wp_cache_get( $cacheKey, 'ucdlib_awards' );

@@ -4,14 +4,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>{{award.getTitle}} Application - {{applicant.name}}</title>
+  <title>{{award.getTitle}} Applications</title>
   {{ evalMacros.renderStyles() }}
 </head>
 <body>
-<h1>{{award.getTitle}} Application</h1>
-{{ evalMacros.renderApplicant(applicant, cycleId) }}
+<h1>{{award.getTitle}} Applications</h1>
+{% for applicant in applicants %}
+  {{ evalMacros.renderApplicant(applicant, cycleId) }}
+{% endfor %}
 </body>
 </html>
 {% endapply %}
-
-

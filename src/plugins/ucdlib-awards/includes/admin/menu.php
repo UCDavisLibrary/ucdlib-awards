@@ -120,6 +120,8 @@ class UcdlibAwardsAdminMenu {
         }, $requestedCycle->rubric()->items()
         );
       }
+
+      $context['pageProps']['applicationSummary'] = $requestedCycle->applicationSummary();
     }
     UcdlibAwardsTimber::renderAdminPage( 'main', $context );
   }

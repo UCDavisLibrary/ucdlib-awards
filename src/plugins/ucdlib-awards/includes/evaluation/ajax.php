@@ -244,11 +244,12 @@ class UcdlibAwardsEvaluationAjax {
     $applicant = $applicant[0];
 
     $entryValues = $formsModel->exportEntry($formEntry, true);
+    $applicant->setApplicationEntryExport($cycle->cycleId, $entryValues);
     $response['data'] = [
       'entryValues' => $entryValues,
       'formId' => $payload['form_id'],
       'entryId' => $payload['entry_id'],
-      'htmlDoc' =>  UcdlibAwardsTimber::getApplicationHtml($applicant, $entryValues, $this->plugin->award)
+      'htmlDoc' =>  UcdlibAwardsTimber::getApplicationHtml($applicant, $this->plugin->award, $cycle->cycleId)
     ];
     $response['success'] = true;
     return $response;

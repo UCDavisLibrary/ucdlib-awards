@@ -281,6 +281,12 @@ class UcdlibAwardsAdminAjax {
 
         // verify any updated items actually exist
         $rubric = $this->plugin->rubrics->getByCycleId($cycleId);
+
+        if ( $rubric->hasScores() ){
+          $response['messages'][] = 'Rubric items could not be updated because scores have already been submitted.';
+          $this->utils->sendResponse($response);
+          return;
+        }
         $existingItemIds = $rubric->itemIds();
         $payloadItemIds = array_filter(array_map(function($item){
           return !empty($item['rubric_item_id']) ? $item['rubric_item_id'] : false;

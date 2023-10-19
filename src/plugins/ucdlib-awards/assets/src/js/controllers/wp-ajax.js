@@ -31,7 +31,9 @@ export default class wpAjax {
   }
 
   async request(subAction, data){
-    if ( !this.nonce || !subAction || this.requestInProgress[subAction] ) return;
+    if ( !this.nonce || !subAction || this.requestInProgress[subAction] ) {
+      return;
+    }
     this.requestInProgress[subAction] = true;
 
     const body = {};

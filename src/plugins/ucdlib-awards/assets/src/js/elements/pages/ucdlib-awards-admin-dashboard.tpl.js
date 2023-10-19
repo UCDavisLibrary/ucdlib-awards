@@ -12,11 +12,7 @@ export function render() {
       <div class="l-second panel o-box">
         ${this.renderCycleDatesPanel()}
         ${this.renderRubricPanel()}
-        <div class="brand-textbox category-brand--pinot category-brand__background u-space-mb">
-          Applicants - break application count out by status and category, if applicable. show totals for each.
-          also break out review count i.e. 1/3, 2/3, 3/3
-        </div>
-        <div class="brand-textbox category-brand--cabernet category-brand__background u-space-mb">Evaluation</div>
+        ${this.renderApplicationPanel()}
       </div>
     </div>
   `;}
@@ -60,6 +56,45 @@ export function renderCycleDatesPanel(){
           <ucdlib-icon class="" icon="ucd-public:fa-circle-chevron-right"></ucdlib-icon>
           <span>View Cycle</span>
         </a>
+      </section>
+    </div>
+  `;
+}
+
+export function renderApplicationPanel(){
+  if ( !this.applicationSummary || !this.applicationSummary.length ) return html``;
+  const hasCategories = this.applicationSummary.length > 1;
+
+  const renderCategory = (category) => {
+    const title = hasCategories ? category?.category?.label || 'Total' : '';
+    return html`
+      <div class='u-space-mb'>
+        <label ?hidden=${!title}>${title}</label>
+        <div>
+          <div class='status-row primary bold'>
+            <div>Status</div>
+            <div>Count</div>
+          </div>
+          <div>
+            ${(category?.statusCtRows || []).map(status => html`
+              <div class='status-row'>
+                <div>${status.label}</div>
+                <div>${status.ct}</div>
+              </div>
+            `)}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+  return html`
+    <div class="panel panel--icon panel--icon-custom o-box category-brand--pinot">
+      <h2 class="panel__title">
+        <ucdlib-icon icon="ucd-public:fa-square-pen" class="panel__custom-icon"></ucdlib-icon>
+        <span>Applications</span>
+      </h2>
+      <section>
+        ${this.applicationSummary.map(category => renderCategory(category))}
       </section>
     </div>
   `;

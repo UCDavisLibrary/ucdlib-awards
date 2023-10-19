@@ -11,6 +11,15 @@ const customStyles = css`
   ucdlib-awards-admin-dashboard .list--arrow li::marker {
     color: var(--category-brand);
   }
+  ucdlib-awards-admin-dashboard .status-row {
+    display: flex;
+    align-items: center;
+  }
+  ucdlib-awards-admin-dashboard .status-row div:first-child {
+    margin-right: 1rem;
+    width: 110px;
+    min-width: 110px;
+  }
 
 `;
 

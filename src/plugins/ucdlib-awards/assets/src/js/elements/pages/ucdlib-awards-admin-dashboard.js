@@ -20,7 +20,8 @@ export default class UcdlibAwardsAdminDashboard extends Mixin(LitElement)
       rubricItemTitles: {state: true},
       logsProps: {state: true},
       logsPropsJson: {state: true},
-      logsLink: {state: true}
+      logsLink: {state: true},
+      applicationSummary: {state: true}
     }
   }
 
@@ -30,6 +31,7 @@ export default class UcdlibAwardsAdminDashboard extends Mixin(LitElement)
     this.renderCycleDatesPanel = templates.renderCycleDatesPanel.bind(this);
     this.renderLogsPanel = templates.renderLogsPanel.bind(this);
     this.renderRubricPanel = templates.renderRubricPanel.bind(this);
+    this.renderApplicationPanel = templates.renderApplicationPanel.bind(this);
 
     this.requestedCycle = {};
     this.hasRequestedCycle = false;
@@ -41,6 +43,7 @@ export default class UcdlibAwardsAdminDashboard extends Mixin(LitElement)
     this.hasRubric = false;
     this.rubricLink = '';
     this.rubricItemTitles = [];
+    this.applicationSummary = [];
 
     this.wpAjax = new wpAjaxController(this);
     this.mutationObserver = new MutationObserverController(this);
@@ -73,6 +76,7 @@ export default class UcdlibAwardsAdminDashboard extends Mixin(LitElement)
       console.error('Error parsing JSON script', e);
     }
     if ( !data ) return;
+    console.log('data', data);
     if ( data.requestedCycle ) {
       this.requestedCycle = data.requestedCycle;
     }
@@ -90,6 +94,9 @@ export default class UcdlibAwardsAdminDashboard extends Mixin(LitElement)
     }
     if ( data.rubricItemTitles ) {
       this.rubricItemTitles = data.rubricItemTitles;
+    }
+    if ( data.applicationSummary ){
+      this.applicationSummary = data.applicationSummary;
     }
     if ( data.cyclesLink && data.requestedCycle ) {
       const params = new URLSearchParams(data.cyclesLink.split('?')[1]);

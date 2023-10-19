@@ -11,6 +11,7 @@ export default class UcdlibAwardsModal extends LitElement {
       autoWidth: {type: Boolean, attribute: 'auto-width'},
       hideFooter: {type: Boolean, attribute: 'hide-footer'},
       contentWidth: {state: true},
+      containerStyles: {state: true},
       closeOnConfirm : {type: Boolean}
     };
   }
@@ -28,6 +29,19 @@ export default class UcdlibAwardsModal extends LitElement {
     this.closeOnConfirm = true;
     this.autoWidth = false;
     this.hideFooter = false;
+    this.containerStyles = {};
+
+    this._onResize = this._onResize.bind(this);
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    window.addEventListener('resize', this._onResize);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    window.removeEventListener('resize', this._onResize);
   }
 
   /**
@@ -40,6 +54,11 @@ export default class UcdlibAwardsModal extends LitElement {
         this.contentWidth = 'auto';
       } else {
         this.contentWidth = '85%';
+      }
+    }
+    if ( props.has('visible') ) {
+      if ( this.visible ) {
+        this._compensateForSidebar();
       }
     }
   }
@@ -66,6 +85,22 @@ export default class UcdlibAwardsModal extends LitElement {
    */
   toggle() {
     this.visible = !this.visible;
+  }
+
+  _onResize() {
+    if ( this.visible ) {
+      this._compensateForSidebar();
+    }
+  }
+
+  _compensateForSidebar() {
+    const styles = {};
+    const sidebar = document.querySelector('#adminmenuwrap');
+    if ( sidebar && sidebar.offsetWidth ) {
+      styles['margin-left'] = `${sidebar.offsetWidth}px`;
+      styles['width'] = `calc(100% - ${sidebar.offsetWidth}px)`;
+    }
+    this.containerStyles = styles;
   }
 
   /**
