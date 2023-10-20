@@ -155,6 +155,58 @@ class UcdlibAwardsCycle {
     $this->cycleMeta = null;
   }
 
+  public function applicationIsCompleted($applicantId, $judgeId){
+    $evaluationMap = $this->completedEvaluationsMap();
+    if ( !isset($evaluationMap[ $judgeId ]) ) return false;
+    return in_array($applicantId, $evaluationMap[ $judgeId ]);
+  }
+
+  protected $scoresArray;
+  public function scoresArray(){
+    if ( isset($this->scoresArray) ) return $this->scoresArray;
+
+    $rubricItemsWithScores = $this->rubric()->getAllScores(true);
+
+    $out = [];
+    foreach ( $rubricItemsWithScores as $rubricItem ) {
+      foreach ( $rubricItem['scores'] as $score ) {
+        if ( !$this->applicationIsCompleted($score->applicant_id, $score->judge_id) ) return;
+        $applicant = $this->getApplicantById( $score->applicant_id );
+        $judge = $this->getJudgeById( $score->judge_id );
+        if ( !$applicant || !$judge ) continue;
+        $o = [
+          'judge' => [
+            'id' => $judge->record()->user_id,
+            'name' => $judge->name()
+          ],
+          'applicant' => [
+            'id' => $applicant->record()->user_id,
+            'name' => $applicant->name()
+          ],
+          'rubricItem' => [
+            'id' => $rubricItem['rubric_item']->rubric_item_id,
+            'title' => $rubricItem['rubric_item']->title,
+            'weight' => $rubricItem['rubric_item']->weight,
+            'order' => $rubricItem['rubric_item']->item_order
+          ],
+          'score' => [
+            'score' => $score->score,
+            'note' => $score->note
+          ]
+        ];
+        if ( $this->categories() ){
+          $o['category'] = $applicant->applicationCategory($this->cycleId);
+        } else {
+          $o['category'] = null;
+        }
+        $out[] = $o;
+      }
+    }
+
+    $this->scoresArray = $out;
+    return $this->scoresArray;
+  }
+
   protected $applicationSummary;
   public function applicationSummary(){
     if ( isset($this->applicationSummary) ) return $this->applicationSummary;
@@ -455,6 +507,14 @@ class UcdlibAwardsCycle {
     return $out;
   }
 
+  public function getJudgeById($id){
+    $judges = $this->judges();
+    foreach( $judges as $judge ){
+      if ( $judge->record()->user_id == $id ) return $judge;
+    }
+    return false;
+  }
+
   public function judges($returnArray=false, $arrayFields=[]){
     $judges = [];
 
@@ -567,6 +627,14 @@ class UcdlibAwardsCycle {
     if ( isset($this->allApplicants) ) return $this->allApplicants;
     $this->allApplicants = $this->plugin->users->getAllApplicants( $this->cycleId );
     return $this->allApplicants;
+  }
+
+  public function getApplicantById($id){
+    $applicants = $this->allApplicants();
+    foreach( $applicants as $applicant ){
+      if ( $applicant->record()->user_id == $id ) return $applicant;
+    }
+    return false;
   }
 
   protected $applicationEntries;

@@ -75,6 +75,44 @@ class UcdlibAwardsRubric {
     return $this->hasScores;
   }
 
+  public function getAllScores($byItem=false){
+    $cacheKey = "rubric_all_scores";
+    $cached = wp_cache_get( $cacheKey, 'ucdlib_awards' );
+    $itemIds = $this->itemIds();
+    if ( empty($itemIds) ) return [];
+
+    $scores = [];
+    if ( $cached ){
+      $scores = $cached;
+    } else {
+      global $wpdb;
+      $sql = "SELECT * FROM $this->scoresTable WHERE rubric_id IN (" . implode(',', $itemIds) . ")";
+      $scores = $wpdb->get_results( $sql );
+      wp_cache_set( $cacheKey, $scores, 'ucdlib_awards' );
+    }
+    if ( !$byItem ) return $scores;
+
+    $scoresByRubricId = [];
+    foreach( $scores as $score ){
+      if ( !isset($scoresByRubricId[$score->rubric_id]) ){
+        $scoresByRubricId[$score->rubric_id] = [];
+      }
+      $scoresByRubricId[$score->rubric_id][] = $score;
+    }
+
+    $out = [];
+    foreach( $this->items() as $item ){
+      $scores = isset($scoresByRubricId[$item->rubric_item_id]) ? $scoresByRubricId[$item->rubric_item_id] : [];
+      $o = [
+        'rubric_item_id' => $item->rubric_item_id,
+        'rubric_item' => $item,
+        'scores' => $scores
+      ];
+      $out[] = $o;
+    }
+    return $out;
+  }
+
   public function getScoresByUser( $judgeId, $applicantId, $returnRubricItems=false ){
     $cacheKey = "rubric_scores_by_user_{$judgeId}_{$applicantId}";
     $cached = wp_cache_get( $cacheKey, 'ucdlib_awards' );

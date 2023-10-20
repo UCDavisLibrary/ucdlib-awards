@@ -74,11 +74,40 @@ class UcdlibAwardsAdminMenu {
     add_submenu_page(
       $this->slugs['main'],
       $this->award->getAdminMenuPageTitle(),
+      "Evaluation",
+      "edit_posts",
+      $this->slugs['evaluation'],
+      [$this, 'renderEvaluation']
+    );
+
+    add_submenu_page(
+      $this->slugs['main'],
+      $this->award->getAdminMenuPageTitle(),
       "Activity Log",
       "edit_posts",
       $this->slugs['logs'],
       [$this, 'renderLogs']
     );
+
+  }
+
+  public function renderEvaluation(){
+    $context = $this->context();
+    $requestedCycle = $this->context['requestedCycle'];
+    $pageProps = [
+      'wpAjax' => $this->ajaxUtils->getAjaxElementProperty('adminEvaluation')
+    ];
+
+    if ( $requestedCycle ){
+      $pageProps['scores'] = $requestedCycle->scoresArray();
+      if ( $requestedCycle->categories() ){
+        $pageProps['categories'] = $requestedCycle->categories();
+        $pageProps['scoringCalculation'] = $requestedCycle->rubric()->scoringCalculation();
+      }
+    }
+
+    $context['pageProps'] = $pageProps;
+    UcdlibAwardsTimber::renderAdminPage( 'evaluation', $context );
 
   }
 
