@@ -69,6 +69,8 @@ export default class UcdlibAwardsApplicantsCtl extends Mixin(LitElement)
     const action = e.detail.action;
     if ( action === 'delete' ) {
       await this.deleteSelectedApplicants();
+    } else if ( action === 'getApplications' ) {
+      await this.getApplications();
     }
 
     this.selectedApplicants = [];
@@ -79,6 +81,28 @@ export default class UcdlibAwardsApplicantsCtl extends Mixin(LitElement)
 
   _onSelectedApplicantsChange(e) {
     this.selectedApplicants = e.detail.selectedApplicants;
+  }
+
+  async getApplications(){
+    const response = await this.wpAjax.request('getApplications', {cycle_id: this.cycleId, applicant_ids: this.selectedApplicants});
+    if ( response.success ){
+      const blob = new Blob([response.data.htmlDoc], {type: 'text/html'});
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+
+    } else {
+      console.error('Error getting applications', response);
+      let msg = 'Unable to get applications';
+      if ( response.messages.length) msg += `: ${response.messages?.[0] || ''}`;
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: msg,
+          type: 'error'
+        }
+      }));
+    }
   }
 
   async deleteSelectedApplicants(){

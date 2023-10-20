@@ -36,6 +36,11 @@ export default class UcdlibAwardsApplicantsActions extends Mixin(LitElement)
         slug: 'delete',
         bulk: true
       },
+      {
+        label: 'Download Applications',
+        slug: 'getApplications',
+        bulk: true
+      }
     ];
   }
 

@@ -67,6 +67,48 @@ class UcdlibAwardsAdminAjax {
         $response['data'] = ['applicants' => $this->plugin->users->toArrays($applicants, $args)];
         $response['success'] = true;
 
+      } else if ( $action === 'getApplications' ){
+        $payload = json_decode( stripslashes($_POST['data']), true );
+
+        $cycle = $this->getCycle($payload, $response);
+        $cycleId = $cycle->cycleId;
+        $formId = $cycle->applicationFormId();
+        if ( empty($formId) ){
+          $response['messages'][] = 'No application form found.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        $formsModel = $this->plugin->forms;
+        $entries = $formsModel->getEntries($formId);
+        $entriesByApplicantId = [];
+        foreach ($entries as $entry) {
+          $applicantId = $entry->get_meta('forminator_addon_ucdlib-awards_applicant_id');
+          if ( !empty($applicantId) ){
+            $entriesByApplicantId[$applicantId] = $entry;
+          }
+        }
+
+        if ( empty($payload['applicant_ids'])){
+          $response['messages'][] = 'No applicant ids specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+        $applicantIds = is_array($payload['applicant_ids']) ? $payload['applicant_ids'] : [$payload['applicant_ids']];
+        $applicants = $this->plugin->users->getByUserIds($applicantIds);
+
+        foreach ($applicants as &$applicant) {
+          $entry = isset($entriesByApplicantId[$applicant->id]) ? $entriesByApplicantId[$applicant->id] : false;
+          if ( $entry ){
+            $entry = $formsModel->exportEntry($entry, true);
+            $applicant->setApplicationEntryExport($cycleId, $entry);
+          }
+        }
+        $response['data'] = [
+          'htmlDoc' =>  UcdlibAwardsTimber::getApplicationsHtml($applicants, $this->plugin->award, $cycleId)
+        ];
+        $response['success'] = true;
+
       }
     } catch (\Throwable $th) {
       error_log('Error in UcdlibAwardsAdminAjax::applicants(): ' . $th->getMessage());
