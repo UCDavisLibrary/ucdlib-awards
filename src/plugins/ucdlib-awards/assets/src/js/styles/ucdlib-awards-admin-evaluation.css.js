@@ -11,9 +11,6 @@ const customStyles = css`
   ucdlib-awards-admin-evaluation th.rubric-items {
     text-align: center;
   }
-  ucdlib-awards-admin-evaluation th.rubric-item {
-    max-width: 150px;
-  }
   ucdlib-awards-admin-evaluation thead {
     background-color: #dbeaf7;
   }

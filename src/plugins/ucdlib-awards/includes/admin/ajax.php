@@ -15,7 +15,40 @@ class UcdlibAwardsAdminAjax {
     add_action( 'wp_ajax_' . $this->actions['adminRubric'], [$this, 'rubric'] );
     add_action( 'wp_ajax_' . $this->actions['adminJudges'], [$this, 'judges'] );
     add_action( 'wp_ajax_' . $this->actions['adminApplicants'], [$this, 'applicants'] );
+    add_action( 'wp_ajax_' . $this->actions['adminEmail'], [$this, 'email'] );
 
+  }
+
+  public function email(){
+    check_ajax_referer( $this->actions['adminEmail'] );
+    $response = $this->utils->getResponseTemplate();
+    try {
+      $this->validateRequest($response);
+      $action = $_POST['subAction'];
+      if ( $action === 'updateMetaGroup' ){
+        $payload = json_decode( stripslashes($_POST['data']), true );
+        $cycle = $this->getCycle($payload, $response);
+        $cycleId = $cycle->cycleId;
+
+        if ( empty($payload['group']) ){
+          $response['messages'][] = 'No group specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        $fields = array_filter($cycle->getEmailMeta(), function($field) use ($payload){
+          return $field['group'] === $payload['group'];
+        });
+        if ( !count($fields) ){
+          $response['messages'][] = 'No fields found for group.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+      }
+    } catch (\Throwable $th) {
+      error_log('Error in UcdlibAwardsAdminAjax::email(): ' . $th->getMessage());
+    }
+    $this->utils->sendResponse($response);
   }
 
   public function applicants(){

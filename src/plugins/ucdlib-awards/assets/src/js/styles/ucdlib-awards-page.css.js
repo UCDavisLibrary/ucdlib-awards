@@ -76,7 +76,7 @@ const customStyles = css`
   text-decoration: none;
 }
 .page-subtitle {
-  margin: .5rem 0px 1rem 1rem;
+  margin: .5rem 0px 1rem .75rem;
 }
 input[type="text"] {
   box-sizing: border-box;

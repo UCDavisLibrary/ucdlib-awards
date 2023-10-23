@@ -83,12 +83,41 @@ class UcdlibAwardsAdminMenu {
     add_submenu_page(
       $this->slugs['main'],
       $this->award->getAdminMenuPageTitle(),
+      "Email Settings",
+      "edit_posts",
+      $this->slugs['email'],
+      [$this, 'renderEmailSettings']
+    );
+
+    add_submenu_page(
+      $this->slugs['main'],
+      $this->award->getAdminMenuPageTitle(),
       "Activity Log",
       "edit_posts",
       $this->slugs['logs'],
       [$this, 'renderLogs']
     );
 
+  }
+
+  public function renderEmailSettings(){
+    $context = $this->context();
+    $requestedCycle = $this->context['requestedCycle'];
+    $pageProps = [
+      'wpAjax' => $this->ajaxUtils->getAjaxElementProperty('adminEmail')
+    ];
+
+    if ( $requestedCycle ){
+      $meta = $requestedCycle->getEmailMeta(true);
+      foreach ($meta as &$m) {
+        if ( is_array($m) && !count($m) ) $m = new stdClass();
+      }
+      $pageProps['emailMeta'] = $meta;
+      $pageProps['cycleId'] = $requestedCycle->cycleId;
+    }
+
+    $context['pageProps'] = $pageProps;
+    UcdlibAwardsTimber::renderAdminPage( 'email', $context );
   }
 
   public function renderEvaluation(){

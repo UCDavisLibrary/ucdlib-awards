@@ -29,7 +29,8 @@ class UcdlibAwardsAwardAbstract {
     'applicants' => 'awards-admin-applicants',
     'rubric' => 'awards-admin-rubric',
     'judges' => 'awards-admin-judges',
-    'evaluation' => 'awards-admin-evaluation'
+    'evaluation' => 'awards-admin-evaluation',
+    'email' => 'awards-admin-email'
   ];
 
   protected $_dashboardSettings = [

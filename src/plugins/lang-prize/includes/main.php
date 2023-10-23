@@ -14,7 +14,8 @@ class LangPrize extends UcdlibAwardsAwardAbstract {
     'applicants' => 'lang-prize-admin-applicants',
     'rubric' => 'lang-prize-admin-rubric',
     'judges' => 'lang-prize-admin-judges',
-    'evaluation' => 'lang-prize-admin-evaluation'
+    'evaluation' => 'lang-prize-admin-evaluation',
+    'email' => 'lang-prize-admin-email'
   ];
 
   protected $_evaluationMenuTitle = "Lang Prize Evaluation";
