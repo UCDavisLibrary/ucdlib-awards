@@ -35,6 +35,57 @@ export default class UcdlibAwardsAdminEvaluation extends Mixin(LitElement)
     }
   }
 
+  // download scores as CSV
+  _onDownloadClick(){
+    let csvContent = "data:text/csv;charset=utf-8,";
+
+    // headers
+    const headers = [
+      'Applicant Name',
+      'Applicant Id',
+      'Judge Name',
+      'Judge Id',
+      'Category',
+      'Rubric Item',
+      'Rubric Item Id',
+      'Rubric Item Weight',
+      'Score',
+      'Judge Comment'
+    ];
+    csvContent += headers.join(',') + '\n';
+
+    // rows
+    const rows = this.scores.map(score => {
+      return [
+        this._quoteAndEscapeCSVValue(score.applicant?.name),
+        this._quoteAndEscapeCSVValue(score.applicant?.id),
+        this._quoteAndEscapeCSVValue(score.judge?.name),
+        this._quoteAndEscapeCSVValue(score.judge?.id),
+        this._quoteAndEscapeCSVValue(score.category?.label),
+        this._quoteAndEscapeCSVValue(score.rubricItem?.title),
+        this._quoteAndEscapeCSVValue(score.rubricItem?.id),
+        this._quoteAndEscapeCSVValue(score.rubricItem?.weight),
+        this._quoteAndEscapeCSVValue(score.score?.score),
+        this._quoteAndEscapeCSVValue(score.score?.note)
+      ];
+    });
+    csvContent += rows.map(row => row.join(',')).join('\n');
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `scores-${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  _quoteAndEscapeCSVValue(value) {
+    if ( !value ) return '';
+    const escapedValue = value.replace(/"/g, '""');
+    return `"${escapedValue}"`;
+}
+
   _extractRubricItems(scores) {
     const items = {};
     for (const score of scores) {
