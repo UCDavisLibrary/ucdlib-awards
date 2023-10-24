@@ -36,7 +36,7 @@ class UcdlibAwardsAdminAjax {
           return;
         }
 
-        $fields = array_filter($cycle->getEmailMeta(), function($field) use ($payload){
+        $fields = array_filter($this->plugin->email->metaFields, function($field) use ($payload){
           return $field['group'] === $payload['group'];
         });
         if ( !count($fields) ){
@@ -44,6 +44,51 @@ class UcdlibAwardsAdminAjax {
           $this->utils->sendResponse($response);
           return;
         }
+        $fieldsToWrite = array_intersect_key(isset($payload['data']) ? $payload['data'] : [], $fields);
+        if ( !count($fieldsToWrite) ){
+          $response['messages'][] = 'No fields to write.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        foreach ($fieldsToWrite as $key => $value) {
+          $fieldType = $fields[$key]['type'];
+          $fieldLabel = $fields[$key]['label'];
+          $isArray = $fields[$key]['isArray'];
+
+          if ( !is_array($value) ) $value = [$value];
+          foreach ($value as &$v) {
+            if ( $fieldType === 'boolean' ){
+              $v = $v ? true : false;
+            } else if ( $fieldType === 'email' ){
+              $v = sanitize_email($v);
+              if ( !is_email($v) ){
+                $preposition = $isArray ? ' contains an ' : ' is an ';
+                $response['messages'][] = $fieldLabel . $preposition . 'invalid email address.';
+                $response['errorFields'][$key] = true;
+                break;
+              }
+            } else if ( $fieldType === 'text' ){
+              $v = sanitize_text_field($v);
+            } else if ( $fieldType === 'textArea' ){
+              $v = sanitize_textarea_field($v);
+            }
+          }
+          if ( !$isArray ) $value = $value[0];
+          $fieldsToWrite[$key] = $value;
+        }
+        if ( count($response['messages']) ){
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        $cycle->updateEmailMeta($fieldsToWrite);
+        $this->logger->logEmailSettingChange($cycleId);
+        $emailMeta = $cycle->getEmailMeta(true);
+        $response['data'] = ['emailMeta' => $emailMeta[$payload['group']]];
+        $response['messages'][] = 'Email settings updated successfully.';
+        $response['success'] = true;
+
       }
     } catch (\Throwable $th) {
       error_log('Error in UcdlibAwardsAdminAjax::email(): ' . $th->getMessage());

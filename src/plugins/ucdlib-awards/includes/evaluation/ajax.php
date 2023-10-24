@@ -170,7 +170,7 @@ class UcdlibAwardsEvaluationAjax {
     $judge->updateMeta('conflictOfInterestApplicant', $payload['applicant_id'], $cycleId);
     if ( !empty($payload['coi_details']) ){
       $metaKey = 'conflictOfInterestApplicant' . $payload['applicant_id'] . 'Details';
-      $judge->updateMeta($metaKey, $payload['coi_details'], $cycleId);
+      $judge->updateMeta($metaKey, sanitize_textarea_field($payload['coi_details']), $cycleId);
     }
 
     $this->logger->logConflictOfInterest($cycleId, $judge->record()->user_id, $payload['applicant_id']);

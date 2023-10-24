@@ -114,6 +114,8 @@ class UcdlibAwardsAdminMenu {
       }
       $pageProps['emailMeta'] = $meta;
       $pageProps['cycleId'] = $requestedCycle->cycleId;
+      $pageProps['templateDefaults'] = $this->plugin->email->getAllTemplateDefaults();
+      $pageProps['templateVariables'] = $this->plugin->email->getTemplateVariables();
     }
 
     $context['pageProps'] = $pageProps;

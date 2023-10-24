@@ -27,11 +27,12 @@ class UcdlibAwardsRubric {
     if ( empty($judgeId) || empty($applicantId) ) return;
     if ( empty($scores) || !is_array($scores) ) return;
     foreach( $scores as $rubricItemId => $itemScores ){
+      $note = sanitize_textarea_field( $itemScores['note'] ?? '' );
       $o = [
         'rubric_id' => $rubricItemId,
         'judge_id' => $judgeId,
         'applicant_id' => $applicantId,
-        'note' => isset($itemScores['note']) ? $itemScores['note'] : '',
+        'note' => $note,
         'date_created' => date('Y-m-d H:i:s'),
         'date_updated' => date('Y-m-d H:i:s')
       ];

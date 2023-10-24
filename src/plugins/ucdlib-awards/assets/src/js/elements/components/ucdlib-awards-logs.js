@@ -83,6 +83,8 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
       log = this._parseEvaluationAdminLog(log);
     } else if ( log.log_type == 'evaluation' ) {
       log = this._parseEvaluationLog(log);
+    } else if ( log.log_type == 'email' ) {
+      log = this._parseEmailLog(log);
     }
 
     if ( !log.displayText ) {
@@ -139,6 +141,15 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
       log.displayText = `Conflict of interest declared by ${this.getUserName(log.user_id_subject)} for applicant ${this.getUserName(log.user_id_object)}`;
     } else if ( log.log_subtype === 'completed' ) {
       log.displayText = `Evaluation completed by ${this.getUserName(log.user_id_subject)} for applicant ${this.getUserName(log.user_id_object)}`;
+    }
+    return log;
+  }
+
+  _parseEmailLog(log){
+    log.icon = 'ucd-public:fa-envelope';
+    log.iconColor = 'delta';
+    if ( log.log_subtype === 'update-settings' ) {
+      log.displayText = `Email settings updated by ${this.getUserName(log.user_id_subject)}`;
     }
     return log;
   }

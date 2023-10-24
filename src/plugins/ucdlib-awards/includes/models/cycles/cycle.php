@@ -159,6 +159,10 @@ class UcdlibAwardsCycle {
     return $this->plugin->email->getAllMeta( $this->cycleId, $byGroup );
   }
 
+  public function updateEmailMeta( $meta ){
+    $this->plugin->email->updateMeta( $this->cycleId, $meta );
+  }
+
   public function applicationIsCompleted($applicantId, $judgeId){
     $evaluationMap = $this->completedEvaluationsMap();
     if ( !isset($evaluationMap[ $judgeId ]) ) return false;

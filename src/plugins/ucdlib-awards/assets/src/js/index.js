@@ -5,6 +5,7 @@ import '@ucd-lib/theme-elements/brand/ucd-theme-slim-select/ucd-theme-slim-selec
 import '@ucd-lib/theme-elements/ucdlib/ucdlib-pages/ucdlib-pages.js';
 import '@ucd-lib/theme-elements/brand/ucd-theme-pagination/ucd-theme-pagination.js'
 import '@ucd-lib/theme-elements/brand/ucd-theme-subnav/ucd-theme-subnav.js'
+import '@ucd-lib/theme-elements/brand/ucd-theme-list-accordion/ucd-theme-list-accordion.js'
 
 // app components
 import "./elements/components/ucdlib-awards-page.js";
@@ -12,6 +13,7 @@ import "./elements/components/ucdlib-awards-forbidden.js";
 import "./elements/components/ucdlib-awards-logs.js";
 import "./elements/components/ucdlib-awards-logs-filter.js";
 import "./elements/components/ucdlib-awards-modal.js";
+import "./elements/components/ucdlib-awards-email-template.js";
 
 // app admin pages
 import "./elements/pages/ucdlib-awards-admin-dashboard.js";

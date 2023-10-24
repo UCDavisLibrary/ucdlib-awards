@@ -111,6 +111,22 @@ class UcdlibAwardsLogs {
             'description' => 'Evaluation completed'
           ]
         ]
+      ],
+      'email' => [
+        'slug' => 'email',
+        'label' => 'Email',
+        'subTypes' => [
+          'send' => [
+            'slug' => 'send',
+            'label' => 'Send',
+            'description' => 'Email sent'
+          ],
+          'update-settings' => [
+            'slug' => 'update-settings',
+            'label' => 'Update Settings',
+            'description' => 'Email settings updated'
+          ]
+        ]
       ]
     ];
 
@@ -314,6 +330,24 @@ class UcdlibAwardsLogs {
       $wpdb->insert( $this->table, $log );
     }
 
+  }
+
+  public function logEmailSettingChange($cycleId) {
+    $log = [
+      'log_type' => 'email',
+      'log_subtype' => 'update-settings',
+      'cycle_id' => $cycleId,
+      'date_created' =>  date('Y-m-d H:i:s')
+    ];
+
+    $currentUser = $this->plugin->users->currentUser();
+    if ( $currentUser->record() ){
+      $log['user_id_subject'] = $currentUser->record()->user_id;
+    }
+
+    global $wpdb;
+    $wpdb->insert( $this->table, $log );
+    return true;
   }
 
   public function logJudgeRemoval($cycleId, $judgeId) {

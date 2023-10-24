@@ -9,6 +9,7 @@ class UcdlibAwardsConfig {
   public static $twigNamespace = 'ucdlib-awards';
   public static $adminJsSlug = 'ucdlib-awards';
   public static $publicJsSlug = 'ucdlib-awards';
+  public static $optionsSlug = 'ucdlib_awards';
 
   public static $ajaxActions = [
     'adminGeneral' => 'ucdlib_awards_admin_general',

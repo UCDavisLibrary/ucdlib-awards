@@ -121,6 +121,10 @@ select[disabled] {
   border-color: #c10230;
   background-color: #c102300d;
 }
+.error > textarea {
+  border-color: #c10230;
+  background-color: #c102300d;
+}
 .button-row {
   display: flex;
 }

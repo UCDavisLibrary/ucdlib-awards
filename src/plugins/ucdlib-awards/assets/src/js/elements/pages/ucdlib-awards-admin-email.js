@@ -18,7 +18,10 @@ export default class UcdlibAwardsAdminEmail extends Mixin(LitElement)
       formAdmin: { type: Object },
       formJudge: { type: Object },
       formApplicant: { type: Object },
-      errorMessages: { type: Array }
+      errorMessages: { type: Array },
+      errorFields: {type: Object},
+      templateDefaults: { type: Object },
+      templateVariables: { type: Array }
     }
   }
 
@@ -35,6 +38,9 @@ export default class UcdlibAwardsAdminEmail extends Mixin(LitElement)
     this.formApplicant = {};
     this.errorMessages = [];
     this.cycleId = '';
+    this.errorFields = {};
+    this.templateDefaults = {};
+    this.templateVariables = [];
 
     this.page = 'general';
     this.pages = [
@@ -51,6 +57,7 @@ export default class UcdlibAwardsAdminEmail extends Mixin(LitElement)
     if ( !newPage ) return;
     if ( newPage.value === this.page ) return;
     this.errorMessages = [];
+    this.errorFields = {};
     this.page = newPage.value;
   }
 
@@ -59,6 +66,8 @@ export default class UcdlibAwardsAdminEmail extends Mixin(LitElement)
     const page = this.pages.find(p => p.value === this.page);
     if ( !page ) return;
     const data = this[page.formProperty];
+    this.errorMessages = [];
+    this.errorFields = {};
     console.log(data);
 
     const payload = {
@@ -68,10 +77,19 @@ export default class UcdlibAwardsAdminEmail extends Mixin(LitElement)
     };
     const response = await this.wpAjax.request('updateMetaGroup', payload);
     if ( response.success ){
-
+      this[page.formProperty] = response.data.emailMeta;
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: 'Settings updated',
+          type: 'success'
+        }
+      }));
     } else {
       console.error('Error updating settings', response);
       this.errorMessages = response.messages || [];
+      this.errorFields = response.errorFields || {};
     }
   }
 
@@ -81,6 +99,10 @@ export default class UcdlibAwardsAdminEmail extends Mixin(LitElement)
     const data = this[page.formProperty];
     data[prop] = value;
     this[page.formProperty] = {...data};
+
+    if ( this.errorFields[prop] ) {
+      delete this.errorFields[prop];
+    }
 
   }
 
@@ -119,6 +141,12 @@ _parsePropsScript(script){
   }
   if ( data.cycleId ) {
     this.cycleId = data.cycleId;
+  }
+  if ( data.templateDefaults ) {
+    this.templateDefaults = data.templateDefaults;
+  }
+  if ( data.templateVariables ) {
+    this.templateVariables = data.templateVariables;
   }
 }
 
