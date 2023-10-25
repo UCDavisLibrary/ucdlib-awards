@@ -3,6 +3,9 @@ import { html } from 'lit';
 export function render() {
 return html`
   <h3 class='page-subtitle'>Cycle Email Settings</h3>
+  <div ?hidden=${this.emailingEnabled} class='brand-textbox category-brand__background category-brand--redbud u-space-mb'>
+    Emailing is currently disabled. To enable, set the 'UCDLIB_AWARDS_EMAILING_ENABLED' environment variable to 'true'.
+  </div>
   <div class="l-2col l-2col--67-33">
     <div class="l-first panel o-box">
       <div class="brand-textbox category-brand__background category-brand--double-decker u-space-mb" ?hidden=${!this.errorMessages.length}>
@@ -16,9 +19,7 @@ return html`
       <ucdlib-pages selected=${'email-' + this.page}>
         ${ renderPageGeneral.call(this) }
         ${ renderPageAdmin.call(this) }
-        <div id='email-judge'>
-          <h4>Judge Notifications</h4>
-        </div>
+        ${ renderPageJudge.call(this) }
         ${ renderPageApplicant.call(this)}
       </ucdlib-pages>
     </div>
@@ -32,47 +33,71 @@ return html`
   </div>
 `;}
 
+export function renderPageJudge() {
+  const pageSlug = 'judge';
+  const data = this.formJudge || {};
+  const emails = [
+    this.makeEmailObject({label: 'Application Assigned', emailPrefix: 'emailJudgeApplicantAssigned', data}),
+    this.makeEmailObject({label: 'Evaluation Reminder', emailPrefix: 'emailJudgeEvaluationNudge', data, notAnAutomatedEmail: true}),
+  ];
+  return html`
+    <div id='email-${pageSlug}'>
+      <form @submit=${this._onFormSubmit}>
+        <h4 class='u-space-mb'>Judge Notifications</h4>
+        <ucd-theme-list-accordion>
+          ${emails.map(email => html`
+            <li>${email.label}</li>
+            <li>
+              <ucdlib-awards-email-template
+                class='u-space-mt u-block'
+                @email-update=${this._onEmailUpdate}
+                .emailPrefix=${email.emailPrefix}
+                .bodyTemplate=${email.body.value}
+                .defaultBodyTemplate=${email.body.default}
+                .defaultSubjectTemplate=${email.subject.default}
+                .subjectTemplate=${email.subject.value}
+                .disableNotification=${email.disable.value}
+                .templateVariables=${email.body.templateVariables}>
+              </ucdlib-awards-email-template>
+            </li>
+          `)}
+        </ucd-theme-list-accordion>
+        <button type='submit' class='btn btn btn--primary border-box u-space-mt'>Save</button>
+      </form>
+    </div>
+  `;
+}
+
 export function renderPageApplicant() {
   const pageSlug = 'applicant';
   const data = this.formApplicant || {};
   const emails = [
-    {
-      label: 'Application Submission Confirmation',
-      emailPrefix: 'emailApplicantConfirmation',
-      disable: { prop: 'emailApplicantConfirmationDisable', value: data.emailApplicantConfirmationDisable ? true : false },
-      subject: {
-        prop: 'emailApplicantConfirmationSubject',
-        value: data.emailApplicantConfirmationSubject || '',
-        default: this.templateDefaults['emailApplicantConfirmationSubject'] || '',
-        templateVariables: this.templateVariables.filter(variable => variable.fields.includes('emailApplicantConfirmationSubject'))
-      },
-      body: {
-        prop: 'emailApplicantConfirmationBody',
-        value: data.emailApplicantConfirmationBody || '',
-        default: this.templateDefaults['emailApplicantConfirmationBody'] || '',
-        templateVariables: this.templateVariables.filter(variable => variable.fields.includes('emailApplicantConfirmationBody'))
-      },
-    }
+    this.makeEmailObject({label: 'Applicant Submission Confirmation', emailPrefix: 'emailApplicantConfirmation', data}),
   ];
   return html`
     <div id='email-${pageSlug}'>
-      <ucd-theme-list-accordion>
-        ${emails.map(email => html`
-          <li>${email.label}</li>
-          <li>
-            <ucdlib-awards-email-template
-              @email-update=${e => console.log(e.detail)}
-              .emailPrefix=${email.emailPrefix}
-              .bodyTemplate=${email.body.value}
-              .defaultBodyTemplate=${email.body.default}
-              .defaultSubjectTemplate=${email.subject.default}
-              .subjectTemplate=${email.subject.value}
-              .disableNotification=${email.disable.value}
-              .templateVariables=${email.body.templateVariables}>
-            </ucdlib-awards-email-template>
-          </li>
-        `)}
-      </ucd-theme-list-accordion>
+      <form @submit=${this._onFormSubmit}>
+        <h4 class='u-space-mb'>Applicant Notifications</h4>
+        <ucd-theme-list-accordion>
+          ${emails.map(email => html`
+            <li>${email.label}</li>
+            <li>
+              <ucdlib-awards-email-template
+                class='u-space-mt u-block'
+                @email-update=${this._onEmailUpdate}
+                .emailPrefix=${email.emailPrefix}
+                .bodyTemplate=${email.body.value}
+                .defaultBodyTemplate=${email.body.default}
+                .defaultSubjectTemplate=${email.subject.default}
+                .subjectTemplate=${email.subject.value}
+                .disableNotification=${email.disable.value}
+                .templateVariables=${email.body.templateVariables}>
+              </ucdlib-awards-email-template>
+            </li>
+          `)}
+        </ucd-theme-list-accordion>
+        <button type='submit' class='btn btn btn--primary border-box u-space-mt'>Save</button>
+      </form>
     </div>
   `;
 }
@@ -82,9 +107,9 @@ export function renderPageAdmin(){
   const data = this.formAdmin || {};
   const adminAddresses = (data.emailAdminAddresses || []).join('\n');
   const disableEmails = [
-    { label: 'Application Submitted', prop: 'emailAdminDisableApplicationSubmitted', value: data.emailAdminDisableApplicationSubmitted },
-    { label: 'Conflict of Interest', prop: 'emailAdminDisableConflictOfInterest', value: data.emailAdminDisableConflictOfInterest },
-    { label: 'Evaluation Submitted', prop: 'emailAdminDisableEvaluationSubmitted', value: data.emailAdminDisableEvaluationSubmitted }
+    { label: 'Application Submitted', prop: 'emailAdminApplicationSubmittedDisable', value: data.emailAdminApplicationSubmittedDisable },
+    { label: 'Conflict of Interest', prop: 'emailAdminConflictOfInterestDisable', value: data.emailAdminConflictOfInterestDisable },
+    { label: 'Evaluation Submitted', prop: 'emailAdminEvaluationSubmittedDisable', value: data.emailAdminEvaluationSubmittedDisable }
   ];
 
   const onAddressChange = (e) => {

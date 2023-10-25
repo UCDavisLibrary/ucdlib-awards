@@ -17,6 +17,7 @@ import responsiveTable from "@ucd-lib/theme-sass/4_component/_responsive-table.c
 import verticalLink from "@ucd-lib/theme-sass/4_component/_vertical-link.css.js";
 import layouts from "@ucd-lib/theme-sass/5_layout/_index.css.js";
 import spaceUtils from "@ucd-lib/theme-sass/6_utility/_u-space.css.js";
+import displayUtils from "@ucd-lib/theme-sass/6_utility/_u-visibility.css.js";
 
 import customStyles from "../../styles/index.js";
 
@@ -39,6 +40,7 @@ export function styles() {
     verticalLink,
     layouts,
     spaceUtils,
+    displayUtils,
     ...customStyles
   ];
 }

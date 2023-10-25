@@ -21,7 +21,8 @@ export default class UcdlibAwardsAdminEmail extends Mixin(LitElement)
       errorMessages: { type: Array },
       errorFields: {type: Object},
       templateDefaults: { type: Object },
-      templateVariables: { type: Array }
+      templateVariables: { type: Array },
+      emailingEnabled: { type: Boolean }
     }
   }
 
@@ -41,6 +42,7 @@ export default class UcdlibAwardsAdminEmail extends Mixin(LitElement)
     this.errorFields = {};
     this.templateDefaults = {};
     this.templateVariables = [];
+    this.emailingEnabled = false;
 
     this.page = 'general';
     this.pages = [
@@ -147,6 +149,44 @@ _parsePropsScript(script){
   }
   if ( data.templateVariables ) {
     this.templateVariables = data.templateVariables;
+  }
+  if ( data.emailingEnabled ) {
+    this.emailingEnabled = data.emailingEnabled;
+  }
+}
+
+_onEmailUpdate(e){
+  const page = this.pages.find(p => p.value === this.page);
+  if ( !page ) return;
+  const data = this[page.formProperty] || {};
+
+  const { emailPrefix, bodyTemplate, subjectTemplate, disableNotification } = e.detail;
+  data[`${emailPrefix}Body`] = bodyTemplate;
+  data[`${emailPrefix}Subject`] = subjectTemplate;
+  data[`${emailPrefix}Disable`] = disableNotification ? 'true' : '';
+
+  this[page.formProperty] = {...data};
+
+}
+
+makeEmailObject(kwargs={}){
+  const { label, emailPrefix, data } = kwargs;
+  return {
+    label,
+    emailPrefix,
+    disable: { prop: `${emailPrefix}Disable`, value: data[`${emailPrefix}Disable`] ? true : false },
+    subject: {
+      prop: `${emailPrefix}Subject`,
+      value: data[`${emailPrefix}Subject`] || '',
+      default: this.templateDefaults[`${emailPrefix}Subject`] || '',
+      templateVariables: this.templateVariables.filter(variable => variable.fields.includes(`${emailPrefix}Subject`))
+    },
+    body: {
+      prop: `${emailPrefix}Body`,
+      value: data[`${emailPrefix}Body`] || '',
+      default: this.templateDefaults[`${emailPrefix}Body`] || '',
+      templateVariables: this.templateVariables.filter(variable => variable.fields.includes(`${emailPrefix}Body`))
+    },
   }
 }
 

@@ -96,6 +96,7 @@ class UcdlibAwardsFormsAddonHooks extends Forminator_Addon_Form_Hooks_Abstract {
 
     $user->updateMeta( 'hasSubmittedApplication', true, $cycle->cycleId );
     $this->plugin->logs->logApplicationSubmit( $cycle->cycleId, $user->id );
+    $this->plugin->email->sendAdminApplicationSubmittedEmail( $cycle->cycleId, $user->id );
 
     return $out;
   }

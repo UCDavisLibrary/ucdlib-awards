@@ -20,7 +20,8 @@ export default class UcdlibAwardsEmailTemplate extends Mixin(LitElement)
       _subjectTemplate: { state: true },
       _bodyTemplate: { state: true },
       isDefaultBodyTemplate: { state: true },
-      isDefaultSubjectTemplate: { state: true }
+      isDefaultSubjectTemplate: { state: true },
+      _selectionPositionHistory: { state: true }
     }
   }
 
@@ -40,6 +41,8 @@ export default class UcdlibAwardsEmailTemplate extends Mixin(LitElement)
     this.isDefaultSubjectTemplate = false;
     this.notAnAutomatedEmail = false;
     this.emailPrefix = '';
+    this._selectionPositionHistory = [];
+    this._selectionPositionHistoryMax = 10;
   }
 
   willUpdate(props) {
@@ -50,11 +53,63 @@ export default class UcdlibAwardsEmailTemplate extends Mixin(LitElement)
       this._bodyTemplate = this.bodyTemplate || this.defaultBodyTemplate;
     }
     if ( props.has('_bodyTemplate') ) {
-      this.isDefaultBodyTemplate = this._bodyTemplate === this.defaultBodyTemplate;
+      this.isDefaultBodyTemplate = this._bodyTemplate.trim() === this.defaultBodyTemplate.trim();
     }
     if ( props.has('_subjectTemplate') ) {
-      this.isDefaultSubjectTemplate = this._subjectTemplate === this.defaultSubjectTemplate;
+      this.isDefaultSubjectTemplate = this._subjectTemplate.trim() === this.defaultSubjectTemplate.trim();
     }
+  }
+
+  _onTemplateFocus(e) {
+    const template = e.target.getAttribute('email-template');
+    if ( !template ) return;
+    const selectionStart = e.target.selectionStart;
+    const selectionEnd = e.target.selectionEnd;
+    this._selectionPositionHistory.push({ template, selectionStart, selectionEnd });
+    if ( this._selectionPositionHistory.length > this._selectionPositionHistoryMax ) {
+      this._selectionPositionHistory.shift();
+    }
+  }
+
+  async _onFormInput(template, newValue){
+    this[template] = newValue;
+    await this.updateComplete;
+    this.dispatchUpdateEvent();
+  }
+
+  _onTemplateRevert(template){
+    if ( template === 'subject' ) {
+      this._onFormInput('_subjectTemplate', this.defaultSubjectTemplate);
+    } else {
+      this._onFormInput('_bodyTemplate', this.defaultBodyTemplate);
+    }
+  }
+
+
+  _onVariableSelect(e){
+    if ( !e.target.value ) return;
+    const v = `{{${e.target.value}}}`;
+    let position;
+    if ( this._selectionPositionHistory.length ) {
+      position = this._selectionPositionHistory[this._selectionPositionHistory.length-1];
+    } else {
+      position = { selectionStart: 0, selectionEnd: 0, template: 'subject' };
+    }
+    const template = position.template === 'subject' ? '_subjectTemplate' : '_bodyTemplate';
+    const value = this[template];
+    const newValue = value.substring(0, position.selectionStart) + v + value.substring(position.selectionEnd);
+    this._onFormInput(template, newValue);
+
+    // return focus to input and set cursor position
+    const ele = this.renderRoot.querySelector(`input[email-template=${position.template}]`);
+    ele.focus();
+    setTimeout(() => {
+      ele.setSelectionRange(position.selectionStart + v.length, position.selectionStart + v.length);
+    }, 100);
+
+    // reset variable select
+    e.target.value = '';
+
   }
 
   _onDisableToggle(){
@@ -67,6 +122,7 @@ export default class UcdlibAwardsEmailTemplate extends Mixin(LitElement)
       bubbles: true,
       composed: true,
       detail: {
+        emailPrefix: this.emailPrefix,
         subjectTemplate: this.isDefaultSubjectTemplate ? '' : this._subjectTemplate,
         bodyTemplate: this.isDefaultBodyTemplate ? '' : this._bodyTemplate,
         disableNotification: this.disableNotification
