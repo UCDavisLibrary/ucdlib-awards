@@ -150,6 +150,12 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
     log.iconColor = 'delta';
     if ( log.log_subtype === 'update-settings' ) {
       log.displayText = `Email settings updated by ${this.getUserName(log.user_id_subject)}`;
+    } else if ( log.log_subtype === 'application-confirmation' ) {
+      log.displayText = `Application confirmation email sent to ${this.getUserName(log.user_id_subject)}`;
+    } else if ( log.log_subtype === 'applicant-assigned' ) {
+      log.displayText = `Applicant assigned email sent to ${this.getUserName(log.user_id_subject)}`;
+    } else if ( log.log_subtype === 'evaluation-nudge' ){
+      log.displayText = `Evaluation nudge email sent to judge ${this.getUserName(log.user_id_subject)}`;
     }
     return log;
   }

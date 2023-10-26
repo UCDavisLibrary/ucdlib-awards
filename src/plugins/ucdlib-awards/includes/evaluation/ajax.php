@@ -141,6 +141,7 @@ class UcdlibAwardsEvaluationAjax {
       $judge->updateMeta('evaluatedApplicantDate_' . $payload['applicant_id'], date('Y-m-d H:i:s'), $cycleId);
       $judge->deleteMetaWithValue('evaluationInProgressApplicant', $payload['applicant_id'], $cycleId);
       $this->logger->logCompletedEvaluation($cycleId, $judge->record()->user_id, $payload['applicant_id']);
+      $this->plugin->email->sendAdminEvaluationSubmittedEmail($cycleId, $judge->record()->user_id, $payload['applicant_id']);
     } else {
       $judge->updateMetaWithValue('evaluationInProgressApplicant', $payload['applicant_id'], $cycleId);
     }
@@ -174,6 +175,7 @@ class UcdlibAwardsEvaluationAjax {
     }
 
     $this->logger->logConflictOfInterest($cycleId, $judge->record()->user_id, $payload['applicant_id']);
+    $this->plugin->email->sendAdminConflictOfInterestEmail($cycleId, $payload['applicant_id'], $judge->record()->user_id);
     $response['success'] = true;
 
     return $response;

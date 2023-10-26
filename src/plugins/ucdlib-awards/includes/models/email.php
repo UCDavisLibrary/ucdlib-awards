@@ -105,6 +105,173 @@ class UcdlibAwardsEmail {
     $this->emailingEnabled = getenv('UCDLIB_AWARDS_EMAILING_ENABLED') === 'true';
   }
 
+  public function sendJudgeEvaluationNudgeEmail( $cycleId, $judgeId ){
+    try {
+
+      $judge = $this->plugin->users->getByUserIds( $judgeId );
+      if ( !count( $judge ) ) return false;
+      $judge = $judge[0];
+
+      $cycle = $this->plugin->cycles->getById( $cycleId );
+      if ( !$cycle ) return false;
+
+      $sent = $this->sendEmailFromTemplate( $cycleId, 'emailJudgeEvaluationNudge', $judge, [
+        'judge' => $judge,
+        'cycle' => $cycle
+      ]);
+
+      if ( $sent ) {
+        $this->plugin->logs->logEvaluationNudgeEmail( $cycleId, $judgeId);
+      }
+
+      return $sent;
+
+    } catch (\Throwable $th) {
+      error_log('Error in sendJudgeEvaluationNudgeEmail: ' . $th->getMessage());
+      return false;
+    }
+  }
+
+  public function sendJudgeApplicantAssignmentEmail($cycleId, $judgeId){
+    try {
+      if ( $this->getMeta($cycleId, 'emailDisableAutomatedEmails') ) return false;
+
+      $judge = $this->plugin->users->getByUserIds( $judgeId );
+      if ( !count( $judge ) ) return false;
+      $judge = $judge[0];
+
+      $cycle = $this->plugin->cycles->getById( $cycleId );
+      if ( !$cycle ) return false;
+
+      $sent = $this->sendEmailFromTemplate( $cycleId, 'emailJudgeApplicantAssigned', $judge, [
+        'judge' => $judge,
+        'cycle' => $cycle
+      ]);
+
+      if ( $sent ){
+        $this->plugin->logs->logApplicantAssignedEmail( $cycleId, $judgeId);
+      }
+
+      return $sent;
+
+    } catch (\Throwable $th) {
+      error_log('Error in sendJudgeApplicantAssignmentEmail: ' . $th->getMessage());
+      return false;
+    }
+  }
+
+  public function sendApplicantConfirmationEmail($cycleId, $applicantId){
+    try {
+      if ( $this->getMeta($cycleId, 'emailDisableAutomatedEmails') ) return false;
+
+      $applicant = $this->plugin->users->getByUserIds( $applicantId );
+      if ( !count( $applicant ) ) return false;
+      $applicant = $applicant[0];
+
+      $cycle = $this->plugin->cycles->getById( $cycleId );
+      if ( !$cycle ) return false;
+
+      $sent = $this->sendEmailFromTemplate( $cycleId, 'emailApplicantConfirmation', $applicant, [
+        'applicant' => $applicant,
+        'cycle' => $cycle
+      ]);
+
+      if ( $sent ){
+        $this->plugin->logs->logApplicationSubmitEmail( $cycleId, $applicantId);
+      }
+
+      return $sent;
+
+    } catch (\Throwable $th) {
+      error_log('Error in sendApplicantConfirmationEmail: ' . $th->getMessage());
+      return false;
+    }
+  }
+
+  public function sendEmailFromTemplate($cycleId, $metaPrefix, $toUser, $data){
+    try {
+      $canEmail = $this->canSendEmail( $cycleId ) &&
+      !$this->getMeta( $cycleId, $metaPrefix . 'Disable' );
+      if ( !$canEmail ) return false;
+
+      $toEmail = $toUser->record()->email;
+
+      $subject = $this->getMeta( $cycleId, $metaPrefix . 'Subject' );
+      if ( empty( $subject ) ) $subject = $this->getTemplateDefault( $metaPrefix . 'Subject' );
+
+      $body = $this->getMeta( $cycleId, $metaPrefix . 'Body' );
+      if ( empty( $body ) ) $body = $this->getTemplateDefault( $metaPrefix . 'Body' );
+
+      $variableSlugs = array_merge( $this->getVariablesFromTemplateString( $subject ), $this->getVariablesFromTemplateString( $body ) );
+      foreach( $variableSlugs as $variableSlug ){
+        $variableValue = $this->hydrateTemplateVariable( $variableSlug, $data );
+        $subject = str_replace( '{{' . $variableSlug . '}}', $variableValue, $subject );
+        $body = str_replace( '{{' . $variableSlug . '}}', $variableValue, $body );
+      }
+
+      $sent = $this->sendEmail( $cycleId, $toEmail, $subject, $body );
+      return $sent;
+
+    } catch (\Throwable $th) {
+      error_log('Error in sendEmailFromTemplate: ' . $th->getMessage());
+      return false;
+    }
+  }
+
+  public function getVariablesFromTemplateString($templateString){
+    $variables = [];
+    // extract string from {{}}
+    preg_match_all('/{{(.*?)}}/', $templateString, $matches);
+    if ( isset( $matches[1] ) ){
+      foreach( $matches[1] as $match ){
+        $variables[] = trim( $match );
+      }
+    }
+    return $variables;
+  }
+
+  public function hydrateTemplateVariable($variable, $data=[]){
+    $out = '';
+    try {
+      switch( $variable ){
+        case 'applicantName':
+          if ( !isset($data['applicant']) ) break;
+          $out = $data['applicant']->name();
+          break;
+        case 'judgeName':
+          if ( !isset($data['judge']) ) break;
+          $out = $data['judge']->name();
+          break;
+        case 'prizeName':
+          $out = $this->plugin->award->getTitle();
+          break;
+        case 'evaluationUrl':
+          $out = $this->plugin->award->getEvaluationPageLink();
+          break;
+        case 'judgeIncompleteCount':
+          if ( !isset($data['judge']) ) break;
+          if ( !isset($data['cycle']) ) break;
+          $assignments = $data['cycle']->judgeAssignmentMap();
+          $evaluations = $data['cycle']->completedEvaluationsMap();
+          $judgeId = $data['judge']->record()->user_id;
+          $assignments = isset( $assignments[ $judgeId ] ) ? $assignments[ $judgeId ] : [];
+          $evaluations = isset( $evaluations[ $judgeId ] ) ? $evaluations[ $judgeId ] : [];
+          $assignedAndEvaluated = array_intersect( $assignments, $evaluations );
+          $notEvaluated = array_diff( $assignments, $assignedAndEvaluated );
+          $out = count( $notEvaluated );
+          break;
+        case 'evaluationEndDate':
+          if ( !isset($data['cycle']) ) break;
+          $date = $data['cycle']->record()->application_end;
+          $out = date( 'F j, Y', strtotime( $date ) );
+          break;
+      }
+    } catch (\Throwable $th) {
+      error_log('Error in hydrateTemplateVariable: ' . $th->getMessage());
+    }
+    return $out;
+  }
+
   public function canSendEmail($cycleId){
     $canEmail = $this->emailingEnabled &&
     !$this->getMeta( $cycleId, 'emailDisableEmails' ) &&
@@ -125,6 +292,94 @@ class UcdlibAwardsEmail {
     return $canEmail;
   }
 
+  public function sendAdminEvaluationSubmittedEmail($cycleId, $judgeId, $applicantId){
+    try {
+      $canEmail = $this->canSendAdminNotificationEmail( $cycleId ) &&
+      !$this->getMeta( $cycleId, 'emailAdminEvaluationSubmittedDisable' );
+      if ( !$canEmail ) return false;
+
+      $applicant = $this->plugin->users->getByUserIds( $applicantId );
+      if ( !count( $applicant ) ) return false;
+      $applicant = $applicant[0];
+
+      $judge = $this->plugin->users->getByUserIds( $judgeId );
+      if ( !count( $judge ) ) return false;
+      $judge = $judge[0];
+
+      $cycle = $this->plugin->cycles->getById( $cycleId );
+      if ( !$cycle ) return false;
+
+      $assignments = $cycle->judgeAssignmentMap();
+      if ( !isset( $assignments[ $judgeId ] ) ) return false;
+      $assignments = $assignments[ $judgeId ];
+
+      $evaluations = $cycle->completedEvaluationsMap();
+      if ( !isset( $evaluations[ $judgeId ] ) ) return false;
+      $evaluations = $evaluations[ $judgeId ];
+
+      $assignedAndEvaluated = array_intersect( $assignments, $evaluations );
+
+      $assignmentCt = count( $assignments );
+      $evaluatedCt = count( $assignedAndEvaluated );
+
+      $subject = 'Evaluation Submitted';
+      $body = <<<EOT
+      {$judge->name()} has just submitted an evaluation for {$applicant->name()} - {$applicant->record()->email}.
+
+      {$judge->name()} has evaluated {$evaluatedCt}/{$assignmentCt} of their assigned applications.
+      EOT;
+
+      $sent = $this->sendEmail( $cycleId, $this->getMeta( $cycleId, 'emailAdminAddresses' ), $subject, $body );
+      return $sent;
+
+    } catch (\Throwable $th) {
+      error_log('Error in sendAdminEvaluationSubmittedEmail: ' . $th->getMessage());
+      return false;
+    }
+  }
+
+  public function sendAdminConflictOfInterestEmail($cycleId, $applicantId, $judgeId){
+    try {
+      $canEmail = $this->canSendAdminNotificationEmail( $cycleId ) &&
+      !$this->getMeta( $cycleId, 'emailAdminConflictOfInterestDisable' );
+      if ( !$canEmail ) return false;
+
+      $applicant = $this->plugin->users->getByUserIds( $applicantId );
+      if ( !count( $applicant ) ) return false;
+      $applicant = $applicant[0];
+
+      $judge = $this->plugin->users->getByUserIds( $judgeId );
+      if ( !count( $judge ) ) return false;
+      $judge = $judge[0];
+
+      $link = admin_url( 'admin.php?page=' . $this->plugin->award->getAdminMenuSlugs()['judges'] );
+
+      $comment = 'No comment provided';
+      $commentMetaKey = 'conflictOfInterestApplicant' . $applicantId . 'Details';
+      $commentMeta = $judge->cycleMetaItem( $commentMetaKey, $cycleId );
+      if ( $commentMeta ) $comment = $commentMeta;
+
+      $subject = 'Conflict of Interest Declared';
+      $body = <<<EOT
+      {$judge->name()} has declared a conflict of interest with {$applicant->name()} - {$applicant->record()->email}.
+
+      Judge Comment:
+      {$comment}
+
+      Please visit the following link to reassign the application:
+
+      {$link}
+      EOT;
+
+      $sent = $this->sendEmail( $cycleId, $this->getMeta( $cycleId, 'emailAdminAddresses' ), $subject, $body );
+      return $sent;
+
+    } catch (\Throwable $th) {
+      error_log('Error in sendAdminConflictOfInterestEmail: ' . $th->getMessage());
+      return false;
+    }
+  }
+
   public function sendAdminApplicationSubmittedEmail($cycleId, $applicantId){
 
     try {
@@ -139,7 +394,7 @@ class UcdlibAwardsEmail {
 
       $subject = 'New Application Submitted';
       $body = <<<EOT
-      A new application has been submitted by {$applicant->name()} - ({$applicant->record()->email}).
+      A new application has been submitted by {$applicant->name()} - {$applicant->record()->email}.
 
       Please visit the following link to view the application:
 
@@ -162,7 +417,6 @@ class UcdlibAwardsEmail {
     $headers = [];
     $headers[] = 'From: ' . $this->getMeta( $cycleId, 'emailSenderName' ) . ' <' . $this->getMeta( $cycleId, 'emailSenderAddress' ) . '>';
     $headers[] = 'Reply-To: ' . $this->getMeta( $cycleId, 'emailSenderName' ) . ' <' . $this->getMeta( $cycleId, 'emailSenderAddress' ) . '>';
-    $headers[] = 'Content-Type: text/html; charset=UTF-8';
 
     //$attachments = apply_filters( 'ucdlib_awards_email_attachments', $attachments, $cycleId );
 

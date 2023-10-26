@@ -87,6 +87,10 @@ class UcdlibAwardsAwardAbstract {
     return $this->_evaluationMenuPageTitle;
   }
 
+  final public function getEvaluationPageLink() {
+    return admin_url( 'admin.php?page=' . $this->getEvaluationMenuSlugs()['main'] );
+  }
+
   final public function getAdminCanImpersonateJudge() {
     return $this->_adminCanImpersonateJudge;
   }

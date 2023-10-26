@@ -70,6 +70,11 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
         slug: 'unassign',
         bulk: true,
         applicants: true
+      },
+      {
+        label: 'Send Email Reminder',
+        slug: 'send-reminder',
+        bulk: true
       }
     ];
   }

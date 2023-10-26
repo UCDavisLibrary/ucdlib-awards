@@ -56,6 +56,7 @@ class UcdlibAwardsUser {
 
   public function name(){
     $record = $this->record();
+    if ( empty($record) ) return '';
     return $record->first_name . ' ' . $record->last_name;
   }
 

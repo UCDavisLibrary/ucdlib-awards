@@ -116,15 +116,25 @@ class UcdlibAwardsLogs {
         'slug' => 'email',
         'label' => 'Email',
         'subTypes' => [
-          'send' => [
-            'slug' => 'send',
-            'label' => 'Send',
-            'description' => 'Email sent'
+          'application-confirmation' => [
+            'slug' => 'application-confirmation',
+            'label' => 'Application Confirmation Sent',
+            'description' => 'Application confirmation email sent to applicant'
           ],
           'update-settings' => [
             'slug' => 'update-settings',
             'label' => 'Update Settings',
             'description' => 'Email settings updated'
+          ],
+          'applicant-assigned' => [
+            'slug' => 'applicant-assigned',
+            'label' => 'Applicant Assigned',
+            'description' => 'Email sent to judge when applicant(s) assigned'
+          ],
+          'evaluation-nudge' => [
+            'slug' => 'evaluation-nudge',
+            'label' => 'Evaluation Nudge',
+            'description' => 'Evaluation reminder email sent to judge'
           ]
         ]
       ]
@@ -330,6 +340,48 @@ class UcdlibAwardsLogs {
       $wpdb->insert( $this->table, $log );
     }
 
+  }
+
+  public function logEvaluationNudgeEmail($cycleId, $judgeId){
+    $log = [
+      'log_type' => 'email',
+      'log_subtype' => 'evaluation-nudge',
+      'cycle_id' => $cycleId,
+      'user_id_subject' => $judgeId,
+      'date_created' =>  date('Y-m-d H:i:s')
+    ];
+
+    global $wpdb;
+    $wpdb->insert( $this->table, $log );
+    return true;
+  }
+
+  public function logApplicantAssignedEmail($cycleId, $judgeId){
+    $log = [
+      'log_type' => 'email',
+      'log_subtype' => 'applicant-assigned',
+      'cycle_id' => $cycleId,
+      'user_id_subject' => $judgeId,
+      'date_created' =>  date('Y-m-d H:i:s')
+    ];
+
+    global $wpdb;
+    $wpdb->insert( $this->table, $log );
+    return true;
+  }
+
+  public function logApplicationSubmitEmail($cycleId, $applicantId){
+    $log = [
+      'log_type' => 'email',
+      'log_subtype' => 'application-confirmation',
+      'cycle_id' => $cycleId,
+      'user_id_subject' => $applicantId,
+      'date_created' =>  date('Y-m-d H:i:s')
+    ];
+
+    global $wpdb;
+    $wpdb->insert( $this->table, $log );
+    return true;
   }
 
   public function logEmailSettingChange($cycleId) {

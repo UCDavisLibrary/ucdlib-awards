@@ -118,22 +118,54 @@ export default class UcdlibAwardsJudgesCtl extends Mixin(LitElement)
 
     const action = e.detail.action;
     if ( action === 'delete' ) {
-      this.deleteSelectedJudges();
+      await this.deleteSelectedJudges();
     } else if ( action === 'assign' ) {
-      this.assignApplicants(e.detail.applicants);
+      await this.assignApplicants(e.detail.applicants);
     } else if ( action === 'unassign' ) {
-      this.unassignApplicants(e.detail.applicants);
+      await this.unassignApplicants(e.detail.applicants);
     } else if ( action === 'view-assignments' ) {
       this.judgeAssignmentFiltered = this.judges.filter(judge => this.selectedJudges.includes(judge.id));
       this.renderRoot.querySelector('ucdlib-awards-judges-assignments').show();
       this.doingAction  = false;
       return;
+    } else if ( action === 'send-reminder' ) {
+      await this.sendEmailReminder();
     }
 
     this.selectedJudges = [];
     this.doingAction = false;
     this.renderRoot.querySelector('ucdlib-awards-judges-actions').selectedAction = '';
     this.renderRoot.querySelector('ucdlib-awards-judges-display').selectedJudges = [];
+  }
+
+  async sendEmailReminder(){
+    const payload = {
+      cycle_id: this.cycleId,
+      judge_ids: this.selectedJudges
+    }
+    const response = await this.wpAjax.request('send-email-reminder', payload);
+    if ( response.success ) {
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: response.messages[0],
+          type: 'success'
+        }
+      }));
+    } else {
+      console.error('Error sending email reminder', response);
+      let msg = 'Unable to send email reminder';
+      if ( response.messages.length) msg += `: ${response.messages?.[0] || ''}`;
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: msg,
+          type: 'error'
+        }
+      }));
+    }
   }
 
   async unassignApplicants(applicants){

@@ -292,8 +292,10 @@ class UcdlibAwardsAdminAjax {
         } else {
           foreach ($assignments as $judge => $applicants) {
             $this->logger->logApplicationAssignment($cycleId, $judge, $applicants);
+            $this->plugin->email->sendJudgeApplicantAssignmentEmail($cycleId, $judge);
           }
         }
+
 
         $response['messages'][] = 'Applicants assigned successfully.';
         $response['data'] = ['judges' => $cycle->judges(true, ['assignments' => true, 'conflictsOfInterest' => true, 'completedEvaluations' => true])];
@@ -329,6 +331,32 @@ class UcdlibAwardsAdminAjax {
         $response['messages'][] = 'Applicants assigned successfully.';
         $response['data'] = ['judges' => $cycle->judges(true, ['assignments' => true, 'conflictsOfInterest' => true, 'completedEvaluations' => true])];
         $response['success'] = true;
+      } else if ( $action === 'send-email-reminder' ){
+        $payload = json_decode( stripslashes($_POST['data']), true );
+        $cycle = $this->getCycle($payload, $response);
+        $cycleId = $cycle->cycleId;
+
+        if ( empty($payload['judge_ids'])){
+          $response['messages'][] = 'No judge ids specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        $completed = [];
+        foreach ($payload['judge_ids'] as $judgeId) {
+          $emailSent = $this->plugin->email->sendJudgeEvaluationNudgeEmail($cycleId, $judgeId);
+          if ( $emailSent ) {
+            $completed[] = $judgeId;
+          }
+        }
+        if ( !count($completed) ){
+          $response['messages'][] = 'No emails sent.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+        $response['messages'][] = 'Email' . (count($completed) > 1 ? 's' : '') . ' sent successfully.';
+        $response['success'] = true;
+
       }
     } catch (\Throwable $th) {
       error_log('Error in UcdlibAwardsAdminAjax::cycles(): ' . $th->getMessage());
