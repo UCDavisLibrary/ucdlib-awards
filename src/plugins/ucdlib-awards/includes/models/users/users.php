@@ -63,6 +63,20 @@ class UcdlibAwardsUsers {
     return $this->userCache[ $username ];
   }
 
+  public function userRecordExists( $username=null, $email=null ){
+    if ( !empty($username) ){
+      $user = $this->getByUsername( $username );
+      if ( $user->record() ) return $user;
+    }
+
+    if ( !empty($email) ){
+      $user = $this->getByEmail( $email );
+      if ( $user->record() ) return $user;
+    }
+
+    return false;
+  }
+
   public function toArrays($users, $additionalProps = []){
     if ( empty($users) ) return [];
     if ( !is_array($users) ) {

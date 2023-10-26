@@ -8,7 +8,7 @@ class UcdlibAwardsAuth {
   public function __construct( $plugin ){
     $this->plugin = $plugin;
 
-    // if a user has these client roles, they will be given access to the site.
+    // if a user has these client roles, their role will be set to the first matching role in the array.
     $this->allowedClientRoles = [
       'administrator',
       'editor',
@@ -18,9 +18,13 @@ class UcdlibAwardsAuth {
 
     // if a user has these realm roles, they will be given access to the site.
     $this->allowedRealmRoles = [
-      'basic-access',
       'admin-access'
     ];
+
+    // if a user has this client role, they will be given access to the prize admin.
+    // should be accompanied by a 'editor' or 'author' client role.
+    // 'administrator' role have access to prize admin by default.
+    $this->prizeAdminClientRole = 'prize-admin';
 
     $this->setRoleFromClaim = true;
 
@@ -30,13 +34,6 @@ class UcdlibAwardsAuth {
       add_action( 'openid-connect-generic-user-create', [$this, 'setAdvancedRole'], 10, 2 );
       add_action( 'openid-connect-generic-login-button-text', [$this, 'loginButtonText'], 10, 1);
       add_filter ( 'allow_password_reset', function (){return false;} );
-    } else {
-      add_action(
-        'admin_notices',
-        function() {
-          echo '<div class="error"><p>OpenID Connect Generic plugin not activated, which is required for the UC Davis Library Awards platform. </p></div>';
-        }
-      );
     }
 
     add_action('after_setup_theme', [$this, 'hideAdminBar']);
@@ -80,14 +77,6 @@ class UcdlibAwardsAuth {
     }
     if ( !$accessToken ) return;
 
-    // check realm roles
-    if ( isset( $accessToken['realm_access']['roles'] ) ) {
-      if ( in_array('admin-access',  $accessToken['realm_access']['roles']) ){
-        $user->set_role( 'administrator' );
-        return;
-      }
-    }
-
     // check client roles
     $client_id = $this->client_id();
     if ( !$client_id ) return;
@@ -98,6 +87,35 @@ class UcdlibAwardsAuth {
       $allowedRoles = array_values( $allowedRoles );
       $user->set_role( $allowedRoles[0] );
     }
+
+    // check realm roles
+    if ( isset( $accessToken['realm_access']['roles'] ) ) {
+      if ( in_array('admin-access',  $accessToken['realm_access']['roles']) ){
+        $user->set_role( 'administrator' );
+      }
+    }
+
+    // grant/remove prize admin role if user has respective client role
+    $isPrizeAdmin = in_array( $this->prizeAdminClientRole, $roles );
+    $existingPrizeUser = $this->plugin->users->userRecordExists($user->user_login, $user->user_email);
+    if ( $isPrizeAdmin && !$existingPrizeUser){
+      // create user as admin
+      $this->plugin->users->clearCache();
+      $prizeUser = $this->plugin->users->getByUsername( $user->user_login );
+      $prizeUser->setWpUser( $user );
+      $prizeUser->createFromWpAccount();
+    } else if ( !$isPrizeAdmin && $existingPrizeUser ) {
+      // check if user has prize admin role, and remove it
+      if ( $existingPrizeUser->isPrizeAdmin() ) {
+        $existingPrizeUser->setPrizeAdmin( false );
+      }
+    } else if ( $isPrizeAdmin && $existingPrizeUser ) {
+      // check if user has prize admin role, and add it
+      if ( !$existingPrizeUser->isPrizeAdmin() ) {
+        $existingPrizeUser->setPrizeAdmin( true );
+      }
+    }
+
   }
 
   /**

@@ -232,8 +232,16 @@ class UcdlibAwardsUser {
     if ( !empty( $this->wpUser ) ){
       return $this->wpUser;
     }
-    $this->wpUser = get_user_by( 'login', $this->username );
+    $user = get_user_by( 'login', $this->username );
+    if ( !$user && $this->record() && !empty($this->record()->email) ){
+      $user = get_user_by( 'email', $this->record()->email );
+    }
+    $this->wpUser = $user;
     return $this->wpUser;
+  }
+
+  public function setWpUser($user){
+    $this->wpUser = $user;
   }
 
   /**
@@ -253,11 +261,24 @@ class UcdlibAwardsUser {
         return $this->isAdmin;
       }
     }
-    if ( $this->record() && $this->record()->is_admin ){
+    if ( $this->isPrizeAdmin() ){
       $this->isAdmin = true;
       return $this->isAdmin;
     }
     return $this->isAdmin;
+  }
+
+  public function isPrizeAdmin(){
+    return $this->record() && $this->record()->is_admin;
+  }
+
+  public function setPrizeAdmin($value){
+    if ( !$this->record() ) return false;
+    $value = empty($value) ? 0 : 1;
+    global $wpdb;
+    $wpdb->update( $this->table, ['is_admin' => $value], ['user_id' => $this->record()->user_id] );
+    $this->record = null;
+    return true;
   }
 
   public function isJudge( $cycleId ){
