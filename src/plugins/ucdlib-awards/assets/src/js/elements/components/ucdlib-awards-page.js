@@ -63,6 +63,8 @@ export default class UcdlibAwardsPage extends LitElement {
       this.hideCycleNotification = true;
     } else if ( this.cycles.length) {
       this.hideCycleNotification = true;
+    } else if ( this.notAuthorized ) {
+      this.hideCycleNotification = true;
     } else {
       this.hideCycleNotification = false;
     }

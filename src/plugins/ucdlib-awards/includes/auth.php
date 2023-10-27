@@ -78,32 +78,43 @@ class UcdlibAwardsAuth {
     if ( !$accessToken ) return;
 
     // check client roles
+    $roleSet = false;
+    $clientRoles = [];
     $client_id = $this->client_id();
-    if ( !$client_id ) return;
-    if ( !isset( $accessToken['resource_access'][$client_id]['roles'] ) ) return;
-    $roles = $accessToken['resource_access'][$client_id]['roles'];
-    $allowedRoles = array_intersect( $this->allowedClientRoles, $roles );
+    if ( isset( $accessToken['resource_access'][$client_id]['roles'] ) ) {
+      $clientRoles = $accessToken['resource_access'][$client_id]['roles'];
+    }
+    $allowedRoles = array_intersect( $this->allowedClientRoles, $clientRoles );
     if ( count( $allowedRoles ) > 0 ) {
       $allowedRoles = array_values( $allowedRoles );
       $user->set_role( $allowedRoles[0] );
+      $roleSet = true;
     }
 
     // check realm roles
     if ( isset( $accessToken['realm_access']['roles'] ) ) {
       if ( in_array('admin-access',  $accessToken['realm_access']['roles']) ){
         $user->set_role( 'administrator' );
+        $roleSet = true;
+      }
+    }
+
+    if ( !$roleSet ) {
+      $defaultRole = get_option( 'default_role' );
+      if ( $defaultRole ) {
+        $user->set_role( $defaultRole );
       }
     }
 
     // grant/remove prize admin role if user has respective client role
-    $isPrizeAdmin = in_array( $this->prizeAdminClientRole, $roles );
+    $isPrizeAdmin = in_array( $this->prizeAdminClientRole, $clientRoles );
     $existingPrizeUser = $this->plugin->users->userRecordExists($user->user_login, $user->user_email);
     if ( $isPrizeAdmin && !$existingPrizeUser){
       // create user as admin
       $this->plugin->users->clearCache();
       $prizeUser = $this->plugin->users->getByUsername( $user->user_login );
       $prizeUser->setWpUser( $user );
-      $prizeUser->createFromWpAccount();
+      $prizeUser->createFromWpAccount( true );
     } else if ( !$isPrizeAdmin && $existingPrizeUser ) {
       // check if user has prize admin role, and remove it
       if ( $existingPrizeUser->isPrizeAdmin() ) {
@@ -128,6 +139,10 @@ class UcdlibAwardsAuth {
   protected $client_id;
   public function client_id(){
     if ( ! empty($this->client_id) ){
+      return $this->client_id;
+    }
+    if ( defined( 'OIDC_CLIENT_ID' ) && !empty( OIDC_CLIENT_ID ) ) {
+      $this->client_id = OIDC_CLIENT_ID;
       return $this->client_id;
     }
     $options = get_option( 'openid_connect_generic_settings', [] );

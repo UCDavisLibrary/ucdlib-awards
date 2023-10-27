@@ -194,12 +194,12 @@ class UcdlibAwardsAdminMenu {
     $context = $this->context();
     $activeCycle = null;
     $forms = [];
+    $applicationFormFields = [];
     $requestedCycle = $context['pageContainerProps']['requestedCycle'];
     if ( $this->plugin->users->currentUser()->isAdmin() ){
       $activeCycle = $this->plugin->cycles->activeCycle();
       $forms = $this->plugin->forms->getForms(null, 1, 100);
       $forms = $this->plugin->forms->toBasicArray($forms);
-      $applicationFormFields = [];
       if ( $requestedCycle && $requestedCycle['application_form_id'] ){
         $applicationFormFields = $this->plugin->forms->getFormFields( intval($requestedCycle['application_form_id']) );
       }
