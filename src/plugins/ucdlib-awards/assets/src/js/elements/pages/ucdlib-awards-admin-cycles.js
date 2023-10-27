@@ -20,6 +20,8 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
       hasRequestedCycle: {state: true},
       applicationFormFields: {state: true},
       applicationFormOptionFields: {state: true},
+      applicationTextFields: {state: true},
+      applicationEmailFields: {state: true},
       activeCycle: {state: true},
       siteForms: {state: true},
       formsLink: {type: String},
@@ -44,6 +46,8 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
     this.applicationFormFields = [];
     this.applicationFormFieldsCache = {};
     this.applicationFormOptionFields = [];
+    this.applicationTextFields = [];
+    this.applicationEmailFields = [];
     this.activeCycle = {};
     this.editFormData = {};
     this.deleteFormData = {};
@@ -70,9 +74,13 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
       this.hasActiveCycle = Object.keys(this.activeCycle).length > 0;
     }
 
-    // extract application fields with options for selecting a category
     if ( props.has('applicationFormFields') ){
+
+      // 1. extract application fields with options for selecting a category
+      // 2. find input and email fields from the application (for letters of support)
       const applicationFormOptionFields = [];
+      const applicationTextFields = [];
+      const applicationEmailFields = [];
       this.applicationFormFields.forEach(fieldWrapper => {
         if ( !Array.isArray(fieldWrapper.fields) ) return;
         fieldWrapper.fields.forEach(field => {
@@ -82,10 +90,53 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
               id: field.element_id
             });
           }
+          if ( field.type === 'text' ) {
+            applicationTextFields.push({
+              label: field.field_label,
+              id: field.element_id
+            });
+          }
+          if ( field.type === 'email' ) {
+            applicationEmailFields.push({
+              label: field.field_label,
+              id: field.element_id
+            });
+          }
         });
       });
       this.applicationFormOptionFields = applicationFormOptionFields;
+      this.applicationTextFields = applicationTextFields;
+      this.applicationEmailFields = applicationEmailFields;
     }
+  }
+
+  _onSupporterInput(prop, value, index){
+    this.formErrors['supporterFields'] = false;
+    const cycleMeta = {...this.editFormData.cycle_meta};
+    if ( !cycleMeta.supporterFields ) cycleMeta.supporterFields = [];
+    if ( !cycleMeta.supporterFields[index] ) cycleMeta.supporterFields[index] = {firstName: '', lastName: '', email: ''};
+    cycleMeta.supporterFields[index][prop] = value;
+    this._onEditFormInput('cycle_meta', cycleMeta);
+  }
+
+  _onSupporterAdd(){
+    this.formErrors['supporterFields'] = false;
+    const cycleMeta = {...this.editFormData.cycle_meta};
+    if ( !cycleMeta?.supporterFields?.length) cycleMeta.supporterFields = [{firstName: '', lastName: '', email: ''}];
+    cycleMeta.supporterFields.push({firstName: '', lastName: '', email: ''});
+    this._onEditFormInput('cycle_meta', cycleMeta);
+  }
+
+  _onSupporterRemove(){
+    this.formErrors['supporterFields'] = false;
+    const cycleMeta = {...this.editFormData.cycle_meta};
+    if ( !cycleMeta?.supporterFields?.length === 1 || !cycleMeta?.supporterFields?.length ){
+      cycleMeta.supporterFields = [{firstName: '', lastName: '', email: ''}];
+    } else {
+      cycleMeta.supporterFields.pop();
+    }
+
+    this._onEditFormInput('cycle_meta', cycleMeta);
   }
 
   /**
@@ -351,6 +402,7 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
       console.error('Error parsing JSON script', e);
     }
     if ( !data ) return;
+    console.log('data', data);
     if ( data.activeCycle ) {
       this.activeCycle = data.activeCycle;
     } else {

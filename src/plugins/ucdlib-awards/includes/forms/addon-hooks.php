@@ -44,15 +44,18 @@ class UcdlibAwardsFormsAddonHooks extends Forminator_Addon_Form_Hooks_Abstract {
       return "Submission failed! You must be logged in to submit.";
     }
 
-    // ensure user has not already submitted if an application form
-    if ( $isApplicationForm && $user->applicationEntry( $activeCycle->cycleId ) ) {
-      return "Submission failed! You have already submitted an application.";
-    }
+    // application form specific checks
+    if ( $isApplicationForm ){
+      // ensure user has not already submitted if an application form
+      if ( $user->applicationEntry( $activeCycle->cycleId ) ) {
+        return "Submission failed! You have already submitted an application.";
+      }
 
-    // ensure that user is in our users table and set isApplicant meta for cycle
-    $metaUpdateSuccess = $user->updateMeta( 'isApplicant', true, $activeCycle->cycleId );
-    if ( !$metaUpdateSuccess ) {
-      return "Submission failed! Could not update user meta.";
+      // ensure that user is in our users table and set isApplicant meta for cycle
+      $metaUpdateSuccess = $user->updateMeta( 'isApplicant', true, $activeCycle->cycleId );
+      if ( !$metaUpdateSuccess ) {
+        return "Submission failed! Could not update user meta.";
+      }
     }
 
     return true;

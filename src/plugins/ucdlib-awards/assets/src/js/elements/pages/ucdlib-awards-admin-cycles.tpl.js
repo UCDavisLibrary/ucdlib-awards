@@ -64,6 +64,10 @@ export function renderEditForm() {
     showActiveCycleNotification = true;
   }
 
+  let supporterFields = this.editFormData?.cycle_meta?.supporterFields || [];
+  supporterFields = supporterFields.length ? supporterFields : [{firstName: '', lastName: '', email: ''}];
+  let showSupporterFields = this.editFormData?.has_support && this.editFormData?.application_form_id;
+
   return html`
     <form @submit=${this._onEditFormSubmit}>
       ${this.renderFormErrorMessages()}
@@ -212,15 +216,64 @@ export function renderEditForm() {
             </select>
             ${this.renderBasicNotification(html`<span>No forms have been created yet! <a href=${this.formsLink}>Make one with the form builder.</a></span>`, this.siteForms.length)}
           </div>
+          <div class="field-container ${this.formErrors.supporterFields ? 'error' : ''}" ?hidden=${!showSupporterFields}>
+            <label>Supporter Identifier Fields</label>
+            <div class='hint-text'>
+              Select the fields in the application form that the applicant will use to identify their supporters.
+            </div>
+            <div>
+              ${supporterFields.map((field, index) => html`
+                <div class='l-3col o-box'>
+                  <div class="l-first field-container">
+                    <label>First Name</label>
+                    <select
+                      @input=${e => this._onSupporterInput('firstName', e.target.value, index)}
+                      .value=${field.firstName || ''}>
+                      <option value="" >Select a field</option>
+                      ${this.applicationTextFields.map(field => html`
+                        <option value=${field.id} ?selected=${field.id == field.firstName}>${field.label}</option>
+                      `)}
+                    </select>
+                  </div>
+                  <div class="l-second field-container">
+                    <label>Last Name</label>
+                    <select
+                      @input=${e => this._onSupporterInput('lastName', e.target.value, index)}
+                      .value=${field.lastName || ''}>
+                      <option value="" >Select a field</option>
+                      ${this.applicationTextFields.map(field => html`
+                        <option value=${field.id} ?selected=${field.id == field.lastName}>${field.label}</option>
+                      `)}
+                    </select>
+                  </div>
+                  <div class="l-third field-container">
+                    <label>Email</label>
+                    <select
+                      @input=${e => this._onSupporterInput('email', e.target.value, index)}
+                      .value=${field.email || ''}>
+                      <option value="" >Select a field</option>
+                      ${this.applicationEmailFields.map(field => html`
+                        <option value=${field.id} ?selected=${field.id == field.email}>${field.label}</option>
+                      `)}
+                    </select>
+                  </div>
+                </div>
+              `)}
+            </div>
+            <div class='button-row'>
+              <button type="button" class="btn marketing-highlight__cta border-box category-brand--farmers-market" @click=${this._onSupporterAdd}>Add Supporter</button>
+              <button type="button" class="btn marketing-highlight__cta border-box category-brand--double-decker" @click=${this._onSupporterRemove}>Remove Last Supporter</button>
+            </div>
+          </div>
         </div>
 
       </fieldset>
       <div class="button-row">
-        <button type="submit" class="btn--primary">${isNew ? 'Create' : 'Update'}</button>
+        <button type="submit" class="btn--primary border-box">${isNew ? 'Create' : 'Update'}</button>
         <button
           ?hidden=${!this.hasActiveCycle}
           type="button" @click=${this._onEditFormCancel}
-          class="btn">Cancel</button>
+          class="btn border-box">Cancel</button>
       </div>
     </form>
   `;

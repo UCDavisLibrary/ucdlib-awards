@@ -33,6 +33,12 @@ class UcdlibAwardsCycle {
       }
     }
 
+    if ( isset($data['cycle_meta']) ){
+      if ( !is_string($data['cycle_meta']) ){
+        $data['cycle_meta'] = json_encode( $data['cycle_meta'] );
+      }
+    }
+
     $data['date_updated'] = date('Y-m-d H:i:s');
     global $wpdb;
     $cyclesTable = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::CYCLES );
@@ -613,6 +619,11 @@ class UcdlibAwardsCycle {
    */
   public function recordArray($additionalProps = []){
     $out = (array) $this->record();
+    if ( !empty($out['cycle_meta']) ){
+      $out['cycle_meta'] = json_decode( $out['cycle_meta'], true );
+    } else {
+      $out['cycle_meta'] = new stdClass();
+    }
     if ( !empty($additionalProps['applicantCount']) ){
       $out['applicantCount'] = $this->applicantCount();
     }

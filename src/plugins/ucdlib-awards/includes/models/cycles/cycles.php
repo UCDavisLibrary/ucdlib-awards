@@ -95,6 +95,11 @@ class UcdlibAwardsCycles {
         unset($data[$key]);
       }
     }
+    if ( isset($data['cycle_meta']) ){
+      if ( !is_string($data['cycle_meta']) ){
+        $data['cycle_meta'] = json_encode( $data['cycle_meta'] );
+      }
+    }
     $data['date_created'] = date('Y-m-d H:i:s');
     $data['date_updated'] = $data['date_created'];
     $wpdb->insert( $cyclesTable, $data );
@@ -127,6 +132,8 @@ class UcdlibAwardsCycles {
     ];
 
     $fieldLabels = UcdlibAwardsDbTables::get_table_column_labels( UcdlibAwardsDbTables::CYCLES );
+
+    $cycleMeta = isset($cycle['cycle_meta']) && is_array($cycle['cycle_meta']) ? $cycle['cycle_meta'] : [];
 
     // Required fields
     $requiredFields = [
@@ -258,7 +265,27 @@ class UcdlibAwardsCycles {
         $out[1]['errorMessages'][] = "The '$fieldLabels[category_form_slug]' field is not a valid form field.";
         $out[1]['errorFields']['category_form_slug'] = true;
       }
+    }
 
+    // letters of support application fields
+    if ( $hasSupport && !empty($cycle['application_form_id']) ){
+      $errorFieldSlug = 'supporterFields';
+      $requiredFields = ['firstName', 'lastName', 'email'];
+      $supporterFields = isset($cycleMeta['supporter_fields']) && is_array($cycleMeta['supporter_fields']) ? $cycleMeta['supporter_fields'] : [];
+      if ( empty($supporterFields) ){
+        $out[1]['errorMessages'][] = "The 'Supporter Identifier Fields' section is incomplete.";
+        $out[1]['errorFields'][$errorFieldSlug] = true;
+      }
+      foreach ($supporterFields as $fields) {
+        if ( !is_array($fields) ) $fields = [];
+        foreach( $requiredFields as $requiredField ){
+          if ( empty($fields[$requiredField]) ){
+            $out[1]['errorMessages'][] = "The 'Supporter Identifier Fields' section is incomplete.";
+            $out[1]['errorFields'][$errorFieldSlug] = true;
+            break;
+          }
+        }
+      }
     }
 
     // ensure at least one cycle is active
