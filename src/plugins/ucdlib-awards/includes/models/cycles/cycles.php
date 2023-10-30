@@ -271,7 +271,7 @@ class UcdlibAwardsCycles {
     if ( $hasSupport && !empty($cycle['application_form_id']) ){
       $errorFieldSlug = 'supporterFields';
       $requiredFields = ['firstName', 'lastName', 'email'];
-      $supporterFields = isset($cycleMeta['supporter_fields']) && is_array($cycleMeta['supporter_fields']) ? $cycleMeta['supporter_fields'] : [];
+      $supporterFields = isset($cycleMeta['supporterFields']) && is_array($cycleMeta['supporterFields']) ? $cycleMeta['supporterFields'] : [];
       if ( empty($supporterFields) ){
         $out[1]['errorMessages'][] = "The 'Supporter Identifier Fields' section is incomplete.";
         $out[1]['errorFields'][$errorFieldSlug] = true;

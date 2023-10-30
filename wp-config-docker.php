@@ -21,6 +21,9 @@ if (!function_exists('getenv_docker')) {
 		if ($fileEnv = getenv($env . '_FILE')) {
 			return rtrim(file_get_contents($fileEnv), "\r\n");
 		}
+    else if ( getenv($env) === 'false' ){
+      return false;
+    }
 		else if (($val = getenv($env)) !== false) {
 			return $val;
 		}

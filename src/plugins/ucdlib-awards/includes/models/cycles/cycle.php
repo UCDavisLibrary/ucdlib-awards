@@ -131,6 +131,15 @@ class UcdlibAwardsCycle {
     return $record->support_form_id;
   }
 
+  public function supporterFields(){
+    $out = [];
+    $meta = $this->cycleMeta();
+    if ( isset($meta['supporterFields']) ){
+      $out = $meta['supporterFields'];
+    }
+    return $out;
+  }
+
   protected $cycleMeta;
   public function cycleMeta(){
     if ( isset($this->cycleMeta) ) return $this->cycleMeta;
@@ -391,11 +400,11 @@ class UcdlibAwardsCycle {
     $sql = "DELETE FROM $table WHERE cycle_id = %d AND user_id IN (" . implode(',', $applicantIds) . ") AND meta_key IN ('" . implode("','", $meta_keys) . "')";
     $wpdb->query( $wpdb->prepare( $sql, $this->cycleId ) );
 
-    // remove from judge user meta assignments
+    // remove from judge/sponsor user meta assignments
     $table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USER_META );
     $meta_keys = array_map(function($item){
       return $item['meta_key'];
-    }, $this->plugin->config::$assignedJudgesProps);
+    }, array_merge($this->plugin->config::$assignedJudgesProps, $this->plugin->config::$supporterProps));
     $sql = "DELETE FROM $table WHERE cycle_id = %d AND meta_value IN ('" . implode("','", $applicantIds) . "') AND meta_key IN ('" . implode("','", $meta_keys) . "')";
     $wpdb->query( $wpdb->prepare( $sql, $this->cycleId ) );
 

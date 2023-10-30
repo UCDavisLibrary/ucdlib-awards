@@ -39,6 +39,11 @@ class UcdlibAwardsConfig {
     ['meta_key' => 'evaluatedApplicant', 'outKey' => 'evaluated']
   ];
 
+  public static $supporterProps = [
+    ['meta_key' => 'supporterApplicant', 'outKey' => 'registered'],
+    ['meta_key' => 'supporterApplicantSubmitted', 'outKey' => 'submitted']
+  ];
+
   /**
    * @description Get App env (dev or prod) - determines what assets to load
    */

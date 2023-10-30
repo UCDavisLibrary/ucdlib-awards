@@ -56,6 +56,30 @@ class UcdlibAwardsFormsAddonHooks extends Forminator_Addon_Form_Hooks_Abstract {
       if ( !$metaUpdateSuccess ) {
         return "Submission failed! Could not update user meta.";
       }
+
+      // support form checks
+    } else if ( $isSupportForm ){
+      if ( empty($submitted_data['ucdlib-awards--supporter-applicant']) ) {
+        return "Submission failed! Could not determine the applicant.";
+      }
+      $applicantIds = $user->cycleMetaItem( 'supporterApplicant', $activeCycle->cycleId );
+      if ( empty($applicantIds) ) {
+        return 'You are not a registered supporter for this application cycle.';
+      }
+      if ( !in_array( $submitted_data['ucdlib-awards--supporter-applicant'], $applicantIds ) ) {
+        return 'You are not a registered supporter for this applicant.';
+      }
+      $inApplicantList = false;
+      $applicants = $activeCycle->allApplicants();
+      foreach ( $applicants as $applicant ){
+        if ( $applicant->record()->user_id == $submitted_data['ucdlib-awards--supporter-applicant'] ){
+          $inApplicantList = true;
+          break;
+        }
+      }
+      if ( !$inApplicantList ) {
+        return 'The applicant you selected is not in the list of applicants for this cycle.';
+      }
     }
 
     return true;
@@ -73,34 +97,68 @@ class UcdlibAwardsFormsAddonHooks extends Forminator_Addon_Form_Hooks_Abstract {
     $user = $this->plugin->users->currentUser();
     $cycle = $this->plugin->cycles->activeCycle();
     if ( !$user->id || !$cycle ) return $out;
-    $out[] = [
-      'name' => 'applicant_id',
-      'value' => $user->id
-    ];
-    $out[] = [
-      'name' => 'cycle_id',
-      'value' => $cycle->cycleId
-    ];
 
-    // save category value if applicable
-    // since forminator only saves the label...
-    if (
-      !empty($cycle->record()->has_categories) &&
-      !empty($cycle->record()->category_form_slug) &&
-      !empty($submitted_data[$cycle->record()->category_form_slug])
-      ){
-      $category = $submitted_data[$cycle->record()->category_form_slug];
-      if ( is_array($category) ) $category = $category[0];
+    if ( $isApplicationForm ){
       $out[] = [
-        'name' => 'category',
-        'value' => $category
+        'name' => 'applicant_id',
+        'value' => $user->id
       ];
+      $out[] = [
+        'name' => 'cycle_id',
+        'value' => $cycle->cycleId
+      ];
+
+      // save category value if applicable
+      // since forminator only saves the label...
+      if (
+        !empty($cycle->record()->has_categories) &&
+        !empty($cycle->record()->category_form_slug) &&
+        !empty($submitted_data[$cycle->record()->category_form_slug])
+        ){
+        $category = $submitted_data[$cycle->record()->category_form_slug];
+        if ( is_array($category) ) $category = $category[0];
+        $out[] = [
+          'name' => 'category',
+          'value' => $category
+        ];
+      }
+
+      // if letters of support is enabled, add supporter(s) to award user list
+      if ( $cycle->supportIsEnabled() ){
+        $supporterEmailsFromForm = [];
+        foreach ($cycle->supporterFields() as $fields) {
+          if ( empty($fields['email']) || empty($submitted_data[$fields['email']]) ) continue;
+          $email = $submitted_data[$fields['email']];
+          if (in_array( $email, $supporterEmailsFromForm )) continue;
+          $supporterEmailsFromForm[] = $email;
+
+          $supporter = $this->plugin->users->getByEmail($email);
+          if ( empty($supporter) ) {
+            $phUsername = 'ph_' . explode('@', $email)[0];
+            $firstName = isset($submitted_data[$fields['firstName']]) ? $submitted_data[$fields['firstName']] : '';
+            $lastName = isset($submitted_data[$fields['lastName']]) ? $submitted_data[$fields['lastName']] : '';
+            $supporter = $this->plugin->users->getByUsername($phUsername);
+            $supporter->create([
+              'email' => $email,
+              'first_name' => $firstName,
+              'last_name' => $lastName
+            ]);
+          }
+          $supporter->updateMetaWithValue('supporterApplicant', $user->id, $cycle->cycleId);
+        }
+      }
+
+      $user->updateMeta( 'hasSubmittedApplication', true, $cycle->cycleId );
+      $this->plugin->logs->logApplicationSubmit( $cycle->cycleId, $user->id );
+      $this->plugin->email->sendAdminApplicationSubmittedEmail( $cycle->cycleId, $user->id );
+      $this->plugin->email->sendApplicantConfirmationEmail( $cycle->cycleId, $user->id );
+    } else if ( $isSupportForm && !empty($submitted_data['ucdlib-awards--supporter-applicant']) ){
+      $user->updateNameFromWpAccount();
+      $user->updateMetaWithValue('supporterApplicantSubmitted', $submitted_data['ucdlib-awards--supporter-applicant'], $cycle->cycleId);
+      $this->plugin->logs->logApplicationSupportSubmit( $cycle->cycleId, $submitted_data['ucdlib-awards--supporter-applicant'], $user->id );
+      $this->plugin->email->sendAdminSupportSubmittedEmail( $cycle->cycleId, $submitted_data['ucdlib-awards--supporter-applicant'], $user->id );
     }
 
-    $user->updateMeta( 'hasSubmittedApplication', true, $cycle->cycleId );
-    $this->plugin->logs->logApplicationSubmit( $cycle->cycleId, $user->id );
-    $this->plugin->email->sendAdminApplicationSubmittedEmail( $cycle->cycleId, $user->id );
-    $this->plugin->email->sendApplicantConfirmationEmail( $cycle->cycleId, $user->id );
 
     return $out;
   }

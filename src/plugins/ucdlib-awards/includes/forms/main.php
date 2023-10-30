@@ -52,7 +52,7 @@ class UcdlibAwardsFormsMain {
     } else if ( $this->isSupportForm ) {
       $formWindowStatus = $activeCycle->supportWindowStatus();
       $formWindowStart = $activeCycle->record()->support_start;
-      $formWindowEnd = $activeCycle->support_end;
+      $formWindowEnd = $activeCycle->record()->support_end;
     }
     $out['formWindowStatus'] = $formWindowStatus;
     $out['formWindowStart'] = $formWindowStart;
@@ -64,6 +64,20 @@ class UcdlibAwardsFormsMain {
       $previousEntry = $user->applicationEntry( $activeCycle->cycleId );
     }
     $out['previousEntry'] = $previousEntry;
+
+    $supporterApplicants = [];
+    if ( $this->isSupportForm ){
+      $applicantIds = $user->cycleMetaItem( 'supporterApplicant', $activeCycle->cycleId );
+      if ( !empty($applicantIds) ){
+        foreach ( $this->plugin->users->getByUserIds($applicantIds) as $applicant ){
+          $supporterApplicants[] = [
+            'id' => $applicant->record()->user_id,
+            'name' => $applicant->name()
+          ];
+        }
+      }
+    }
+    $out['supporterApplicants'] = $supporterApplicants;
 
     return $out;
   }

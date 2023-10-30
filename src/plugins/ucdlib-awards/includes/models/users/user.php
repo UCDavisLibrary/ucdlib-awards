@@ -79,7 +79,12 @@ class UcdlibAwardsUser {
     $meta = $wpdb->get_results( $wpdb->prepare( $sql, $this->id, $cycleId ) );
     $out = [];
     foreach( $meta as $m ){
-      if ( !empty($m->is_json) ){
+      if ( $m->meta_key === 'supporterApplicant' ) {
+        if ( !isset($out['supporterApplicant']) ){
+          $out['supporterApplicant'] = [];
+        }
+        $out['supporterApplicant'][] = $m->meta_value;
+      } else if ( !empty($m->is_json) ){
         $out[$m->meta_key] = json_decode( $m->meta_value, true );
       } else {
         $out[$m->meta_key] = $m->meta_value;
@@ -482,6 +487,21 @@ class UcdlibAwardsUser {
     ];
     global $wpdb;
     $wpdb->insert( $this->table, $record );
+    $this->clearCache();
+    return true;
+  }
+
+  public function updateNameFromWpAccount( ){
+    if ( !$this->wpUser() ){
+      return false;
+    }
+    $record = [
+      'first_name' => $this->wpUser()->user_firstname,
+      'last_name' => $this->wpUser()->user_lastname,
+      'date_updated' => date('Y-m-d H:i:s')
+    ];
+    global $wpdb;
+    $wpdb->update( $this->table, $record, ['wp_user_login' => $this->wpUser()->user_login] );
     $this->clearCache();
     return true;
   }

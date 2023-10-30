@@ -31,6 +31,8 @@ class UcdlibAwardsEmail {
         ['group' =>'admin', 'type' => 'boolean', 'default' => false, 'label' => 'Disable Conflict of Interest Email', 'isArray' => false],
       'emailAdminEvaluationSubmittedDisable' =>
         ['group' =>'admin', 'type' => 'boolean', 'default' => false, 'label' => 'Disable Evaluation Submitted Email', 'isArray' => false],
+      'emailAdminSupportSubmittedDisable' =>
+        ['group' =>'admin', 'type' => 'boolean', 'default' => false, 'label' => 'Disable Support Letter Submitted Email', 'isArray' => false],
       'emailApplicantConfirmationDisable' =>
         ['group' =>'applicant', 'type' => 'boolean', 'default' => false, 'label' => 'Disable Application Confirmation Email', 'isArray' => false],
       'emailApplicantConfirmationSubject' =>
@@ -376,6 +378,34 @@ class UcdlibAwardsEmail {
 
     } catch (\Throwable $th) {
       error_log('Error in sendAdminConflictOfInterestEmail: ' . $th->getMessage());
+      return false;
+    }
+  }
+
+  public function sendAdminSupportSubmittedEmail($cycleId, $applicantId, $supporterId){
+    try {
+      $canEmail = $this->canSendAdminNotificationEmail( $cycleId ) &&
+      !$this->getMeta( $cycleId, 'emailAdminSupportSubmittedDisable' );
+      if ( !$canEmail ) return false;
+
+      $applicant = $this->plugin->users->getByUserIds( $applicantId );
+      if ( !count( $applicant ) ) return false;
+      $applicant = $applicant[0];
+
+      $supporter = $this->plugin->users->getByUserIds( $supporterId );
+      if ( !count( $supporter ) ) return false;
+      $supporter = $supporter[0];
+
+      $subject = 'Support Letter Submitted';
+      $body = <<<EOT
+      {$supporter->name()} has just submitted a support letter for {$applicant->name()} - {$applicant->record()->email}.
+      EOT;
+
+      $sent = $this->sendEmail( $cycleId, $this->getMeta( $cycleId, 'emailAdminAddresses' ), $subject, $body );
+      return $sent;
+
+    } catch (\Throwable $th) {
+      error_log('Error in sendAdminSupportSubmittedEmail: ' . $th->getMessage());
       return false;
     }
   }

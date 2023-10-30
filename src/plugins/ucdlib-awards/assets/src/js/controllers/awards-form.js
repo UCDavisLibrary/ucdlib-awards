@@ -27,12 +27,40 @@ export default class AwardsForm {
       return;
     }
 
-    if ( this.config.previousEntry?.entry_id ) {
-      if ( this.config.isApplicationForm ) {
-        this.displayError('You may only submit a single application!', true);
-        return;
-      }
+    if ( this.config.previousEntry?.entry_id && this.config.isApplicationForm ) {
+      this.displayError('You may only submit a single application!', true);
+      return;
     }
+
+    if ( this.config.isSupportForm ){
+      this.addApplicantsSelect();
+    }
+  }
+
+  /**
+   * @description Adds a select element to the form for selecting an applicant if user is a registered supporter.
+   */
+  addApplicantsSelect(){
+    if ( !this.config.isSupportForm ) return;
+    const applicants = this.config.supporterApplicants;
+    if ( !applicants || !applicants.length ) {
+      this.displayError('You are not a registered supporter for any applicants!', true);
+      return;
+    }
+    const html = `
+      <div class="forminator-col forminator-col-12 ">
+        <div class="forminator-field">
+          <label for="ucdlib-awards--supporter-applicant" class="forminator-label">Applicant</label>
+          <select id="ucdlib-awards--supporter-applicant" class="forminator-select--field forminator-select2" name="ucdlib-awards--supporter-applicant">
+            ${applicants.map( applicant => `<option value="${applicant.id}">${applicant.name}</option>` ).join('')}
+          </select>
+        </div>
+      </div>
+    `;
+    const select = document.createElement('div');
+    select.innerHTML = html;
+    select.classList.add('forminator-row');
+    this.form.insertBefore(select, this.form.querySelector('.forminator-row'));
   }
 
   disableSubmitButton(){

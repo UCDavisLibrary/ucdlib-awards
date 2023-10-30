@@ -46,6 +46,11 @@ class UcdlibAwardsLogs {
             'slug' => 'delete',
             'label' => 'Delete',
             'description' => 'Application deleted'
+          ],
+          'support-submitted' => [
+            'slug' => 'support-submitted',
+            'label' => 'Support Submitted',
+            'description' => 'Support letter submitted'
           ]
         ]
       ],
@@ -485,6 +490,21 @@ class UcdlibAwardsLogs {
       'log_subtype' => 'submit',
       'cycle_id' => $cycleId,
       'user_id_subject' => $userId,
+      'date_created' =>  date('Y-m-d H:i:s')
+    ];
+
+    global $wpdb;
+    $wpdb->insert( $this->table, $log );
+    return true;
+  }
+
+  public function logApplicationSupportSubmit($cycleId, $applicantId, $supporterId){
+    $log = [
+      'log_type' => 'application',
+      'log_subtype' => 'support-submitted',
+      'cycle_id' => $cycleId,
+      'user_id_subject' => $supporterId,
+      'user_id_object' => $applicantId,
       'date_created' =>  date('Y-m-d H:i:s')
     ];
 

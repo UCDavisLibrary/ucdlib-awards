@@ -111,6 +111,9 @@ export function renderPageAdmin(){
     { label: 'Conflict of Interest', prop: 'emailAdminConflictOfInterestDisable', value: data.emailAdminConflictOfInterestDisable },
     { label: 'Evaluation Submitted', prop: 'emailAdminEvaluationSubmittedDisable', value: data.emailAdminEvaluationSubmittedDisable }
   ];
+  if ( this.supportEnabled ) {
+    disableEmails.push({ label: 'Letter of Support Submitted', prop: 'emailAdminSupportSubmittedDisable', value: data.emailAdminSupportSubmittedDisable });
+  }
 
   const onAddressChange = (e) => {
     const addresses = e.target.value.split('\n').map(address => address.trim()).filter(address => address);

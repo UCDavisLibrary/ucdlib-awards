@@ -165,9 +165,10 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
     log.iconColor = 'pinot';
     if ( log.log_subtype === 'submit' ) {
       log.displayText = `Application submitted by ${this.getUserName(log.user_id_subject)}`;
-    }
-    if ( log.log_subtype === 'delete' ) {
+    } else if ( log.log_subtype === 'delete' ) {
       log.displayText = `Applicant ${this.getUserName(log.user_id_object)} deleted by ${this.getUserName(log.user_id_subject)}`;
+    } else if ( log.log_subtype === 'support-submitted' ){
+      log.displayText = `Letter of support submitted by ${this.getUserName(log.user_id_subject)} for applicant ${this.getUserName(log.user_id_object)}`;
     }
     return log;
   }

@@ -22,7 +22,8 @@ export default class UcdlibAwardsAdminEmail extends Mixin(LitElement)
       errorFields: {type: Object},
       templateDefaults: { type: Object },
       templateVariables: { type: Array },
-      emailingEnabled: { type: Boolean }
+      emailingEnabled: { type: Boolean },
+      supportEnabled: { type: Boolean }
     }
   }
 
@@ -152,6 +153,9 @@ _parsePropsScript(script){
   }
   if ( data.emailingEnabled ) {
     this.emailingEnabled = data.emailingEnabled;
+  }
+  if ( data.supportEnabled ) {
+    this.supportEnabled = data.supportEnabled;
   }
 }
 
