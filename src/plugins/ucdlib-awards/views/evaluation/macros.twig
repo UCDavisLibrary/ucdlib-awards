@@ -73,21 +73,44 @@
       margin-bottom: .5rem;
       word-break: break-all;
     }
+    .u-space-ml {
+      margin-left: 1rem;
+    }
   </style>"|replace({"\n": "", "\r": "", "\t": ""})|raw
   }}
 {% endmacro %}
 
-{% macro renderApplicant(applicant, cycleId) %}
+{% macro renderApplicant(applicant, cycle) %}
+  {% set cycleId = cycle.cycleId %}
   <h2>{{applicant.name}}</h2>
   <div class='application'>
-    {% for question in applicant.getApplicationEntryExport(cycleId) %}
+    {{ _self.renderFormEntry(applicant.getApplicationEntryExport(cycleId), cycle.getSupporterFieldSlugs()) }}
+    {% if cycle.supportIsEnabled() %}
+      <div class='letters'>
+        {% for supporterId, form in applicant.getSupportEntryExport(cycleId) %}
+        {% set supporter = cycle.plugin.users.getByUserId(supporterId) %}
+          {% if supporter %}
+            <h3>Letter of Support from {{supporter.name()}}</h3>
+            <div class='u-space-ml'>
+              {{ _self.renderFormEntry(form, [], 4) }}
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+{% endmacro %}
+
+{% macro renderFormEntry(entry, skipQuestions=[], headerLevel=3) %}
+  {% for question in entry %}
+    {% if question.meta_key not in skipQuestions %}
       <div>
-        <h3>{{question.label}}</h3>
+        <h{{headerLevel}}>{{question.label}}</h{{headerLevel}}>
         {% if question.sub_metas %}
           <div class='sub-metas'>
             {% for sub_question in question.sub_metas %}
               <div>
-                <h4>{{sub_question.label}}</h4>
+                <h{{headerLevel+1}}>{{sub_question.label}}</h{{headerLevel+1}}>
                 {{ _self.renderValue(sub_question) }}
               </div>
             {% endfor %}
@@ -96,6 +119,6 @@
           {{ _self.renderValue(question) }}
         {% endif %}
       </div>
-    {% endfor %}
-  </div>
+    {% endif %}
+  {% endfor %}
 {% endmacro %}

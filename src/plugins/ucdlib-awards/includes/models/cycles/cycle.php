@@ -140,6 +140,30 @@ class UcdlibAwardsCycle {
     return $out;
   }
 
+  public function supportFormLink(){
+    $out = '';
+    $meta = $this->cycleMeta();
+    if ( isset($meta['supportFormLink']) ){
+      $out = $meta['supportFormLink'];
+    }
+    return $out;
+  }
+
+  public function getSupporterFieldSlugs($fieldType=null){
+    if ( !$this->supportIsEnabled() ) return [];
+    $out = [];
+    foreach ($this->supporterFields() as $fields) {
+      foreach ($fields as $key => $value) {
+        if ( empty($fieldType) ){
+          $out[] = $value;
+        } else if ( $key == $fieldType ){
+          $out[] = $value;
+        }
+      }
+    }
+    return $out;
+  }
+
   protected $cycleMeta;
   public function cycleMeta(){
     if ( isset($this->cycleMeta) ) return $this->cycleMeta;
@@ -696,6 +720,59 @@ class UcdlibAwardsCycle {
       }
     }
     return $entriesByUserId;
+  }
+
+  // Entries for letter of support form
+  protected $supportEntries;
+  public function supportEntries(){
+    if ( isset($this->supportEntries) ) return $this->supportEntries;
+    if ( !$this->record() || !$this->record()->support_form_id ){
+      $this->supportEntries = [];
+      return $this->supportEntries;
+    }
+    $this->supportEntries = $this->plugin->forms->getEntries( $this->record()->support_form_id );
+    return $this->supportEntries;
+  }
+
+  // latest entries for letter of support form by applicant id and supporter id, firstId is either 'applicantId' or 'supporterId'
+  public function getSupportEntriesById($firstId='applicantId', $exportEntry=false){
+    if ( $firstId != 'applicantId' && $firstId != 'supporterId' ) {
+      $firstId = 'applicantId';
+    }
+    $secondId = $firstId == 'applicantId' ? 'supporterId' : 'applicantId';
+    $keys = [
+      'applicantId' => 'forminator_addon_ucdlib-awards_applicant_id',
+      'supporterId' => 'forminator_addon_ucdlib-awards_supporter_id'
+    ];
+    $key_cycle = 'forminator_addon_ucdlib-awards_cycle_id';
+
+    $entries = $this->supportEntries();
+    usort($entries, function($a, $b){
+      return $b->date_created_sql <=> $a->date_created_sql;
+    });
+
+    $entriesById = [];
+    foreach( $entries as $entry ){
+      if ( empty($entry->meta_data[$key_cycle]) ) continue;
+      if ( $entry->meta_data[$key_cycle]['value'] != $this->cycleId ) continue;
+      if (
+        !empty($entry->meta_data[$keys[$firstId]]['value'])
+        && !empty($entry->meta_data[$keys[$secondId]]['value'])
+        ) {
+        $firstIdValue = $entry->meta_data[$keys[$firstId]]['value'];
+        $secondIdValue = $entry->meta_data[$keys[$secondId]]['value'];
+        if ( empty($entriesById[ $firstIdValue ]) ){
+          $entriesById[ $firstIdValue ] = [];
+        }
+        if ( empty($exportEntry) ){
+          $entriesById[ $firstIdValue ][ $secondIdValue ] = $entry;
+        } else {
+          $entriesById[ $firstIdValue ][ $secondIdValue ] = $this->plugin->forms->exportEntry($entry, true);
+        }
+
+      }
+    }
+    return $entriesById;
   }
 
   /**

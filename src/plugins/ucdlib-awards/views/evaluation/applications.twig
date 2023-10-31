@@ -9,7 +9,7 @@
 <body>
 <h1>{{award.getTitle}} Applications</h1>
 {% for applicant in applicants %}
-  {{ evalMacros.renderApplicant(applicant, cycleId) }}
+  {{ evalMacros.renderApplicant(applicant, cycle) }}
 {% endfor %}
 </body>
 </html>

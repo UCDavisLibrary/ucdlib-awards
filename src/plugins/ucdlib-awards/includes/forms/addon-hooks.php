@@ -145,6 +145,7 @@ class UcdlibAwardsFormsAddonHooks extends Forminator_Addon_Form_Hooks_Abstract {
             ]);
           }
           $supporter->updateMetaWithValue('supporterApplicant', $user->id, $cycle->cycleId);
+          $this->plugin->email->sendSupportRequestEmail( $cycle->cycleId, $supporter->record()->user_id, $user->id );
         }
       }
 
@@ -153,10 +154,25 @@ class UcdlibAwardsFormsAddonHooks extends Forminator_Addon_Form_Hooks_Abstract {
       $this->plugin->email->sendAdminApplicationSubmittedEmail( $cycle->cycleId, $user->id );
       $this->plugin->email->sendApplicantConfirmationEmail( $cycle->cycleId, $user->id );
     } else if ( $isSupportForm && !empty($submitted_data['ucdlib-awards--supporter-applicant']) ){
+      $applicantId = $submitted_data['ucdlib-awards--supporter-applicant'];
+      $out[] = [
+        'name' => 'supporter_id',
+        'value' => $user->id
+      ];
+      $out[] = [
+        'name' => 'applicant_id',
+        'value' => $applicantId
+      ];
+      $out[] = [
+        'name' => 'cycle_id',
+        'value' => $cycle->cycleId
+      ];
+
+
       $user->updateNameFromWpAccount();
-      $user->updateMetaWithValue('supporterApplicantSubmitted', $submitted_data['ucdlib-awards--supporter-applicant'], $cycle->cycleId);
-      $this->plugin->logs->logApplicationSupportSubmit( $cycle->cycleId, $submitted_data['ucdlib-awards--supporter-applicant'], $user->id );
-      $this->plugin->email->sendAdminSupportSubmittedEmail( $cycle->cycleId, $submitted_data['ucdlib-awards--supporter-applicant'], $user->id );
+      $user->updateMetaWithValue('supporterApplicantSubmitted', $applicantId, $cycle->cycleId);
+      $this->plugin->logs->logApplicationSupportSubmit( $cycle->cycleId, $applicantId, $user->id );
+      $this->plugin->email->sendAdminSupportSubmittedEmail( $cycle->cycleId, $applicantId, $user->id );
     }
 
 

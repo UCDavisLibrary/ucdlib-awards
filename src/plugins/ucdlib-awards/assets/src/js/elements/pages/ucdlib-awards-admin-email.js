@@ -18,6 +18,7 @@ export default class UcdlibAwardsAdminEmail extends Mixin(LitElement)
       formAdmin: { type: Object },
       formJudge: { type: Object },
       formApplicant: { type: Object },
+      formSupporter: { type: Object },
       errorMessages: { type: Array },
       errorFields: {type: Object},
       templateDefaults: { type: Object },
@@ -37,6 +38,7 @@ export default class UcdlibAwardsAdminEmail extends Mixin(LitElement)
     this.formGeneral = {};
     this.formAdmin = {};
     this.formJudge = {};
+    this.formSupporter = {};
     this.formApplicant = {};
     this.errorMessages = [];
     this.cycleId = '';
@@ -44,14 +46,23 @@ export default class UcdlibAwardsAdminEmail extends Mixin(LitElement)
     this.templateDefaults = {};
     this.templateVariables = [];
     this.emailingEnabled = false;
+    this.supportEnabled = false;
 
     this.page = 'general';
     this.pages = [
       { label: 'General Settings', value: 'general', formProperty: 'formGeneral' },
       { label: 'Admin Notifications', value: 'admin', formProperty: 'formAdmin' },
       { label: 'Judge Notifications', value: 'judge', formProperty: 'formJudge' },
-      { label: 'Applicant Notifications', value: 'applicant', formProperty: 'formApplicant' }
+      { label: 'Applicant Notifications', value: 'applicant', formProperty: 'formApplicant' },
+      { label: 'Supporter Notifications', value: 'supporter', formProperty: 'formSupporter', hidden: true },
     ];
+  }
+
+  willUpdate(props){
+    if ( props.has('supportEnabled')) {
+      const page = this.pages.find(p => p.value === 'supporter');
+      if ( page ) page.hidden = !this.supportEnabled;
+    }
   }
 
   _onNavClick(e) {
@@ -141,6 +152,7 @@ _parsePropsScript(script){
     this.formAdmin = data.emailMeta.admin || {};
     this.formJudge = data.emailMeta.judge || {};
     this.formApplicant = data.emailMeta.applicant || {};
+    this.formSupporter = data.emailMeta.supporter || {};
   }
   if ( data.cycleId ) {
     this.cycleId = data.cycleId;
@@ -174,9 +186,10 @@ _onEmailUpdate(e){
 }
 
 makeEmailObject(kwargs={}){
-  const { label, emailPrefix, data } = kwargs;
+  const { label, emailPrefix, data, notAnAutomatedEmail } = kwargs;
   return {
     label,
+    notAnAutomatedEmail: notAnAutomatedEmail ? true : false,
     emailPrefix,
     disable: { prop: `${emailPrefix}Disable`, value: data[`${emailPrefix}Disable`] ? true : false },
     subject: {

@@ -71,6 +71,18 @@ class UcdlibAwardsAdminMenu {
       [$this, 'renderJudges']
     );
 
+    $activeCycle = $this->plugin->cycles->activeCycle();
+    if ( $activeCycle && $activeCycle->supportIsEnabled() ){
+      add_submenu_page(
+        $this->slugs['main'],
+        $this->award->getAdminMenuPageTitle(),
+        "Supporters",
+        "edit_posts",
+        $this->slugs['supporters'],
+        [$this, 'renderSupporters']
+      );
+    }
+
     add_submenu_page(
       $this->slugs['main'],
       $this->award->getAdminMenuPageTitle(),
@@ -98,6 +110,20 @@ class UcdlibAwardsAdminMenu {
       [$this, 'renderLogs']
     );
 
+  }
+
+  public function renderSupporters(){
+    $context = $this->context();
+    $requestedCycle = $this->context['requestedCycle'];
+    $pageProps = [
+      'wpAjax' => $this->ajaxUtils->getAjaxElementProperty('adminSupporters')
+    ];
+    if ( $requestedCycle ){
+      $pageProps['cycleId'] = $requestedCycle->cycleId;
+    }
+
+    $context['pageProps'] = $pageProps;
+    UcdlibAwardsTimber::renderAdminPage( 'supporters', $context );
   }
 
   public function renderEmailSettings(){

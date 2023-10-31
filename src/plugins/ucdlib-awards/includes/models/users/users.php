@@ -121,6 +121,12 @@ class UcdlibAwardsUsers {
     return $users;
   }
 
+  public function getByUserId($userId){
+    $users = $this->getByUserIds( $userId );
+    if ( empty($users) ) return false;
+    return $users[0];
+  }
+
   public function getAllApplicants($cycleId){
     if ( !$cycleId ) return [];
     global $wpdb;

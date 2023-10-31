@@ -175,6 +175,16 @@ class UcdlibAwardsAdminAjax {
         $applicantIds = is_array($payload['applicant_ids']) ? $payload['applicant_ids'] : [$payload['applicant_ids']];
         $applicants = $this->plugin->users->getByUserIds($applicantIds);
 
+        // get supporter form entries and attach to applicant model
+        if ( $cycle->supportIsEnabled() ){
+          $supporterById = $cycle->getSupportEntriesById('applicantId', true);
+          foreach ($applicants as &$applicant) {
+            if ( isset($supporterById[$applicant->id]) ){
+              $applicant->setSupportEntryExport($cycleId, $supporterById[$applicant->id]);
+            }
+          }
+        }
+
         foreach ($applicants as &$applicant) {
           $entry = isset($entriesByApplicantId[$applicant->id]) ? $entriesByApplicantId[$applicant->id] : false;
           if ( $entry ){
@@ -183,7 +193,7 @@ class UcdlibAwardsAdminAjax {
           }
         }
         $response['data'] = [
-          'htmlDoc' =>  UcdlibAwardsTimber::getApplicationsHtml($applicants, $this->plugin->award, $cycleId)
+          'htmlDoc' =>  UcdlibAwardsTimber::getApplicationsHtml($applicants, $this->plugin->award, $cycle)
         ];
         $response['success'] = true;
 

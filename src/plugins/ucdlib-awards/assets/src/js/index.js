@@ -23,6 +23,7 @@ import "./elements/pages/applicants/ucdlib-awards-applicants-ctl.js";
 import "./elements/pages/judges/ucdlib-awards-judges-ctl.js";
 import "./elements/pages/ucdlib-awards-admin-rubric.js";
 import "./elements/pages/ucdlib-awards-admin-evaluation.js";
+import "./elements/pages/supporters/ucdlib-awards-supporters-ctl.js";
 
 // app evaluation pages
 import "./elements/pages/ucdlib-awards-evaluation.js";

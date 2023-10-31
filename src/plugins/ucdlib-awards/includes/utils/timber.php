@@ -14,11 +14,11 @@ class UcdlibAwardsTimber {
     Timber::render( $template, $context );
   }
 
-  public static function getApplicationHtml( $applicant, $award, $cycleId ){
+  public static function getApplicationHtml( $applicant, $award, $cycle ){
     $context = [
       'applicant' => $applicant,
       'award' => $award,
-      'cycleId' => $cycleId
+      'cycle' => $cycle
     ];
     $template = '@' . UcdlibAwardsConfig::$twigNamespace . '/evaluation/application.twig';
     $compiled = Timber::compile( $template, $context );
@@ -28,11 +28,11 @@ class UcdlibAwardsTimber {
     return $compiled;
   }
 
-  public static function getApplicationsHtml( $applicants, $award, $cycleId ){
+  public static function getApplicationsHtml( $applicants, $award, $cycle ){
     $context = [
       'applicants' => $applicants,
       'award' => $award,
-      'cycleId' => $cycleId
+      'cycle' => $cycle
     ];
     $template = '@' . UcdlibAwardsConfig::$twigNamespace . '/evaluation/applications.twig';
     $compiled = Timber::compile( $template, $context );

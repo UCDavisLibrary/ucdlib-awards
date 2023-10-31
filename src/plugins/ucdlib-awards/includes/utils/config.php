@@ -21,7 +21,8 @@ class UcdlibAwardsConfig {
     'adminJudges' => 'ucdlib_awards_admin_judges',
     'evaluation' => 'ucdlib_awards_evaluation',
     'adminEvaluation' => 'ucdlib_awards_admin_evaluation',
-    'adminEmail' => 'ucdlib_awards_admin_email'
+    'adminEmail' => 'ucdlib_awards_admin_email',
+    'adminSupporters' => 'ucdlib_awards_admin_supporters',
   ];
 
   public static $urlQueryParams = [

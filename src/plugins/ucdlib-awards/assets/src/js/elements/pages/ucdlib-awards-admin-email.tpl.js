@@ -21,17 +21,56 @@ return html`
         ${ renderPageAdmin.call(this) }
         ${ renderPageJudge.call(this) }
         ${ renderPageApplicant.call(this)}
+        ${ renderPageSupporter.call(this)}
       </ucdlib-pages>
     </div>
     <div class="l-second panel o-box">
       <ucd-theme-subnav @item-click=${this._onNavClick}>
         ${this.pages.map(page => html`
+          ${page.hidden ? html`` : html`
           <a>${page.label}</a>
+        `}
         `)}
       </ucd-theme-subnav>
     </div>
   </div>
 `;}
+
+function renderPageSupporter() {
+  const pageSlug = 'supporter';
+  const data = this.formSupporter || {};
+  const emails = [
+    this.makeEmailObject({label: 'Supporter Registered by Applicant', emailPrefix: 'emailSupporterRegistered', data}),
+    this.makeEmailObject({label: 'Submission Reminder', emailPrefix: 'emailSupporterNudge', data, notAnAutomatedEmail: true}),
+  ];
+  return html`
+  <div id='email-${pageSlug}'>
+    <form @submit=${this._onFormSubmit}>
+      <h4 class='u-space-mb'>Judge Notifications</h4>
+      <ucd-theme-list-accordion>
+        ${emails.map(email => html`
+          <li>${email.label}</li>
+          <li>
+            <ucdlib-awards-email-template
+              class='u-space-mt u-block'
+              @email-update=${this._onEmailUpdate}
+              .emailPrefix=${email.emailPrefix}
+              .bodyTemplate=${email.body.value}
+              .defaultBodyTemplate=${email.body.default}
+              .defaultSubjectTemplate=${email.subject.default}
+              .subjectTemplate=${email.subject.value}
+              .disableNotification=${email.disable.value}
+              .notAnAutomatedEmail=${email.notAnAutomatedEmail}
+              .templateVariables=${email.body.templateVariables}>
+            </ucdlib-awards-email-template>
+          </li>
+        `)}
+      </ucd-theme-list-accordion>
+      <button type='submit' class='btn btn btn--primary border-box u-space-mt'>Save</button>
+    </form>
+  </div>
+`;
+}
 
 export function renderPageJudge() {
   const pageSlug = 'judge';
@@ -57,6 +96,7 @@ export function renderPageJudge() {
                 .defaultSubjectTemplate=${email.subject.default}
                 .subjectTemplate=${email.subject.value}
                 .disableNotification=${email.disable.value}
+                .notAnAutomatedEmail=${email.notAnAutomatedEmail}
                 .templateVariables=${email.body.templateVariables}>
               </ucdlib-awards-email-template>
             </li>

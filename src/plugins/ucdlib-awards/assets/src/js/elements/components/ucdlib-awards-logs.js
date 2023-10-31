@@ -156,6 +156,10 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
       log.displayText = `Applicant assigned email sent to ${this.getUserName(log.user_id_subject)}`;
     } else if ( log.log_subtype === 'evaluation-nudge' ){
       log.displayText = `Evaluation nudge email sent to judge ${this.getUserName(log.user_id_subject)}`;
+    } else if ( log.log_subtype === 'support-requested' ){
+      log.displayText = `Letter of support request email sent to ${this.getUserName(log.user_id_subject)} for applicant ${this.getUserName(log.user_id_object)}`;
+    } else if ( log.log_subtype === 'supporter-nudge' ){
+      log.displayText = `Letter of support nudge email sent to ${this.getUserName(log.user_id_subject)} for applicant ${this.getUserName(log.user_id_object)}`;
     }
     return log;
   }

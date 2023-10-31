@@ -67,6 +67,7 @@ export function renderEditForm() {
   let supporterFields = this.editFormData?.cycle_meta?.supporterFields || [];
   supporterFields = supporterFields.length ? supporterFields : [{firstName: '', lastName: '', email: ''}];
   let showSupporterFields = this.editFormData?.has_support && this.editFormData?.application_form_id;
+  const supportFormLink = this.editFormData?.cycle_meta?.supportFormLink || '';
 
   return html`
     <form @submit=${this._onEditFormSubmit}>
@@ -216,6 +217,16 @@ export function renderEditForm() {
             </select>
             ${this.renderBasicNotification(html`<span>No forms have been created yet! <a href=${this.formsLink}>Make one with the form builder.</a></span>`, this.siteForms.length)}
           </div>
+          <div class='field-container'>
+            <label>Support Form Link</label>
+            <div class='hint-text'>
+              The url that will be shared with supporters to submit their letters of support.
+            </div>
+            <input
+             type="text"
+              @input=${e => this._onSupportFormLinkInput(e.target.value)}
+              .value=${supportFormLink}>
+          </div>
           <div class="field-container ${this.formErrors.supporterFields ? 'error' : ''}" ?hidden=${!showSupporterFields}>
             <label>Supporter Identifier Fields</label>
             <div class='hint-text'>
@@ -230,8 +241,8 @@ export function renderEditForm() {
                       @input=${e => this._onSupporterInput('firstName', e.target.value, index)}
                       .value=${field.firstName || ''}>
                       <option value="" >Select a field</option>
-                      ${this.applicationTextFields.map(field => html`
-                        <option value=${field.id} ?selected=${field.id == field.firstName}>${field.label}</option>
+                      ${this.applicationTextFields.map(appField => html`
+                        <option value=${appField.id} ?selected=${appField.id == field.firstName}>${appField.label}</option>
                       `)}
                     </select>
                   </div>
@@ -241,8 +252,8 @@ export function renderEditForm() {
                       @input=${e => this._onSupporterInput('lastName', e.target.value, index)}
                       .value=${field.lastName || ''}>
                       <option value="" >Select a field</option>
-                      ${this.applicationTextFields.map(field => html`
-                        <option value=${field.id} ?selected=${field.id == field.lastName}>${field.label}</option>
+                      ${this.applicationTextFields.map(appField => html`
+                        <option value=${appField.id} ?selected=${appField.id == field.lastName}>${appField.label}</option>
                       `)}
                     </select>
                   </div>
@@ -252,8 +263,8 @@ export function renderEditForm() {
                       @input=${e => this._onSupporterInput('email', e.target.value, index)}
                       .value=${field.email || ''}>
                       <option value="" >Select a field</option>
-                      ${this.applicationEmailFields.map(field => html`
-                        <option value=${field.id} ?selected=${field.id == field.email}>${field.label}</option>
+                      ${this.applicationEmailFields.map(appField => html`
+                        <option value=${appField.id} ?selected=${appField.id == field.email}>${appField.label}</option>
                       `)}
                     </select>
                   </div>

@@ -139,6 +139,12 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
     this._onEditFormInput('cycle_meta', cycleMeta);
   }
 
+  _onSupportFormLinkInput(value){
+    const cycleMeta = {...this.editFormData.cycle_meta};
+    cycleMeta.supportFormLink = value;
+    this._onEditFormInput('cycle_meta', cycleMeta);
+  }
+
   /**
    * @description Callback for when an input is changed in the edit/add form
    * @param {String} prop - the property name

@@ -8,10 +8,13 @@ class UcdlibAwardsEmail {
     $this->templateVariables = [
       'applicantName' => 'Applicant Name',
       'judgeName' => 'Judge Name',
+      'supporterName' => 'Supporter Name',
       'prizeName' => 'Prize Name',
       'evaluationUrl' => 'Evaluation Link',
+      'supportUrl' => 'Support Form Link',
       'judgeIncompleteCount' => 'Number of Incomplete Evaluations',
-      'evaluationEndDate' => 'Evaluation End Date'
+      'evaluationEndDate' => 'Evaluation End Date',
+      'supportEndDate' => 'Support Letter End Date'
     ];
 
     $this->metaFields = [
@@ -99,12 +102,124 @@ class UcdlibAwardsEmail {
           'isTemplate' => true,
           'variables' => ['judgeName', 'prizeName', 'judgeIncompleteCount', 'evaluationUrl', 'evaluationEndDate']
         ],
+      'emailSupporterRegisteredDisable' =>
+        ['group' =>'supporter', 'type' => 'boolean', 'default' => false, 'label' => 'Disable Supporter Registered Email', 'isArray' => false],
+      'emailSupporterRegisteredSubject' =>
+        [
+          'group' =>'supporter',
+          'type' => 'text',
+          'default' => '',
+          'label' => 'Supporter Registered Subject',
+          'isArray' => false,
+          'isTemplate' => true,
+          'variables' => ['supporterName', 'prizeName'],
+        ],
+      'emailSupporterRegisteredBody' =>
+        [
+          'group' =>'supporter',
+          'type' => 'textArea',
+          'default' => '',
+          'label' => 'Supporter Registered Body',
+          'isArray' => false,
+          'isTemplate' => true,
+          'variables' => ['supporterName', 'prizeName', 'supportEndDate', 'supportUrl', 'applicantName'],
+        ],
+      'emailSupporterNudgeDisable' =>
+        ['group' =>'supporter', 'type' => 'boolean', 'default' => false, 'label' => 'Disable Supporter Nudge Email', 'isArray' => false],
+      'emailSupporterNudgeSubject' =>
+        [
+          'group' =>'supporter',
+          'type' => 'text',
+          'default' => '',
+          'label' => 'Supporter Nudge Subject',
+          'isArray' => false,
+          'isTemplate' => true,
+          'variables' => ['supporterName', 'prizeName', 'supportEndDate']
+        ],
+      'emailSupporterNudgeBody' =>
+        [
+          'group' =>'supporter',
+          'type' => 'textArea',
+          'default' => '',
+          'label' => 'Supporter Nudge Body',
+          'isArray' => false,
+          'isTemplate' => true,
+          'variables' => ['supporterName', 'prizeName', 'supportEndDate', 'supportUrl', 'applicantName']
+        ]
     ];
 
     $this->cache = [];
     $this->optionPrefix = $this->plugin->config::$optionsSlug . '_email_';
 
     $this->emailingEnabled = getenv('UCDLIB_AWARDS_EMAILING_ENABLED') === 'true';
+  }
+
+  public function sendSupportRequestEmail( $cycleId, $supporterId, $applicantId ){
+    try {
+      if ( $this->getMeta($cycleId, 'emailDisableAutomatedEmails') ) return false;
+
+      $supporter = $this->plugin->users->getByUserIds( $supporterId );
+      if ( !count( $supporter ) ) return false;
+      $supporter = $supporter[0];
+
+      $applicant = $this->plugin->users->getByUserIds( $applicantId );
+      if ( !count( $applicant ) ) return false;
+      $applicant = $applicant[0];
+
+      $cycle = $this->plugin->cycles->getById( $cycleId );
+      if ( !$cycle ) return false;
+      if ( !$cycle->supportIsEnabled() ) return false;
+
+      $sent = $this->sendEmailFromTemplate( $cycleId, 'emailSupporterRegistered', $supporter, [
+        'supporter' => $supporter,
+        'applicant' => $applicant,
+        'cycle' => $cycle
+      ]);
+
+      if ( $sent ){
+        $this->plugin->logs->logSupportRequestEmail( $cycleId, $supporterId, $applicantId);
+      }
+
+      return $sent;
+
+    } catch (\Throwable $th) {
+      error_log('Error in sendSupportRequestEmail: ' . $th->getMessage());
+      return false;
+    }
+  }
+
+  public function sendSupporterNudgeEmail( $cycleId, $supporterId, $applicantId ){
+    try {
+
+      $supporter = $this->plugin->users->getByUserIds( $supporterId );
+      if ( !count( $supporter ) ) return false;
+      $supporter = $supporter[0];
+
+      $applicant = $this->plugin->users->getByUserIds( $applicantId );
+      if ( !count( $applicant ) ) return false;
+      $applicant = $applicant[0];
+
+      $cycle = $this->plugin->cycles->getById( $cycleId );
+      if ( !$cycle ) return false;
+      if ( !$cycle->supportIsEnabled() ) return false;
+
+      $sent = $this->sendEmailFromTemplate( $cycleId, 'emailSupporterNudge', $supporter, [
+        'supporter' => $supporter,
+        'applicant' => $applicant,
+        'cycle' => $cycle
+      ]);
+
+      if ( $sent ){
+        $this->plugin->logs->logSupportNudgeEmail( $cycleId, $supporterId, $applicantId);
+      }
+
+      return $sent;
+
+    } catch (\Throwable $th) {
+      error_log('Error in sendSupporterNudgeEmail: ' . $th->getMessage());
+      return false;
+    }
+
   }
 
   public function sendJudgeEvaluationNudgeEmail( $cycleId, $judgeId ){
@@ -244,12 +359,19 @@ class UcdlibAwardsEmail {
           if ( !isset($data['judge']) ) break;
           $out = $data['judge']->name();
           break;
+        case 'supporterName':
+          if ( !isset($data['supporter']) ) break;
+          $out = $data['supporter']->name();
+          break;
         case 'prizeName':
           $out = $this->plugin->award->getTitle();
           break;
         case 'evaluationUrl':
           $out = $this->plugin->award->getEvaluationPageLink();
           break;
+        case 'supportUrl':
+          if ( !isset($data['cycle']) ) break;
+          $out = $data['cycle']->supportFormLink();
         case 'judgeIncompleteCount':
           if ( !isset($data['judge']) ) break;
           if ( !isset($data['cycle']) ) break;
@@ -265,6 +387,11 @@ class UcdlibAwardsEmail {
         case 'evaluationEndDate':
           if ( !isset($data['cycle']) ) break;
           $date = $data['cycle']->record()->application_end;
+          $out = date( 'F j, Y', strtotime( $date ) );
+          break;
+        case 'supportEndDate':
+          if ( !isset($data['cycle']) ) break;
+          $date = $data['cycle']->record()->support_end;
           $out = date( 'F j, Y', strtotime( $date ) );
           break;
       }
@@ -561,6 +688,35 @@ class UcdlibAwardsEmail {
     {{evaluationUrl}}
 
     The evaluation period ends on {{evaluationEndDate}}.
+
+    Best,
+    The {{prizeName}} Administators
+    EOT;
+
+    // supporters
+    $defaults['emailSupporterRegisteredSubject'] = 'Support Letter Requested for {{prizeName}}';
+    $defaults['emailSupporterRegisteredBody'] = <<<EOT
+    Dear {{supporterName}},
+
+    {{applicantName}} has requested a support letter for their application to the {{prizeName}}. Please visit the following link to submit your letter:
+
+    {{supportUrl}}
+
+    The support letter period ends on {{supportEndDate}}.
+
+    Best,
+    The {{prizeName}} Administators
+    EOT;
+
+    $defaults['emailSupporterNudgeSubject'] = 'Reminder: Support Letter Requested for {{prizeName}}';
+    $defaults['emailSupporterNudgeBody'] = <<<EOT
+    Dear {{supporterName}},
+
+    {{applicantName}} has requested a support letter for their application to the {{prizeName}}. Please visit the following link to submit your letter:
+
+    {{supportUrl}}
+
+    The support letter period ends on {{supportEndDate}}.
 
     Best,
     The {{prizeName}} Administators

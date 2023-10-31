@@ -140,6 +140,16 @@ class UcdlibAwardsLogs {
             'slug' => 'evaluation-nudge',
             'label' => 'Evaluation Nudge',
             'description' => 'Evaluation reminder email sent to judge'
+          ],
+          'support-requested' => [
+            'slug' => 'support-requested',
+            'label' => 'Support Requested',
+            'description' => 'Support letter request email sent to supporter'
+          ],
+          'supporter-nudge' => [
+            'slug' => 'supporter-nudge',
+            'label' => 'Supporter Nudge',
+            'description' => 'Support letter reminder email sent to supporter'
           ]
         ]
       ]
@@ -345,6 +355,36 @@ class UcdlibAwardsLogs {
       $wpdb->insert( $this->table, $log );
     }
 
+  }
+
+  public function logSupportNudgeEmail( $cycleId, $supporterId, $applicantId ){
+    $log = [
+      'log_type' => 'email',
+      'log_subtype' => 'supporter-nudge',
+      'cycle_id' => $cycleId,
+      'user_id_subject' => $supporterId,
+      'user_id_object' => $applicantId,
+      'date_created' =>  date('Y-m-d H:i:s')
+    ];
+
+    global $wpdb;
+    $wpdb->insert( $this->table, $log );
+    return true;
+  }
+
+  public function logSupportRequestEmail( $cycleId, $supporterId, $applicantId ){
+    $log = [
+      'log_type' => 'email',
+      'log_subtype' => 'support-requested',
+      'cycle_id' => $cycleId,
+      'user_id_subject' => $supporterId,
+      'user_id_object' => $applicantId,
+      'date_created' =>  date('Y-m-d H:i:s')
+    ];
+
+    global $wpdb;
+    $wpdb->insert( $this->table, $log );
+    return true;
   }
 
   public function logEvaluationNudgeEmail($cycleId, $judgeId){
