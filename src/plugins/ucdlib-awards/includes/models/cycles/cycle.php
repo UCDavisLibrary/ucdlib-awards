@@ -108,6 +108,7 @@ class UcdlibAwardsCycle {
     $this->applicationEntries = null;
     $this->userMeta = null;
     $this->cycleMeta = null;
+    $this->supportForm = null;
   }
 
   public function title(){
@@ -129,6 +130,23 @@ class UcdlibAwardsCycle {
     $record = $this->record();
     if ( !$record->has_support ) return false;
     return $record->support_form_id;
+  }
+
+  protected $supportForm;
+  public function supportForm(){
+    if ( isset($this->supportForm) ) return $this->supportForm;
+    $formId = $this->supportFormId();
+    if ( !$formId ) {
+      $this->supportForm = false;
+      return $this->supportForm;
+    }
+    $forms = $this->plugin->forms->getForms([ $formId ]);
+    if ( empty($forms) ) {
+      $this->supportForm = false;
+      return $this->supportForm;
+    }
+    $this->supportForm = $forms[0];
+    return $this->supportForm;
   }
 
   public function supporterFields(){
@@ -411,6 +429,24 @@ class UcdlibAwardsCycle {
     $sql = "SELECT user_id FROM $table WHERE cycle_id = %d AND meta_key = 'isJudge' AND meta_value = 'true'";
     $this->judgeIds = $wpdb->get_col( $wpdb->prepare( $sql, $this->cycleId ) );
     return $this->judgeIds;
+  }
+
+  public function deleteLetterOfSupport($supporterId, $applicantId){
+    if (!$this->supportIsEnabled() || !$this->supportFormId() ) return;
+
+    // remove supporterApplicantSubmitted flag from user meta
+    global $wpdb;
+    $table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USER_META );
+    $wpdb->delete($table, [
+      'cycle_id' => $this->cycleId,
+      'user_id' => $supporterId,
+      'meta_key' => 'supporterApplicantSubmitted',
+      'meta_value' => (string) $applicantId
+    ]);
+
+    // remove entry
+    return $this->plugin->forms->deleteSupportEntry( $this->supportFormId(), $supporterId, $applicantId );
+
   }
 
   public function deleteApplicants($applicantIds){
@@ -935,6 +971,66 @@ class UcdlibAwardsCycle {
     $sql = "SELECT * FROM $userMetaTable WHERE cycle_id = %d";
     $this->userMeta = $wpdb->get_results( $wpdb->prepare( $sql, $this->cycleId ) );
     return $this->userMeta;
+  }
+
+  public function supportTransactions(){
+    $metaKeys = [
+      'registered' => 'supporterApplicant',
+      'submitted' => 'supporterApplicantSubmitted'
+    ];
+    $out = [];
+    $userIds = [];
+    foreach ($this->userMeta() as $metaItem) {
+      if ( !in_array($metaItem->meta_key, $metaKeys) ) continue;
+      if ( empty($metaItem->user_id) || empty($metaItem->meta_value) ) continue;
+      $rowId = $metaItem->user_id . '_' . $metaItem->meta_value;
+      if ( empty($out[$rowId]) ){
+        if (!in_array($metaItem->user_id, $userIds) ){
+          $userIds[] = $metaItem->user_id;
+        }
+        if (!in_array($metaItem->meta_value, $userIds) ){
+          $userIds[] = $metaItem->meta_value;
+        }
+        $out[$rowId] = [
+          'id' => $rowId,
+          'supporterId' => $metaItem->user_id,
+          'supporterName' => '',
+          'supporterEmail' => '',
+          'applicantId' => $metaItem->meta_value,
+          'applicantName' => '',
+          'applicantEmail' => '',
+          'registered' => false,
+          'registeredTimestamp' => '',
+          'submitted' => false,
+          'submittedTimestamp' => ''
+        ];
+      }
+      if ( $metaItem->meta_key == $metaKeys['registered'] ){
+        $out[$rowId]['registered'] = true;
+        $out[$rowId]['registeredTimestamp'] = $metaItem->date_updated;
+      }
+      if ( $metaItem->meta_key == $metaKeys['submitted'] ){
+        $out[$rowId]['submitted'] = true;
+        $out[$rowId]['submittedTimestamp'] = $metaItem->date_updated;
+      }
+    }
+
+    $users = $this->plugin->users->getByUserIds( $userIds );
+    foreach ($out as &$o) {
+      $applicant = $this->plugin->users->getByUserId( $o['applicantId'] );
+      if ( $applicant ){
+        $o['applicantName'] = $applicant->name();
+        $o['applicantEmail'] = $applicant->record()->email;
+      }
+      $supporter = $this->plugin->users->getByUserId( $o['supporterId'] );
+      if ( $supporter ){
+        $o['supporterName'] = $supporter->name();
+        $o['supporterEmail'] = $supporter->record()->email;
+      }
+    }
+
+    return $out;
+
   }
 
   protected $applicantCount;

@@ -16,7 +16,145 @@ class UcdlibAwardsAdminAjax {
     add_action( 'wp_ajax_' . $this->actions['adminJudges'], [$this, 'judges'] );
     add_action( 'wp_ajax_' . $this->actions['adminApplicants'], [$this, 'applicants'] );
     add_action( 'wp_ajax_' . $this->actions['adminEmail'], [$this, 'email'] );
+    add_action( 'wp_ajax_' . $this->actions['adminSupporters'], [$this, 'supporters'] );
+  }
 
+  public function supporters(){
+    check_ajax_referer( $this->actions['adminSupporters'] );
+    $response = $this->utils->getResponseTemplate();
+    try {
+      $this->validateRequest($response);
+
+      $payload = json_decode( stripslashes($_POST['data']), true );
+      $cycle = $this->getCycle($payload, $response);
+      $cycleId = $cycle->cycleId;
+
+      if ( !$cycle->supportIsEnabled() ){
+        $response['messages'][] = 'Support letters are not enabled for this cycle.';
+        $this->utils->sendResponse($response);
+        return;
+      }
+      if ( !$cycle->supportForm() ){
+        $response['messages'][] = 'Support form not found.';
+        $this->utils->sendResponse($response);
+        return;
+      }
+
+      if ( empty($payload['supporter_row_ids']) || !is_array($payload['supporter_row_ids']) ){
+        $response['messages'][] = 'No supporters or applicants specified.';
+        $this->utils->sendResponse($response);
+        return;
+      }
+
+      $action = $_POST['subAction'];
+      if ( $action === 'getSubmission') {
+
+        // get all supporter form entries
+        $entries = $this->plugin->forms->getEntries($cycle->supportFormId());
+        $entriesBySupporterRowId = [];
+        $formMetaKeys = [
+          'supporter' => 'forminator_addon_ucdlib-awards_supporter_id',
+          'applicant' => 'forminator_addon_ucdlib-awards_applicant_id',
+        ];
+        foreach ($entries as $entry) {
+          $applicantId = $entry->get_meta($formMetaKeys['applicant']);
+          $supporterId = $entry->get_meta($formMetaKeys['supporter']);
+          $id = $supporterId . '_' . $applicantId;
+          if ( !isset($entriesBySupporterRowId[$id]) ){
+            $entriesBySupporterRowId[$id] = $entry;
+          }
+        }
+
+        // match entries to requested supporter/applicant pairs
+        $userIds = [];
+        $requestedEntries = [];
+        foreach ($payload['supporter_row_ids'] as $id) {
+          if ( !isset($entriesBySupporterRowId[$id]) ) continue;
+          $ids = explode('_', $id);
+          if ( count($ids) !== 2 ) continue;
+          $supporterId = $ids[0];
+          $applicantId = $ids[1];
+          $requestedEntries[] = [
+            'supporterId' => $supporterId,
+            'applicantId' => $applicantId,
+            'entry' => $entriesBySupporterRowId[$id],
+            'entryExport' => $this->plugin->forms->exportEntry($entriesBySupporterRowId[$id], true)
+          ];
+          $userIds[] = $supporterId;
+          $userIds[] = $applicantId;
+        }
+
+        // fetch user objects
+        $users = $this->plugin->users->getByUserIds($userIds);
+        foreach ($requestedEntries as &$entry) {
+          $applicant = $this->plugin->users->getByUserId($entry['applicantId']);
+          $supporter = $this->plugin->users->getByUserId($entry['supporterId']);
+          $entry['applicant'] = $applicant;
+          $entry['supporter'] = $supporter;
+        }
+
+        // filter out entries with missing users
+        $requestedEntries = array_filter($requestedEntries, function($entry){
+          return $entry['applicant'] && $entry['supporter'];
+        });
+        if (!count($requestedEntries)){
+          $response['messages'][] = 'No submissions found.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        $response['data'] = [
+          'htmlDoc' => UcdlibAwardsTimber::getLettersOfSupportHtml($requestedEntries, $this->plugin->award)
+        ];
+        $response['success'] = true;
+      } else if ( $action === 'delete' ){
+
+        $deleted = [];
+        foreach ($payload['supporter_row_ids'] as $id) {
+          $ids = explode('_', $id);
+          if ( count($ids) !== 2 ) continue;
+          $supporterId = $ids[0];
+          $applicantId = $ids[1];
+          if ( $cycle->deleteLetterOfSupport($supporterId, $applicantId) ){
+            $deleted[] = $id;
+          }
+        }
+        if ( !count($deleted) ){
+          $response['messages'][] = 'No letters of support deleted.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+        $response['messages'][] = 'Letters of support deleted successfully.';
+
+        $cycle->clearCache();
+        $response['data'] = ['supporters' => array_values($cycle->supportTransactions())];
+        $response['success'] = true;
+      } else if ( $action === 'send-email-reminder' ){
+
+        $emailSent = [];
+        foreach ($payload['supporter_row_ids'] as $id) {
+          $ids = explode('_', $id);
+          if ( count($ids) !== 2 ) continue;
+          $supporterId = $ids[0];
+          $applicantId = $ids[1];
+          if ( $this->plugin->email->sendSupporterNudgeEmail($cycleId, $supporterId, $applicantId) ){
+            $emailSent[] = $id;
+          }
+        }
+
+        if ( !count($emailSent) ){
+          $response['messages'][] = 'No emails sent.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        $response['messages'][] = 'Email' . (count($emailSent) > 1 ? 's' : '') . ' sent successfully.';
+        $response['success'] = true;
+      }
+    } catch (\Throwable $th) {
+      error_log('Error in UcdlibAwardsAdminAjax::supporters(): ' . $th->getMessage());
+    }
+    $this->utils->sendResponse($response);
   }
 
   public function email(){

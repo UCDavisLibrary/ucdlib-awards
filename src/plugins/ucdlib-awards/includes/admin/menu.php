@@ -120,6 +120,7 @@ class UcdlibAwardsAdminMenu {
     ];
     if ( $requestedCycle ){
       $pageProps['cycleId'] = $requestedCycle->cycleId;
+      $pageProps['supporters'] = array_values($requestedCycle->supportTransactions());
     }
 
     $context['pageProps'] = $pageProps;

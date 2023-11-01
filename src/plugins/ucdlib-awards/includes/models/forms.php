@@ -38,6 +38,52 @@ class UcdlibAwardsForms {
     return $fields;
   }
 
+  public function deleteSupportEntry($formId, $supporterId, $applicantId) {
+  if ( !$this->forminatorActivated ) return false;
+  $supporterId = (string) $supporterId;
+  $applicantId = (string) $applicantId;
+
+  $deleted = false;
+  $entries = $this->getEntries($formId);
+  if ( empty($entries) ) return false;
+  foreach( $entries as $entry ){
+    $entrySupporterId = $entry->get_meta('forminator_addon_ucdlib-awards_supporter_id');
+    if ( empty($entrySupporterId) ) continue;
+    $entrySupporterId = (string) $entrySupporterId;
+    $entryApplicantId = $entry->get_meta('forminator_addon_ucdlib-awards_applicant_id');
+    if ( empty($entryApplicantId) ) continue;
+    $entryApplicantId = (string) $entryApplicantId;
+    if ( $entrySupporterId === $supporterId && $entryApplicantId === $applicantId ){
+      $entry->delete();
+      $deleted = true;
+    }
+  }
+  return $deleted;
+
+}
+
+  public function deleteEntriesBySupporterId($formId, $supporterIds){
+    if ( !$this->forminatorActivated ) return [];
+    $supporterIds = is_array($supporterIds) ? $supporterIds : [$supporterIds];
+    $supporterIds = array_map(function($id){
+      return (string) $id;
+    }, $supporterIds);
+
+    $deleted = [];
+    $entries = $this->getEntries($formId);
+    if ( empty($entries) ) return [];
+    foreach( $entries as $entry ){
+      $supporterId = $entry->get_meta('forminator_addon_ucdlib-awards_supporter_id');
+      if ( empty($supporterId) ) continue;
+      $supporterId = (string) $supporterId;
+      if ( in_array($supporterId, $supporterIds) ){
+        $entry->delete();
+        $deleted[] = $entry;
+      }
+    }
+    return $deleted;
+  }
+
   public function deleteEntriesByApplicantId($formId, $applicantIds){
     if ( !$this->forminatorActivated ) return false;
     $applicantIds = is_array($applicantIds) ? $applicantIds : [$applicantIds];
@@ -49,6 +95,7 @@ class UcdlibAwardsForms {
     if ( empty($entries) ) return false;
     foreach( $entries as $entry ){
       $applicantId = $entry->get_meta('forminator_addon_ucdlib-awards_applicant_id');
+      if ( empty($applicantId) ) continue;
       $applicantId = (string) $applicantId;
       if ( in_array($applicantId, $applicantIds) ){
         $entry->delete();

@@ -42,4 +42,17 @@ class UcdlibAwardsTimber {
     return $compiled;
   }
 
+  public static function getLettersOfSupportHtml( $entries, $award ){
+    $context = [
+      'entries' => $entries,
+      'award' => $award
+    ];
+    $template = '@' . UcdlibAwardsConfig::$twigNamespace . '/evaluation/letters-of-support.twig';
+    $compiled = Timber::compile( $template, $context );
+
+    // remove trailing line break
+    $compiled = preg_replace('/\s+$/m', '', $compiled);
+    return $compiled;
+  }
+
 }

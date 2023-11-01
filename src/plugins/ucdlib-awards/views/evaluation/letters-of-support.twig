@@ -1,0 +1,23 @@
+{% import "@ucdlib-awards/evaluation/macros.twig" as evalMacros %}
+{% apply spaceless %}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{award.getTitle}} Letters of Support</title>
+  {{ evalMacros.renderStyles() }}
+</head>
+<body>
+<h1>{{award.getTitle}} Letters of Support</h1>
+{% for entry in entries %}
+  {% if entry.applicant and entry.supporter %}
+    <h2>{{entry.supporter.name()}}</h2>
+    <h3>Applicant</h3>
+    <p>{{entry.applicant.name()}}</p>
+    <div>
+      {{ evalMacros.renderFormEntry(entry.entryExport) }}
+    </div>
+  {% endif %}
+{% endfor %}
+</body>
+</html>
+{% endapply %}
