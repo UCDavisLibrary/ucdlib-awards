@@ -107,6 +107,10 @@ class UcdlibAwardsFormsAddonHooks extends Forminator_Addon_Form_Hooks_Abstract {
         'name' => 'cycle_id',
         'value' => $cycle->cycleId
       ];
+      $out[] = [
+        'name' => 'is_application',
+        'value' => $cycle->cycleId
+      ];
 
       // save category value if applicable
       // since forminator only saves the label...

@@ -247,6 +247,15 @@ class UcdlibAwardsEvaluationAjax {
 
     $entryValues = $formsModel->exportEntry($formEntry, true);
     $applicant->setApplicationEntryExport($cycle->cycleId, $entryValues);
+
+    // get supporter form entries and attach to applicant model
+    if ( $cycle->supportIsEnabled() ){
+      $supporterById = $cycle->getSupportEntriesById('applicantId', true);
+      if ( isset($supporterById[$applicant->id]) ){
+        $applicant->setSupportEntryExport($cycle->cycleId, $supporterById[$applicant->id]);
+      }
+    }
+
     $response['data'] = [
       'entryValues' => $entryValues,
       'formId' => $payload['form_id'],

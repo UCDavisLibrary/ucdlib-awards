@@ -414,10 +414,11 @@ class UcdlibAwardsUser {
     $table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::FORM_ENTRY_META );
     $keys = [
       'user' => 'forminator_addon_ucdlib-awards_applicant_id',
-      'cycle' => 'forminator_addon_ucdlib-awards_cycle_id'
+      'cycle' => 'forminator_addon_ucdlib-awards_cycle_id',
+      'app' => 'forminator_addon_ucdlib-awards_is_application'
     ];
-    $sql = "SELECT * FROM $table WHERE (meta_key = %s AND meta_value = %d) OR (meta_key = %s AND meta_value = %d) ORDER BY date_created DESC";
-    $entryMeta = $wpdb->get_results( $wpdb->prepare( $sql, $keys['user'], $this->id, $keys['cycle'], $cycleId ) );
+    $sql = "SELECT * FROM $table WHERE (meta_key = %s AND meta_value = %d) OR (meta_key = %s AND meta_value = %d) OR (meta_key = %s AND meta_value = %d) ORDER BY date_created DESC";
+    $entryMeta = $wpdb->get_results( $wpdb->prepare( $sql, $keys['user'], $this->id, $keys['cycle'], $cycleId, $keys['app'], $cycleId ) );
     $entryId = null;
     $entryIds = [];
     foreach( $entryMeta as $meta ){
