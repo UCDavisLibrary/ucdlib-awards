@@ -219,7 +219,6 @@ export default class UcdlibAwardsPage extends LitElement {
   }
 
   _onCycleSelect(e){
-    console.log('cycle select', e.target.value);
     const cycleId = e.target.value;
     if ( !cycleId || cycleId == this.selectedCycle.cycle_id ) return;
     const params = new URLSearchParams(window.location.search);

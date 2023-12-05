@@ -84,7 +84,7 @@ export function renderForm() {
       </div>
     ` : html`
       <div class='hint-text u-space-mb'>
-        Create rubric items for judges to use when evaluating applications.
+        Create rubric items for reviewers to use when evaluating applications.
         Scores for each item will be averaged to determine the overall score for an applicant.
       </div>
       <div class='hint-text u-space-mb'>
@@ -205,7 +205,7 @@ export function renderUploadPanel(){
       </h2>
       <section>
         <div class='hint-text u-space-mb'>
-          Upload a full rubric as a PDF or Word document for the judge to download and reference.
+          Upload a full rubric as a PDF or Word document for the reviewer to download and reference.
           Should be used in conjunction with the rubric items form when a rubric is complex.
         </div>
         <div ?hidden=${!this.uploadedFile}>

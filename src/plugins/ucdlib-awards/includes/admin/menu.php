@@ -65,7 +65,7 @@ class UcdlibAwardsAdminMenu {
     add_submenu_page(
       $this->slugs['main'],
       $this->award->getAdminMenuPageTitle(),
-      "Judges",
+      "Reviewers",
       "edit_posts",
       $this->slugs['judges'],
       [$this, 'renderJudges']

@@ -58,7 +58,6 @@ export default class UcdlibAwardsSupportersDisplay extends Mixin(LitElement)
       }
       this._supporters = supporters;
       this._allSelected = this._supporters.length && this._supporters.every(supporter => supporter.selected);
-      console.log('supporters', this._supporters);
     }
   }
 

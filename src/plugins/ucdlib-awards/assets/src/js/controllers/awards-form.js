@@ -20,10 +20,14 @@ export default class AwardsForm {
   }
 
   init(){
-    console.log(this.config);
     if ( this.config.formWindowStatus !== 'active' ){
       this.disableSubmitButton();
       this.displayWindowClosedMessage();
+
+      this.hideAllFormFields()
+
+      // try hide again in case forminator js re-displays fields
+      setTimeout(() => this.hideAllFormFields(), 100);
       return;
     }
 
@@ -72,12 +76,27 @@ export default class AwardsForm {
     submitButton.disabled = true;
   }
 
+  hideAllFormFields(){
+    const fieldRows = this.form.querySelectorAll('.forminator-row');
+    if ( !fieldRows.length ){
+      console.warn('Could not find any form fields. Cannot hide form fields.');
+      return;
+    }
+    fieldRows.forEach(fieldRow => fieldRow.style.display = 'none');
+
+    const pagination = this.form.querySelector('.forminator-pagination-steps');
+    if ( pagination ) pagination.style.display = 'none';
+
+    const paginationFooter = this.form.querySelector('.forminator-pagination-footer');
+    if ( paginationFooter ) paginationFooter.style.display = 'none';
+  }
+
   displayWindowClosedMessage(){
     if ( this.config.formWindowStatus === 'upcoming' ){
-      const date = dateTimeUtils.mysqlToLocaleString(this.config.formWindowStart);
+      const date = dateTimeUtils.mysqlToDateString(this.config.formWindowStart, true);
       this.displayError(`Sorry, the application${this.config.isSupportForm ? ' support ' : ' '}window is currently closed. It will open on ${date}.`);
     } else if ( this.config.formWindowStatus === 'past' ){
-      const date = dateTimeUtils.mysqlToLocaleString(this.config.formWindowEnd);
+      const date = dateTimeUtils.mysqlToDateString(this.config.formWindowEnd, true);
       this.displayError(`Sorry, the application${this.config.isSupportForm ? ' support ' : ' '}window is currently closed. It closed on ${date}.`);
     } else {
       this.displayError('This form is currently disabled.');

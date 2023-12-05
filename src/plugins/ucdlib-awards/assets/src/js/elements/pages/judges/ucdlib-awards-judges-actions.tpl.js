@@ -12,7 +12,7 @@ export function renderNewJudgePanel(){
     <div class="panel panel--icon panel--icon-custom o-box category-brand--arboretum u-space-mb--flush">
       <h2 class="panel__title">
         <ucdlib-icon icon="ucd-public:fa-user-plus" class="panel__custom-icon"></ucdlib-icon>
-        <span>Add a Judge</span>
+        <span>Add a Reviewer</span>
       </h2>
       <section>
         <form @submit="${this._onNewJudgeSubmit}">
@@ -54,7 +54,7 @@ export function renderActionPanel(){
       </h2>
       <form @submit=${this._onActionSubmit}>
         <div ?hidden=${this.selectedJudges.length} class='u-space-mb hint-text'>
-          Select at least one judge to perform an action
+          Select at least one reviewer to perform an action
         </div>
         <div class="field-container">
           <select

@@ -164,7 +164,6 @@ export default class UcdlibAwardsApplicantsCtl extends Mixin(LitElement)
     if ( data.applicants ) {
       this._setApplicants(data.applicants);
     }
-    console.log('data', data);
 
   }
 

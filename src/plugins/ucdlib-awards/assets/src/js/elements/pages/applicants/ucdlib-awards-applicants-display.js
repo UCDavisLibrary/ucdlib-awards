@@ -67,7 +67,6 @@ export default class UcdlibAwardsApplicantsDisplay extends Mixin(LitElement)
       }
       this._applicants = applicants;
       this._allSelected = this._applicants.length && this._applicants.every(applicant => applicant.selected);
-      console.log('applicants', this._applicants);
     }
   }
 

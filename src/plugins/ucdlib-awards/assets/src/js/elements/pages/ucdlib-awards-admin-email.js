@@ -82,7 +82,6 @@ export default class UcdlibAwardsAdminEmail extends Mixin(LitElement)
     const data = this[page.formProperty];
     this.errorMessages = [];
     this.errorFields = {};
-    console.log(data);
 
     const payload = {
       cycle_id: this.cycleId,
@@ -145,7 +144,6 @@ _parsePropsScript(script){
     console.error('Error parsing JSON script', e);
   }
   if ( !data ) return;
-  console.log(data);
 
   if ( data.emailMeta ){
     this.formGeneral = data.emailMeta.general || {};

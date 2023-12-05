@@ -12,7 +12,7 @@ export function styles() {
 
 export function render() {
 return html`
-  <h3 class="page-subtitle">Judges</h3>
+  <h3 class="page-subtitle">Reviewers</h3>
   <div class="l-2col l-2col--67-33">
     <div class="l-second panel o-box">
       <ucdlib-awards-judges-actions

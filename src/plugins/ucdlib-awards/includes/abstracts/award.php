@@ -28,7 +28,7 @@ class UcdlibAwardsAwardAbstract {
     'logs' => 'awards-admin-logs',
     'applicants' => 'awards-admin-applicants',
     'rubric' => 'awards-admin-rubric',
-    'judges' => 'awards-admin-judges',
+    'judges' => 'awards-admin-reviewers',
     'evaluation' => 'awards-admin-evaluation',
     'email' => 'awards-admin-email',
     'supporters' => 'awards-admin-supporters'

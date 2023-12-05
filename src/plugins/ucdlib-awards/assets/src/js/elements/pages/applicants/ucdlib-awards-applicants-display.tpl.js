@@ -133,7 +133,7 @@ export function renderAssignmentModalContent() {
   const name = applicant.name;
   return html`
   <div dismiss-text='Close'>
-      <h4>Judge Assignments for ${name}</h4>
+      <h4>Reviewer Assignments for ${name}</h4>
       <ul class='list--arrow'>
         ${judges.map(judge => html`
           <li>${judge.name}

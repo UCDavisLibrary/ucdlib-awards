@@ -124,7 +124,6 @@ _parsePropsScript(script){
     console.error('Error parsing JSON script', e);
   }
   if ( !data ) return;
-  console.log(data);
 
   if ( data.scores ) {
     this.scores = data.scores;

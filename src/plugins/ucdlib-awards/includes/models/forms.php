@@ -162,6 +162,7 @@ class UcdlibAwardsForms {
   }
 
   public function toBasicArray($forms){
+    $basicForms = [];
     if ( is_array($forms) ) {
       $returnSingle = false;
     } else {

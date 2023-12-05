@@ -23,9 +23,9 @@ class UcdlibAwardsEmail {
       'emailSenderName' =>
         ['group' =>'general', 'type' => 'text', 'default' => '', 'label' => 'Sender Name', 'isArray' => false],
       'emailDisableEmails' =>
-        ['group' =>'general', 'type' => 'boolean', 'default' => false, 'label' => 'Disable All Emails', 'isArray' => false],
+        ['group' =>'general', 'type' => 'boolean', 'default' => true, 'label' => 'Disable All Emails', 'isArray' => false],
       'emailDisableAutomatedEmails' =>
-        ['group' =>'general', 'type' => 'boolean', 'default' => false, 'label' => 'Disable Automated Emails', 'isArray' => false],
+        ['group' =>'general', 'type' => 'boolean', 'default' => true, 'label' => 'Disable Automated Emails', 'isArray' => false],
       'emailAdminAddresses' =>
         ['group' =>'admin', 'type' => 'email', 'default' => [], 'label' => 'Admin Email Addresses', 'isArray' => true],
       'emailAdminApplicationSubmittedDisable' =>

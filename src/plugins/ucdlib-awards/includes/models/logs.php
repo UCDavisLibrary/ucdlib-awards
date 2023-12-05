@@ -162,6 +162,7 @@ class UcdlibAwardsLogs {
    */
   public function getFilters($cycleId = null){
     $cycle = $this->plugin->cycles->getById($cycleId);
+    if ( empty($cycle) ) return [];
     $filters = [];
 
     $filters[] = [

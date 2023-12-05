@@ -1,13 +1,23 @@
 class UcdlibAwardsUtilsDatetime {
 
+  constructor() {
+    this.months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ]
+  }
+
   /**
    * @description Convert mysql datetime string to simple date string, assuming same timezone
    * @param {String} dateTimeString - mysql datetime string
    */
-  mysqlToDateString(dateTimeString) {
+  mysqlToDateString(dateTimeString, fmt) {
     if ( !dateTimeString ) return '';
     try {
-      const date = dateTimeString.split(' ')[0];
+      let date = dateTimeString.split(' ')[0];
+      if ( fmt ) {
+        date = new Date( date );
+        date = `${this.months[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}`
+      }
       return date;
     } catch(e) {
       console.error('Error formatting date', dateTimeString);

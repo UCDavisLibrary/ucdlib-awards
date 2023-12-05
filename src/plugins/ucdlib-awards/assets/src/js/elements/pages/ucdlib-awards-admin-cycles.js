@@ -408,7 +408,6 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
       console.error('Error parsing JSON script', e);
     }
     if ( !data ) return;
-    console.log('data', data);
     if ( data.activeCycle ) {
       this.activeCycle = data.activeCycle;
     } else {

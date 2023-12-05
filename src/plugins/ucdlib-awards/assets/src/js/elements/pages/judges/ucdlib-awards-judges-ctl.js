@@ -295,7 +295,6 @@ export default class UcdlibAwardsJudgesCtl extends Mixin(LitElement)
     if ( data.cycleId ) this.cycleId = data.cycleId;
     if ( data.judges ) this.judges = data.judges;
     if ( data.applicants ) this.applicants = data.applicants;
-    console.log('data', data);
 
   }
 

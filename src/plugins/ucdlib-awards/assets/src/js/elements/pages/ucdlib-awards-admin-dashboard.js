@@ -76,7 +76,6 @@ export default class UcdlibAwardsAdminDashboard extends Mixin(LitElement)
       console.error('Error parsing JSON script', e);
     }
     if ( !data ) return;
-    console.log('data', data);
     if ( data.requestedCycle ) {
       this.requestedCycle = data.requestedCycle;
     }

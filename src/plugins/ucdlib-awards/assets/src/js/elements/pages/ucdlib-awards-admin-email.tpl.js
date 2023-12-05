@@ -46,7 +46,7 @@ function renderPageSupporter() {
   return html`
   <div id='email-${pageSlug}'>
     <form @submit=${this._onFormSubmit}>
-      <h4 class='u-space-mb'>Judge Notifications</h4>
+      <h4 class='u-space-mb'>Reviewer Notifications</h4>
       <ucd-theme-list-accordion>
         ${emails.map(email => html`
           <li>${email.label}</li>
@@ -82,7 +82,7 @@ export function renderPageJudge() {
   return html`
     <div id='email-${pageSlug}'>
       <form @submit=${this._onFormSubmit}>
-        <h4 class='u-space-mb'>Judge Notifications</h4>
+        <h4 class='u-space-mb'>Reviewer Notifications</h4>
         <ucd-theme-list-accordion>
           ${emails.map(email => html`
             <li>${email.label}</li>
@@ -212,11 +212,11 @@ export function renderPageGeneral() {
           <ul class="list--reset checkbox">
             <li>
               <input id="input-emailDisableEmails" type="checkbox" .checked=${disableEmails} @input=${() => this._onFormInput(pageSlug, 'emailDisableEmails', !disableEmails)}>
-              <label for="input-emailDisableEmails">Disable All System Emails</label>
+              <label for="input-emailDisableEmails">Disable All System Emails (if selected, absolutely no emails will be sent)</label>
             </li>
             <li>
               <input id="input-emailDisableAutomatedEmails" type="checkbox" .checked=${disableAutomatedEmails} @input=${() => this._onFormInput(pageSlug, 'emailDisableAutomatedEmails', !disableAutomatedEmails)}>
-              <label for="input-emailDisableAutomatedEmails">Disable All Automated Emails</label>
+              <label for="input-emailDisableAutomatedEmails">Disable All Automated Emails (if selected, reminder emails can still be sent from admin pages, but all other emailing will be disabled)</label>
             </li>
           </ul>
         </div>

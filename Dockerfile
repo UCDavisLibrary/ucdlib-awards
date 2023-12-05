@@ -56,8 +56,16 @@ ENV COMPOSER_ALLOW_SUPERUSER=1;
 COPY composer.json .
 RUN composer install
 
+# node setup
+ARG NODE_VERSION
+RUN apt-get update \
+&& apt-get install -y ca-certificates curl gnupg \
+&& mkdir -p /etc/apt/keyrings \
+&& curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+&& echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_VERSION.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
+
 # Install debian packages
-RUN apt-get update && apt-get install -y unzip git vim
+RUN apt-get update && apt-get install -y unzip git vim nodejs
 
 # WP config
 COPY wp-config-docker.php wp-config-docker.php
@@ -114,7 +122,12 @@ COPY src/plugins/graduate-student-prize graduate-student-prize
 COPY src/plugins/lang-prize lang-prize
 COPY src/plugins/ucdlib-awards ucdlib-awards
 
-# TODO: build js
+# build js
+RUN cd ucdlib-awards/assets \
+&& npm install \
+&& npm run dist \
+&& npm run dist-public \
+&& rm -rf node_modules
 
 # Back to site root so wordpress can do the rest of its thing
 WORKDIR $WP_SRC_ROOT

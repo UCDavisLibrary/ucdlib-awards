@@ -68,7 +68,6 @@ export default class UcdlibAwardsJudgesDisplay extends Mixin(LitElement)
       }
       this._judges = judges;
       this._allSelected = this._judges.length && this._judges.every(judge => judge.selected);
-      console.log('judges', this._judges);
     }
   }
 

@@ -27,6 +27,7 @@ docker build \
   --build-arg THEME_TAG=${THEME_TAG} \
   --build-arg FORMINATOR_THEME_TAG=${FORMINATOR_THEME_TAG} \
   --build-arg WP_CORE_VERSION=${WP_CORE_VERSION} \
+  --build-arg NODE_VERSION=${NODE_VERSION} \
   --build-arg WP_SRC_ROOT=${WP_SRC_ROOT} \
   --build-arg WP_LOG_ROOT=${WP_LOG_ROOT} \
   --build-arg WP_UPLOADS_DIR=${WP_UPLOADS_DIR} \

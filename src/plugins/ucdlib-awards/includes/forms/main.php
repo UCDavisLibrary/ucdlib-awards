@@ -90,23 +90,33 @@ class UcdlibAwardsFormsMain {
     if ( is_admin() ) return;
     if ( !has_block( self::$formBlockName ) ) return;
 
+
     global $post;
     $blocks = parse_blocks( $post->post_content );
-    foreach ( $blocks as $block ) {
+    $this->checkForActivatedForms( $blocks );
+    if ( !$this->isApplicationForm && !$this->isSupportForm ) return;
+    $this->formId = $this->isApplicationForm ? $this->plugin->forms->applicationFormId() : $this->plugin->forms->supportFormId();
+    if ( is_user_logged_in() ) return;
+    wp_redirect( wp_login_url( get_permalink() ) );
+    exit;
+  }
+
+  // recursive function to check all inner blocks for application or support forms
+  public function checkForActivatedForms($blocks){
+    // already found a form, no need to continue
+    if ( $this->isApplicationForm || $this->isSupportForm ) return;
+
+    foreach ($blocks as $block) {
+      if (isset( $block['innerBlocks'] ) && ! empty( $block['innerBlocks'] )) {
+        $this->checkForActivatedForms( $block['innerBlocks'] );
+      }
+
       if ( $block['blockName'] !== self::$formBlockName ) continue;
       if ( !isset($block['attrs']['module_id']) ) continue;
       $formId = $block['attrs']['module_id'];
       $this->isApplicationForm = $formId == $this->plugin->forms->applicationFormId();
       $this->isSupportForm = $formId == $this->plugin->forms->supportFormId();
-      if ( $this->isApplicationForm || $this->isSupportForm ) {
-        $this->formId = $formId;
-        break;
-      }
     }
-    if ( !$this->isApplicationForm && !$this->isSupportForm ) return;
-    if ( is_user_logged_in() ) return;
-    wp_redirect( wp_login_url( get_permalink() ) );
-    exit;
   }
 
   /**

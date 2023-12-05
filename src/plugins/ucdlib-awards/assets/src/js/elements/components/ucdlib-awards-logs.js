@@ -51,14 +51,12 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
 
   async query(){
     const query = {...this.filters, page: this.logPage, cycle: this.cycleId};
-    console.log('query', query);
     const response = await this.wpAjax.request('query', {query});
 
     // query is already in progress
     if ( !response ) return;
 
     this.page = 'logs-loading';
-    console.log('response', response);
     if ( response.success ) {
       this.users = response.data.users;
       this.logs = response.data.results.map(log => this.parseLog(log));
@@ -123,9 +121,9 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
         judge = this.getUserName(log.user_id_object);
       }
       let admin = this.getUserName(log.user_id_subject);
-      log.displayText = `${judge} assigned as judge ${admin ? `by ${admin}` : ''}`;
+      log.displayText = `${judge} assigned as reviewer ${admin ? `by ${admin}` : ''}`;
     } else if ( log.log_subtype === 'judge-removed' ) {
-      log.displayText = `${this.getUserName(log.user_id_object)} removed as judge by ${this.getUserName(log.user_id_subject)}`;
+      log.displayText = `${this.getUserName(log.user_id_object)} removed as reviewer by ${this.getUserName(log.user_id_subject)}`;
     } else if ( log.log_subtype === 'application-assignment' ) {
       log.displayText = `Applicant ${this.getUserName(log.user_id_subject)} assigned to ${this.getUserName(log.user_id_object)} for evaluation`;
     } else if ( log.log_subtype === 'application-unassigned' ) {
@@ -155,7 +153,7 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
     } else if ( log.log_subtype === 'applicant-assigned' ) {
       log.displayText = `Applicant assigned email sent to ${this.getUserName(log.user_id_subject)}`;
     } else if ( log.log_subtype === 'evaluation-nudge' ){
-      log.displayText = `Evaluation nudge email sent to judge ${this.getUserName(log.user_id_subject)}`;
+      log.displayText = `Evaluation nudge email sent to reviewer ${this.getUserName(log.user_id_subject)}`;
     } else if ( log.log_subtype === 'support-requested' ){
       log.displayText = `Letter of support request email sent to ${this.getUserName(log.user_id_subject)} for applicant ${this.getUserName(log.user_id_object)}`;
     } else if ( log.log_subtype === 'supporter-nudge' ){
@@ -233,7 +231,6 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
 
   async _filterElementUpdate(filterElement){
     if ( !filterElement ) return;
-    console.log('filterElement', filterElement);
     this.logPage = 1;
     this.filters = filterElement.selectedFilters;
     await this.query();

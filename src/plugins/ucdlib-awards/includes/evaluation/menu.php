@@ -57,7 +57,7 @@ class UcdlibAwardsEvaluationMenu {
     }
 
     if ( $context['isJudge'] || $context['isAdmin'] ){
-      if ( $activeCycle->hasRubric() ){
+      if ( !empty($activeCycle) && $activeCycle->hasRubric() ){
         $context['pageProps']['rubricItems'] = $activeCycle->rubric()->items();
         $context['pageProps']['rubricScoringCalculation'] = $activeCycle->rubric()->scoringCalculation();
         $context['pageProps']['rubricUploadedFile'] = $activeCycle->rubric()->uploadedFile();

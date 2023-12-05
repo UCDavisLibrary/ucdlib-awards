@@ -142,7 +142,6 @@ export default class UcdlibAwardsSupportersCtl extends Mixin(LitElement)
       'supporter_row_ids': this.selectedSupporters
     }
     const response = await this.wpAjax.request('getSubmission', payload);
-    console.log('getSubmission response', response);
     if ( response.success ){
       const blob = new Blob([response.data.htmlDoc], {type: 'text/html'});
       const url = URL.createObjectURL(blob);
@@ -192,7 +191,6 @@ export default class UcdlibAwardsSupportersCtl extends Mixin(LitElement)
     if ( data.supporters ) {
       this._setSupporters(data.supporters);
     }
-    console.log('data', data);
 
   }
 

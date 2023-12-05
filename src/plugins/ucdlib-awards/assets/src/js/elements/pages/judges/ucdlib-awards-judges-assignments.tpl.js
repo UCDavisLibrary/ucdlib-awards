@@ -11,7 +11,7 @@ return html`
           <thead>
             <tr>
               <th rowspan="2">Applicant</th>
-              <th colspan=${this._judges.length} style='text-align:${this._judges.length > 1 ? 'center' : 'left'};'>Judge</th>
+              <th colspan=${this._judges.length} style='text-align:${this._judges.length > 1 ? 'center' : 'left'};'>Reviewer</th>
             </tr>
             <tr>
               ${this._judges.map(judge => html`
@@ -42,7 +42,6 @@ return html`
 
 export function renderCell(judge, applicant) {
   const status = applicant.byJudgeStatus.find(s => s.judgeId == judge.id);
-  console.log('status', status);
   if ( !status ) return html`<td></td>`;
   return html`
     <td>

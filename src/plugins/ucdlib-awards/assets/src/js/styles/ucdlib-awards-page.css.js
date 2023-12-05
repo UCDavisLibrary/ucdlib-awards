@@ -309,6 +309,9 @@ ucdlib-icon.panel__custom-icon {
   min-width: 2rem;
   min-height: 2rem;
 }
+.list--download .icon--link {
+  overflow-wrap: anywhere;
+}
 `;
 
 export default customStyles;

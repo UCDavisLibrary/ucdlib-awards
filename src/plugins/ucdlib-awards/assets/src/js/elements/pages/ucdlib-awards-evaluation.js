@@ -170,7 +170,6 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
     this.canSubmitEvaluation = false;
     const response = await this.wpAjax.request('setScores', payload);
     this.canSubmitEvaluation = true;
-    console.log(response);
     if ( response.success ){
       this.applicants = response.data.applicants.map(applicant => this.formatApplicant(applicant));
       response.data.scores.forEach(score => {
@@ -314,7 +313,6 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
     if ( response.success ) {
       this.page = 'applicant-select';
       this.applicants = response.data.applicants
-      console.log(this.applicants);
     } else {
       this.errorMessage = "There was an error retrieving your assigned applicants. Please try again later."
       this.page = 'error';
@@ -426,7 +424,6 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
     let data = {};
     try {
       data = JSON.parse(script.text);
-      console.log('data', data);
     } catch(e) {
       console.error('Error parsing JSON script', e);
     }

@@ -13,7 +13,7 @@ class LangPrize extends UcdlibAwardsAwardAbstract {
     'logs' => 'lang-prize-admin-logs',
     'applicants' => 'lang-prize-admin-applicants',
     'rubric' => 'lang-prize-admin-rubric',
-    'judges' => 'lang-prize-admin-judges',
+    'judges' => 'lang-prize-admin-reviewers',
     'evaluation' => 'lang-prize-admin-evaluation',
     'email' => 'lang-prize-admin-email',
     'supporters' => 'lang-prize-admin-supporters'
@@ -24,7 +24,6 @@ class LangPrize extends UcdlibAwardsAwardAbstract {
   protected $_evaluationMenuSlugs = [
     'main' => 'lang-prize-evaluation'
   ];
-  protected $_adminCanImpersonateJudge = true; // remove me
 
   protected $_dashboardSettings = [
     'logTypeFilter' => ['application', 'evaluation']

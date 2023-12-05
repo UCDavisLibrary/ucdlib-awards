@@ -138,7 +138,6 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
     formData.append('file', file);
     formData.append('cycle_id', this.cycleId);
     const response = await this.wpAjax.request('uploadRubricFile', formData);
-    console.log('response', response);
     if ( response.success ) {
       this.uploadedFile = response.data.rubricFile;
       this.dispatchEvent(new CustomEvent('toast-request', {
@@ -237,7 +236,6 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
     e.preventDefault();
     this.errorMessages = [];
     this.fieldsWithErrors = {};
-    console.log('submit', this.editedRubricItems);
 
     const payload = this.editedRubricItems.map(item => {
       const newItem = {
@@ -251,7 +249,6 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
       return newItem;
     });
     const response = await this.wpAjax.request('updateItems', payload);
-    console.log('response', response);
 
     if ( response.success ) {
       this.rubricItems = response.data.rubricItems;

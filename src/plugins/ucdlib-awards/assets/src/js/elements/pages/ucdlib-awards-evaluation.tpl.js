@@ -113,7 +113,7 @@ export function renderApplicantEvaluationForm(){
         ` : html`
           <div>
             You indicated that you have a potential conflict of interest with this applicant.
-            A ${this.awardsTitle} administrator will reassign this applicant to another judge.
+            A ${this.awardsTitle} administrator will reassign this applicant to another reviewer.
           </div>
         `}
       </div>
@@ -190,9 +190,9 @@ export function renderAdminJudgeSelect(){
 return html`
   <div>
     <div class='field-container'>
-      <label>View evaluation form as a judge:</label>
+      <label>View evaluation form as a reviewer:</label>
       <select @change=${this._onAdminJudgeSelect} class='input-max-width'>
-        <option value='' ?selected=${!this.adminSelectedJudgeId} disabled>Select a judge</option>
+        <option value='' ?selected=${!this.adminSelectedJudgeId} disabled>Select a reviewer</option>
         ${this.judges.map(judge => html`
           <option value=${judge.id} ?selected=${this.adminSelectedJudgeId == judge.id}>${judge.name}</option>
         `)}
@@ -263,14 +263,14 @@ export function renderEvaluationStatusPanel(){
         <div class='flex-center'>
           <ucdlib-icon icon="ucd-public:fa-user" class="icon--medium primary u-space-mr--small"></ucdlib-icon>
           <div>
-            <label class='u-space-pb--flush'>Judge</label>
+            <label class='u-space-pb--flush'>Reviewer</label>
             <div>${this.judge.name}</div>
           </div>
         </div>
         <div class='${status.color} bold o-box'>${status.text}</div>
 
         <div class='u-space-mt'>
-          <a ?hidden=${!this.judges.length} class='pointer' @click=${() => this.page = 'judge-select'}>Select a different judge</a>
+          <a ?hidden=${!this.judges.length} class='pointer' @click=${() => this.page = 'judge-select'}>Select a different reviewer</a>
         </div>
       </section>
     </div>

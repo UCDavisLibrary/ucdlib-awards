@@ -3,7 +3,7 @@ import { html } from 'lit';
 export function render() {
   if ( !this._judges.length ) return html`
     <div class='brand-textbox'>
-      No judges found!
+      No reviewers found!
     </div>
   `;
   return html`

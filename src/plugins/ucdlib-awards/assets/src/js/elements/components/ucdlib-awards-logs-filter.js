@@ -33,7 +33,6 @@ export default class UcdlibAwardsLogsFilter extends Mixin(LitElement)
   async _onSubmit(e){
     e.preventDefault();
     if ( this.doingQuery ) return;
-    console.log('submit', this.selectedFilters);
 
     const mainEle = document.querySelector('ucdlib-awards-page');
     if ( !mainEle ) {

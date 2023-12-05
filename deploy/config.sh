@@ -15,31 +15,31 @@ APP_SLUG=ucdlib-awards
 
 # Main version number we are tagging the app with. Always update
 # this when you cut a new version of the app!
-APP_VERSION=v0.0.9.${BUILD_NUM}
+APP_VERSION=v1.0.0.${BUILD_NUM}
 
 # Repository tags/branchs
 # Tags should always be used for production deployments
 # Branches can be used for development deployments
-REPO_TAG=main
+REPO_TAG=v1.0.0
 
 # Dependency tags/branches
-THEME_TAG='v3.5.0'
+THEME_TAG='v3.7.0'
 FORMINATOR_THEME_TAG='v1.1.0'
-WP_CORE_VERSION='6.3.1'
+WP_CORE_VERSION='6.4.1'
 MYSQL_TAG=5.7
 ADMINER_TAG=4
+NODE_VERSION=20
 
 # Plugin versions (downloaded from Google Cloud Storage, so make sure they exist there. See Google Cloud section below)
 # and don't forget to add them as build arg in cmds/build.sh and the dockerfile.
 OPENID_CONNECT_GENERIC_VERSION='3.9.1'
 REDIRECTION_VERSION='5.3.10'
-SMTP_MAILER_VERSION='1.1.8'
-FORMINATOR_VERSION='1.25.1'
+SMTP_MAILER_VERSION='1.1.9'
+FORMINATOR_VERSION='1.27'
 
-# TODO: Set up auth
 # Auth Defaults ( can also be overriden in .env file )
-OIDC_PROVIDER_URL=https://sandbox.auth.library.ucdavis.edu/realms/$APP_SLUG
-# OIDC_PROVIDER_URL=https://auth.library.ucdavis.edu/realms/$APP_SLUG
+# OIDC_PROVIDER_URL=https://sandbox.auth.library.ucdavis.edu/realms/$APP_SLUG
+OIDC_PROVIDER_URL=https://auth.library.ucdavis.edu/realms/$APP_SLUG
 #OIDC_CLIENT_ID='set this in your .env file'
 #OIDC_CLIENT_SECRET='set this in your .env file'
 OIDC_PROTOCOL_URL=$OIDC_PROVIDER_URL/protocol/openid-connect
