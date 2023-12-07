@@ -5,6 +5,9 @@
  */
 class UcdlibAwardsForms {
 
+  public $plugin;
+  public $forminatorActivated;
+
   public function __construct( $plugin ){
     $this->plugin = $plugin;
 

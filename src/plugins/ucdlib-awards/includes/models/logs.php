@@ -5,6 +5,13 @@
  * Used for the Activity Feed functionality
  */
 class UcdlibAwardsLogs {
+
+  public $plugin;
+  public $table;
+  public $userTable;
+  public $perPage;
+  public $logTypes;
+
   public function __construct( $plugin ){
     $this->plugin = $plugin;
     $this->table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::LOGS );

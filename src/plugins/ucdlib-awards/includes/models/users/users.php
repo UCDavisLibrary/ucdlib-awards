@@ -7,6 +7,11 @@ require_once( __DIR__ . '/user.php' );
  */
 class UcdlibAwardsUsers {
 
+  public $plugin;
+  public $userCache;
+  public $table;
+  public $metaTable;
+
   public function __construct( $plugin ){
     $this->plugin = $plugin;
 

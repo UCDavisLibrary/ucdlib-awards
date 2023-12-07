@@ -4,6 +4,9 @@ require_once( __DIR__ . '/rubric.php' );
 
 class UcdlibAwardsRubrics {
 
+  public $plugin;
+  public $cache;
+
   public function __construct( $plugin ){
     $this->plugin = $plugin;
 

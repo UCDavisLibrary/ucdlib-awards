@@ -8,6 +8,10 @@ require_once( __DIR__ . '/menu.php' );
  */
 class UcdlibAwardsAdmin {
 
+  public $plugin;
+  public $menu;
+  public $ajax;
+
   public function __construct( $plugin ){
     $this->plugin = $plugin;
     $this->menu = new UcdlibAwardsAdminMenu( $this );

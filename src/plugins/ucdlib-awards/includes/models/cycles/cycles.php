@@ -4,6 +4,9 @@ require_once( __DIR__ . '/cycle.php' );
 
 class UcdlibAwardsCycles {
 
+  public $plugin;
+  public $cycleCache;
+
   /**
    * @description Model for querying awards/application cycles
    */

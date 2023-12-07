@@ -2,6 +2,12 @@
 
 class UcdlibAwardsAdminAjax {
 
+  public $admin;
+  public $plugin;
+  public $actions;
+  public $logger;
+  public $utils;
+
   public function __construct( $admin ){
     $this->admin = $admin;
     $this->plugin = $admin->plugin;

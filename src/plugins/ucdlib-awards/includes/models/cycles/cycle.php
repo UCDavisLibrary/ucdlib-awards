@@ -5,6 +5,9 @@
  */
 class UcdlibAwardsCycle {
 
+  public $plugin;
+  public $cycleId;
+
   /**
    * @param $cycle int|string|object - Can be cycle id or cycle db record
    */

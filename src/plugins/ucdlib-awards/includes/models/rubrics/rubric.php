@@ -2,6 +2,11 @@
 
 class UcdlibAwardsRubric {
 
+  public $plugin;
+  public $table;
+  public $scoresTable;
+  public $cycleId;
+
   public function __construct( $args=[] ){
 
     $this->table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::RUBRIC_ITEMS );

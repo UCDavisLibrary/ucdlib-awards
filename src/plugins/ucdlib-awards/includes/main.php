@@ -22,6 +22,32 @@ require_once( __DIR__ . '/utils/timber.php' );
  */
 class UcdlibAwards {
 
+  public $config;
+  public $version;
+  public $hookSlug;
+  public $pluginSlug;
+  public $twigNamespace;
+  public $award;
+  public $entryPoint;
+
+  // models
+  public $users;
+  public $cycles;
+  public $forms;
+  public $logs;
+  public $rubrics;
+  public $email;
+
+  // modules/controllers
+  public $auth;
+  public $admin;
+  public $assets;
+  public $evaluation;
+  public $formsCtl;
+
+  // award loader
+  public $awardLoader;
+
   public function __construct(){
     $this->config = new UcdlibAwardsConfig();
     $this->version = $this->config::$pluginVersion;

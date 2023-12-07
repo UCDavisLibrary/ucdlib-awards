@@ -2,6 +2,12 @@
 
 class UcdlibAwardsEvaluationAjax {
 
+  public $evaluation;
+  public $plugin;
+  public $actions;
+  public $logger;
+  public $utils;
+
   public function __construct( $evaluation ){
     $this->evaluation = $evaluation;
     $this->plugin = $evaluation->plugin;

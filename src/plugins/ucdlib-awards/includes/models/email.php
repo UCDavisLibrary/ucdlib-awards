@@ -2,6 +2,13 @@
 
 class UcdlibAwardsEmail {
 
+  public $plugin;
+  public $cache;
+  public $optionPrefix;
+  public $templateVariables;
+  public $metaFields;
+  public $emailingEnabled;
+
   public function __construct($plugin){
     $this->plugin = $plugin;
 

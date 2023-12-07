@@ -5,6 +5,13 @@
  */
 class UcdlibAwardsUser {
 
+  public $plugin;
+  public $table;
+  public $metaTable;
+  public $id;
+  public $username;
+  public $metaCache;
+
   public function __construct( $username=null, $record=null ){
 
     $this->metaCache = [];

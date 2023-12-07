@@ -5,6 +5,13 @@
  */
 class UcdlibAwardsAuth {
 
+  public $plugin;
+  public $allowedClientRoles;
+  public $allowedRealmRoles;
+  public $prizeAdminClientRole;
+  public $setRoleFromClaim;
+  public $oidcIsActivated;
+
   public function __construct( $plugin ){
     $this->plugin = $plugin;
 

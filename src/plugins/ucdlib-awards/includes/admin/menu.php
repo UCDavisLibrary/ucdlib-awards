@@ -5,6 +5,12 @@
  */
 class UcdlibAwardsAdminMenu {
 
+  public $admin;
+  public $plugin;
+  public $slugs;
+  public $award;
+  public $ajaxUtils;
+
   public function __construct( $admin ){
     $this->admin = $admin;
     $this->plugin = $admin->plugin;

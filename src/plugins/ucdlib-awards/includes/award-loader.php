@@ -7,6 +7,10 @@ require_once( __DIR__ . '/abstracts/award.php' );
  */
 class UcdlibAwardsAwardLoader {
 
+  public $plugin;
+  public $hookSlug;
+  public $award;
+
   public function __construct( $plugin ){
     $this->plugin = $plugin;
     $this->hookSlug = 'awards_loader';

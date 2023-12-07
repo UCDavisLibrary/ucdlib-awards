@@ -5,6 +5,8 @@
  */
 class UcdlibAwardsAssets {
 
+    public $plugin;
+
     public function __construct( $plugin ){
       $this->plugin = $plugin;
       add_action( 'admin_enqueue_scripts', array( $this, 'enqueueAdminScripts' ) );

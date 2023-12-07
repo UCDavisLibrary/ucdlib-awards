@@ -6,6 +6,10 @@
 class UcdlibAwardsFormsMain {
 
   public static $formBlockName = 'forminator/forms';
+  public $plugin;
+  public $isApplicationForm;
+  public $isSupportForm;
+  public $formId;
 
   public function __construct( $plugin ) {
     $this->plugin = $plugin;

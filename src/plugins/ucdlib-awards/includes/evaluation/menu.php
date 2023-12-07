@@ -5,6 +5,12 @@
  */
 class UcdlibAwardsEvaluationMenu {
 
+  public $evaluation;
+  public $plugin;
+  public $slugs;
+  public $award;
+  public $ajaxUtils;
+
   public function __construct( $evaluation ){
     $this->evaluation = $evaluation;
     $this->plugin = $evaluation->plugin;
