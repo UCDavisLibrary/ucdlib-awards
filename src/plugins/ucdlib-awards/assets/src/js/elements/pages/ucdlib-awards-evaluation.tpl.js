@@ -60,7 +60,7 @@ export function renderApplicantEvaluationForm(){
         </ul>
       </div>
       <div ?hidden=${status != 'completed'} class='brand-textbox category-brand__background category-brand--farmers-market u-space-mb'>
-        Evaluation submitted on ${datetimeUtils.mysqlToLocaleString(this.evaluationSubmissionDate, true)}
+        Evaluation submitted on ${datetimeUtils.mysqlToLocaleString(this.evaluationSubmissionDate, {includeTime: true})}
       </div>
       <div ?hidden=${!showCOI} class='coi'>
         ${applicant.applicationStatus.slug == 'new' ? html`

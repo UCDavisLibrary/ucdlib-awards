@@ -90,7 +90,7 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
       log.icon = 'ucd-public:fa-question';
       log.iconColor = 'double-decker';
     }
-    log.displayDate = datetimeUtils.mysqlToLocaleString(log.date_created, true);
+    log.displayDate = datetimeUtils.mysqlToLocaleString(log.date_created, {includeTime: true});
     return log;
   }
 

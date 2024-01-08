@@ -44,6 +44,7 @@ export default class UcdlibAwardsPage extends LitElement {
     this.selectedCycle = {};
     this.activeCycle = {};
     this.toastState = {};
+    this.siteTimeOffset = '';
 
     this.mutationObserver = new MutationObserverController(this);
     this.wait = new WaitController(this);

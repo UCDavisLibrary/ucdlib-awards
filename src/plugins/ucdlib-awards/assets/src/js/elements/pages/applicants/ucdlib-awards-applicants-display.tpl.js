@@ -42,8 +42,8 @@ export function renderApplicantRow(applicant){
   const assignmentStatuses = ['assigned', 'evaluated'];
   const hasAssignments = assignmentStatuses.includes(applicant.applicationStatus?.value);
   const category = applicant.category;
-  const dateSubmitted = datetimeUtils.mysqlToLocaleString(applicant.applicationEntry?.date_created_sql);
-  const timeSubmitted = datetimeUtils.mysqlToLocaleStringTime(applicant.applicationEntry?.date_created_sql);
+  const dateSubmitted = datetimeUtils.mysqlToLocaleString(applicant.applicationEntry?.date_created_sql, {keepTimezone: true});
+  const timeSubmitted = datetimeUtils.mysqlToLocaleStringTime(applicant.applicationEntry?.date_created_sql, {keepTimezone: true});
 
   return html`
   <div class='row ${this.showCategories ? 'with-categories' : ''} ${expanded ? 'has-mb-details' : ''}'>

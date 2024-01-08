@@ -32,10 +32,17 @@ class UcdlibAwardsUtilsDatetime {
    * @param {Boolean} dtSeparator - separator between date and time
    * @returns
    */
-  mysqlToLocaleString(dateTimeString, includeTime, dtSeparator = ' - ') {
+  mysqlToLocaleString(dateTimeString, args={}) {
     if ( !dateTimeString ) return '';
+    let { includeTime, dtSeparator, keepTimezone } = args;
+    if ( !dtSeparator ) dtSeparator = ' - ';
     try {
-      const date = new Date( dateTimeString.split(' ').join('T') + 'Z' );
+      let date;
+      if ( keepTimezone ) {
+        date = new Date( dateTimeString );
+      } else {
+        date = new Date( dateTimeString.split(' ').join('T') + 'Z' );
+      }
       const dateString = date.toLocaleDateString('en-US', {dateStyle: 'medium'});
       if ( !includeTime ) return dateString;
       const timeString = date.toLocaleTimeString('en-US', {timeStyle: 'short', hour12: true});
@@ -46,10 +53,16 @@ class UcdlibAwardsUtilsDatetime {
     }
   }
 
-  mysqlToLocaleStringTime(dateTimeString) {
+  mysqlToLocaleStringTime(dateTimeString, args={}) {
+    const keepTimezone = args.keepTimezone || false;
     if ( !dateTimeString ) return '';
     try {
-      const date = new Date( dateTimeString.split(' ').join('T') + 'Z' );
+      let date;
+      if ( keepTimezone ) {
+        date = new Date( dateTimeString );
+      } else {
+        date = new Date( dateTimeString.split(' ').join('T') + 'Z' );
+      }
       return date.toLocaleTimeString('en-US', {timeStyle: 'short', hour12: true});
     } catch(e) {
       console.error('Error formatting date', dateTimeString);
