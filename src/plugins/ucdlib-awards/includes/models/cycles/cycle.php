@@ -238,7 +238,7 @@ class UcdlibAwardsCycle {
     $out = [];
     foreach ( $rubricItemsWithScores as $rubricItem ) {
       foreach ( $rubricItem['scores'] as $score ) {
-        if ( !$this->applicationIsCompleted($score->applicant_id, $score->judge_id) ) return;
+        if ( !$this->applicationIsCompleted($score->applicant_id, $score->judge_id) ) continue;
         $applicant = $this->getApplicantById( $score->applicant_id );
         $judge = $this->getJudgeById( $score->judge_id );
         if ( !$applicant || !$judge ) continue;
