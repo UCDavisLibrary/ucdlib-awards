@@ -15,7 +15,7 @@ APP_SLUG=ucdlib-awards
 
 # Main version number we are tagging the app with. Always update
 # this when you cut a new version of the app!
-APP_VERSION=v1.0.0.${BUILD_NUM}
+APP_VERSION=v1.0.1.${BUILD_NUM}
 
 # Repository tags/branchs
 # Tags should always be used for production deployments

@@ -3,7 +3,6 @@
   "description": "A simple Wordpress site for UCD Library",
   "type":"wordpress-theme",
   "license": "MIT",
-  "minimum-stability" : "dev",
   "authors": [
     {
       "email": "spelkey@ucdavis.edu",
