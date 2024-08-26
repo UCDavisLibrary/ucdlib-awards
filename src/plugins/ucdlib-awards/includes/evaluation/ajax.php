@@ -243,7 +243,7 @@ class UcdlibAwardsEvaluationAjax {
       $this->utils->sendResponse($response);
     }
 
-    $applicantId = $formEntry->get_meta('forminator_addon_ucdlib-awards_applicant_id');
+    $applicantId = $formEntry->get_meta('forminator_addon_ucdlibawards_applicant_id');
     $applicant = $this->plugin->users->getByUserIds($applicantId);
     if ( empty($applicant) ){
       $response['messages'][] = 'No applicant found.';

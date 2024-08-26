@@ -283,8 +283,8 @@ class UcdlibAwardsCycle {
     $assignments = $this->judgeAssignmentMap(true);
     $evaluations = $this->completedEvaluationsMap(true);
     $applications = array_map(function($entry) use ($assignments, $evaluations){
-      $categorySlug = !empty($entry->meta_data['forminator_addon_ucdlib-awards_category']['value']) ? $entry->meta_data['forminator_addon_ucdlib-awards_category']['value'] : '';
-      $applicantId = $entry->meta_data['forminator_addon_ucdlib-awards_applicant_id']['value'];
+      $categorySlug = !empty($entry->meta_data['forminator_addon_ucdlibawards_category']['value']) ? $entry->meta_data['forminator_addon_ucdlibawards_category']['value'] : '';
+      $applicantId = $entry->meta_data['forminator_addon_ucdlibawards_applicant_id']['value'];
 
       $assignedJudges = !empty($assignments[ $applicantId ]) ? $assignments[ $applicantId ] : [];
       $completedEvaluations = !empty($evaluations[ $applicantId ]) ? $evaluations[ $applicantId ] : [];
@@ -746,8 +746,8 @@ class UcdlibAwardsCycle {
     });
 
     $entriesByUserId = [];
-    $key_app = 'forminator_addon_ucdlib-awards_applicant_id';
-    $key_cycle = 'forminator_addon_ucdlib-awards_cycle_id';
+    $key_app = 'forminator_addon_ucdlibawards_applicant_id';
+    $key_cycle = 'forminator_addon_ucdlibawards_cycle_id';
     foreach( $entries as $entry ){
       if ( empty($entry->meta_data[$key_cycle]) ) continue;
       if ( $entry->meta_data[$key_cycle]['value'] != $this->cycleId ) continue;
@@ -780,10 +780,10 @@ class UcdlibAwardsCycle {
     }
     $secondId = $firstId == 'applicantId' ? 'supporterId' : 'applicantId';
     $keys = [
-      'applicantId' => 'forminator_addon_ucdlib-awards_applicant_id',
-      'supporterId' => 'forminator_addon_ucdlib-awards_supporter_id'
+      'applicantId' => 'forminator_addon_ucdlibawards_applicant_id',
+      'supporterId' => 'forminator_addon_ucdlibawards_supporter_id'
     ];
-    $key_cycle = 'forminator_addon_ucdlib-awards_cycle_id';
+    $key_cycle = 'forminator_addon_ucdlibawards_cycle_id';
 
     $entries = $this->supportEntries();
     usort($entries, function($a, $b){

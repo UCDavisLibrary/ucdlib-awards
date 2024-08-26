@@ -1,19 +1,19 @@
 <?php
 
-class UcdlibAwardsFormsAddonHooks extends Forminator_Addon_Form_Hooks_Abstract {
+class Forminator_Ucdlibawards_Form_Hooks extends Forminator_Integration_Form_Hooks {
 
   public $plugin;
 
-  public function __construct( Forminator_Addon_Abstract $addon, $form_id ) {
-    parent::__construct( $addon, $form_id );
+  public function __construct(Forminator_Integration $addon, int $module_id) {
+    parent::__construct( $addon, $module_id );
     $this->plugin = $GLOBALS['ucdlibAwards'];
 
-    $this->_submit_form_error_message = __( 'Submission failed! Please try again later.', 'forminator' );
+    $this->submit_error_message = __( 'Submission failed! Please try again later.', 'forminator' );
   }
 
 
-  public function on_form_submit( $submitted_data ) {
-    $formId = $this->form_id;
+  public function on_module_submit( $submitted_data ) {
+    $formId = $this->module_id;
 
     // check form is for application or support letter
     $isApplicationForm = $formId == $this->plugin->forms->applicationFormId();
@@ -88,7 +88,7 @@ class UcdlibAwardsFormsAddonHooks extends Forminator_Addon_Form_Hooks_Abstract {
   }
 
   public function add_entry_fields( $submitted_data, $form_entry_fields = array(), $entry = null ) {
-    $formId = $this->form_id;
+    $formId = $this->module_id;
     $out = [];
 
     // check form is for application or support letter

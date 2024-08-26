@@ -358,8 +358,8 @@ class UcdlibAwardsUser {
   public function applicationCategory($cycleId=null){
     $entry = $this->applicationEntry($cycleId);
     if ( !$entry ) return false;
-    if ( !isset($entry->meta_data['forminator_addon_ucdlib-awards_category']['value']) ) return false;
-    $value = $entry->meta_data['forminator_addon_ucdlib-awards_category']['value'];
+    if ( !isset($entry->meta_data['forminator_addon_ucdlibawards_category']['value']) ) return false;
+    $value = $entry->meta_data['forminator_addon_ucdlibawards_category']['value'];
     $out = [
       'value' => $value,
       'label' => 'Unknown'
@@ -420,9 +420,9 @@ class UcdlibAwardsUser {
     global $wpdb;
     $table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::FORM_ENTRY_META );
     $keys = [
-      'user' => 'forminator_addon_ucdlib-awards_applicant_id',
-      'cycle' => 'forminator_addon_ucdlib-awards_cycle_id',
-      'app' => 'forminator_addon_ucdlib-awards_is_application'
+      'user' => 'forminator_addon_ucdlibawards_applicant_id',
+      'cycle' => 'forminator_addon_ucdlibawards_cycle_id',
+      'app' => 'forminator_addon_ucdlibawards_is_application'
     ];
     $sql = "SELECT * FROM $table WHERE (meta_key = %s AND meta_value = %d) OR (meta_key = %s AND meta_value = %d) OR (meta_key = %s AND meta_value = %d) ORDER BY date_created DESC";
     $entryMeta = $wpdb->get_results( $wpdb->prepare( $sql, $keys['user'], $this->id, $keys['cycle'], $cycleId, $keys['app'], $cycleId ) );

@@ -29,8 +29,8 @@ class UcdlibAwardsFormsMain {
   public function registerAddon(){
     require_once dirname( __FILE__ ) . '/addon.php';
     require_once dirname( __FILE__ ) . '/addon-hooks.php';
-    if ( class_exists( 'Forminator_Addon_Loader' ) ) {
-      Forminator_Addon_Loader::get_instance()->register( 'UcdlibAwardsFormsAddon' );
+    if ( class_exists( 'Forminator_Integration_Loader' ) ) {
+      Forminator_Integration_Loader::get_instance()->register( 'Forminator_Integration_Ucdlibawards' );
     }
   }
 

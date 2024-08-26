@@ -59,8 +59,8 @@ class UcdlibAwardsAdminAjax {
         $entries = $this->plugin->forms->getEntries($cycle->supportFormId());
         $entriesBySupporterRowId = [];
         $formMetaKeys = [
-          'supporter' => 'forminator_addon_ucdlib-awards_supporter_id',
-          'applicant' => 'forminator_addon_ucdlib-awards_applicant_id',
+          'supporter' => 'forminator_addon_ucdlibawards_supporter_id',
+          'applicant' => 'forminator_addon_ucdlibawards_applicant_id',
         ];
         foreach ($entries as $entry) {
           $applicantId = $entry->get_meta($formMetaKeys['applicant']);
@@ -305,7 +305,7 @@ class UcdlibAwardsAdminAjax {
         $entries = $formsModel->getEntries($formId);
         $entriesByApplicantId = [];
         foreach ($entries as $entry) {
-          $applicantId = $entry->get_meta('forminator_addon_ucdlib-awards_applicant_id');
+          $applicantId = $entry->get_meta('forminator_addon_ucdlibawards_applicant_id');
           if ( !empty($applicantId) ){
             $entriesByApplicantId[$applicantId] = $entry;
           }

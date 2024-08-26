@@ -50,10 +50,10 @@ class UcdlibAwardsForms {
   $entries = $this->getEntries($formId);
   if ( empty($entries) ) return false;
   foreach( $entries as $entry ){
-    $entrySupporterId = $entry->get_meta('forminator_addon_ucdlib-awards_supporter_id');
+    $entrySupporterId = $entry->get_meta('forminator_addon_ucdlibawards_supporter_id');
     if ( empty($entrySupporterId) ) continue;
     $entrySupporterId = (string) $entrySupporterId;
-    $entryApplicantId = $entry->get_meta('forminator_addon_ucdlib-awards_applicant_id');
+    $entryApplicantId = $entry->get_meta('forminator_addon_ucdlibawards_applicant_id');
     if ( empty($entryApplicantId) ) continue;
     $entryApplicantId = (string) $entryApplicantId;
     if ( $entrySupporterId === $supporterId && $entryApplicantId === $applicantId ){
@@ -76,7 +76,7 @@ class UcdlibAwardsForms {
     $entries = $this->getEntries($formId);
     if ( empty($entries) ) return [];
     foreach( $entries as $entry ){
-      $supporterId = $entry->get_meta('forminator_addon_ucdlib-awards_supporter_id');
+      $supporterId = $entry->get_meta('forminator_addon_ucdlibawards_supporter_id');
       if ( empty($supporterId) ) continue;
       $supporterId = (string) $supporterId;
       if ( in_array($supporterId, $supporterIds) ){
@@ -97,7 +97,7 @@ class UcdlibAwardsForms {
     $entries = $this->getEntries($formId);
     if ( empty($entries) ) return false;
     foreach( $entries as $entry ){
-      $applicantId = $entry->get_meta('forminator_addon_ucdlib-awards_applicant_id');
+      $applicantId = $entry->get_meta('forminator_addon_ucdlibawards_applicant_id');
       if ( empty($applicantId) ) continue;
       $applicantId = (string) $applicantId;
       if ( in_array($applicantId, $applicantIds) ){
