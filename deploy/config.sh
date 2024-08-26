@@ -15,27 +15,27 @@ APP_SLUG=ucdlib-awards
 
 # Main version number we are tagging the app with. Always update
 # this when you cut a new version of the app!
-APP_VERSION=v1.0.1.${BUILD_NUM}
+APP_VERSION=v1.1.0.${BUILD_NUM}
 
 # Repository tags/branchs
 # Tags should always be used for production deployments
 # Branches can be used for development deployments
-REPO_TAG=v1.0.1
+REPO_TAG=sandbox
 
 # Dependency tags/branches
-THEME_TAG='v3.8.1'
+THEME_TAG='v3.8.2'
 FORMINATOR_THEME_TAG='v1.1.0'
-WP_CORE_VERSION='6.4.1'
+WP_CORE_VERSION='6.6.1'
 MYSQL_TAG=5.7
 ADMINER_TAG=4
 NODE_VERSION=20
 
 # Plugin versions (downloaded from Google Cloud Storage, so make sure they exist there. See Google Cloud section below)
 # and don't forget to add them as build arg in cmds/build.sh and the dockerfile.
-OPENID_CONNECT_GENERIC_VERSION='3.9.1'
-REDIRECTION_VERSION='5.3.10'
-SMTP_MAILER_VERSION='1.1.9'
-FORMINATOR_VERSION='1.27'
+OPENID_CONNECT_GENERIC_VERSION='3.10.0'
+REDIRECTION_VERSION='5.5.0'
+SMTP_MAILER_VERSION='1.1.15'
+FORMINATOR_VERSION='1.34.1'
 
 # Auth Defaults ( can also be overriden in .env file )
 # OIDC_PROVIDER_URL=https://sandbox.auth.library.ucdavis.edu/realms/$APP_SLUG

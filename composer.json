@@ -16,7 +16,7 @@
     }
   ],
   "require": {
-    "timber/timber": "2.0.0"
+    "timber/timber": "2.1.0"
   },
   "config": {
     "allow-plugins": {
