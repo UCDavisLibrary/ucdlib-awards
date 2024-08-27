@@ -197,8 +197,10 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
           }
         }));
         this.page = 'applicant-select';
-
       }
+
+      const cacheKey = `a${this.selectedApplicant.user_id}-j${this.judge.id}`;
+      delete this.scoreCache[cacheKey];
     } else {
       this.evaluationFormErrorMessages = response.messages;
     }
