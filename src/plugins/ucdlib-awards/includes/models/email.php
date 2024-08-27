@@ -379,6 +379,12 @@ class UcdlibAwardsEmail {
         case 'supportUrl':
           if ( !isset($data['cycle']) ) break;
           $out = $data['cycle']->supportFormLink();
+          $siteUrl = get_site_url();
+          if ( strpos( $out, $siteUrl ) === false ){
+            if ( substr( $siteUrl, -1 ) !== '/' ) $siteUrl .= '/';
+            if ( substr( $out, 0, 1 ) === '/' ) $out = substr( $out, 1 );
+            $out = $siteUrl . $out;
+          }
         case 'judgeIncompleteCount':
           if ( !isset($data['judge']) ) break;
           if ( !isset($data['cycle']) ) break;
