@@ -399,7 +399,7 @@ class UcdlibAwardsEmail {
           break;
         case 'evaluationEndDate':
           if ( !isset($data['cycle']) ) break;
-          $date = $data['cycle']->record()->application_end;
+          $date = $data['cycle']->record()->evaluation_end;
           $out = date( 'F j, Y', strtotime( $date ) );
           break;
         case 'supportEndDate':
