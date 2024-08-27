@@ -494,6 +494,21 @@ class UcdlibAwardsCycle {
     $sql = "DELETE FROM $table WHERE cycle_id = %d AND user_id IN (" . implode(',', $judgeIds) . ") AND meta_key IN ('" . implode("','", $meta_keys) . "')";
     $wpdb->query( $wpdb->prepare( $sql, $this->cycleId ) );
 
+    // remove from users table if they are a placeholder (aka have never logged in to confirm their account)
+    $table = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USERS );
+    $sql = "SELECT user_id, wp_user_login FROM $table WHERE user_id IN (" . implode(',', $judgeIds) . ")";
+    $users = $wpdb->get_results( $sql );
+    $usersToDelete = [];
+    foreach( $users as $user ){
+      if ( strpos($user->wp_user_login, 'ph_') === 0 ){
+        $usersToDelete[] = $user->user_id;
+      }
+    }
+    if ( !empty($usersToDelete) ){
+      $sql = "DELETE FROM $table WHERE user_id IN (" . implode(',', $usersToDelete) . ")";
+      $wpdb->query( $sql );
+    }
+
     // remove from scores
     $this->removeJudgeScores( $judgeIds );
     $this->judgeIds = null;
