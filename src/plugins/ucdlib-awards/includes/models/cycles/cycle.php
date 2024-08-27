@@ -386,12 +386,16 @@ class UcdlibAwardsCycle {
   }
 
   private function dateRangeStatus($start, $end){
-    $now = new DateTime( 'now', new DateTimeZone('America/Los_Angeles') );
-    $applicationStart = new DateTime( $start, new DateTimeZone('America/Los_Angeles') );
-    $applicationEnd = new DateTime( $end, new DateTimeZone('America/Los_Angeles') );
-    if ( $now < $applicationStart ) {
+    $tz = new DateTimeZone(wp_timezone_string());
+    $now = new DateTime( 'now', $tz );
+    $rangeStart = new DateTime( $start, $tz );
+    // add a day to the end date to include the end date in the range
+    $rangeEnd = new DateTime( $end, $tz );
+    $rangeEnd->add( new DateInterval('P1D') );
+
+    if ( $now < $rangeStart ) {
       return 'upcoming';
-    } elseif ( $now > $applicationEnd ) {
+    } elseif ( $now > $rangeEnd ) {
       return 'past';
     } else {
       return 'active';
