@@ -88,6 +88,10 @@ services:
       - ../utils/backup:/deploy-utils/backup
       - ../utils/wp-scripts:/deploy-utils/wp-scripts
       - ../gc-writer-key.json:/etc/service-account.json
+      - ../../src/plugins/aggie-open:{{WP_PLUGIN_DIR}}/aggie-open
+      - ../../src/plugins/graduate-student-prize:{{WP_PLUGIN_DIR}}/graduate-student-prize
+      - ../../src/plugins/lang-prize:{{WP_PLUGIN_DIR}}/lang-prize
+      - ../../src/plugins/ucdlib-awards:{{WP_PLUGIN_DIR}}/ucdlib-awards
     command: ./tail.sh
     # command: "./backup/entrypoint.sh"
 

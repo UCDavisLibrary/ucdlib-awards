@@ -1087,4 +1087,79 @@ class UcdlibAwardsCycle {
     $this->categories = null;
     return $this->categories;
   }
+
+  public function updateApplicantSupporter($applicantEmail, $currentSupporterEmail, $newSupporterEmail){
+    $out = ['success' => false, 'message' => ''];
+
+    // bail if either applicant or supporter dont exist
+    $applicant = $this->plugin->users->getByEmail( $applicantEmail );
+    if ( !$applicant ){
+      $out['message'] = 'Applicant not found';
+      return $out;
+    }
+    $currentSupporter = $this->plugin->users->getByEmail( $currentSupporterEmail );
+    if ( !$currentSupporter ){
+      $out['message'] = 'Current supporter not found';
+      return $out;
+    }
+
+    // bail if support is not assigned to applicant for this cycle
+    $currentSupporterMeta = $currentSupporter->cycleMetaItem('supporterApplicant', $this->cycleId);
+    if ( !$currentSupporterMeta || !in_array($applicant->id, $currentSupporterMeta) ){
+      $out['message'] = 'Current supporter is not assigned to applicant';
+      return $out;
+    }
+
+    // check if new supporter email already exists
+    $newSupporter = $this->plugin->users->getByEmail( $newSupporterEmail );
+
+    // if new supporter does not exist, simply update the current supporter's email
+    if ( !$newSupporter ){
+      $currentSupporter->updateEmail( $newSupporterEmail );
+      $out['success'] = true;
+      return $out;
+    }
+
+    // bail if new supporter is already assigned to applicant
+    $newSupporterMeta = $newSupporter->cycleMetaItem('supporterApplicant', $this->cycleId);
+    if ( $newSupporterMeta && in_array($applicant->id, $newSupporterMeta) ){
+      $out['message'] = 'New supporter is already assigned to applicant';
+      return $out;
+    }
+
+    // remove current supporter assignment
+    $userMetaTable = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::USER_META );
+    global $wpdb;
+    $wpdb->delete(
+      $userMetaTable,
+      [
+        'user_id' => $currentSupporter->id,
+        'cycle_id' => $this->cycleId,
+        'meta_key' => 'supporterApplicant',
+        'meta_value' => $applicant->id
+      ]
+    );
+
+    // add new supporter assignment
+    $wpdb->insert(
+      $userMetaTable,
+      [
+        'user_id' => $newSupporter->id,
+        'cycle_id' => $this->cycleId,
+        'meta_key' => 'supporterApplicant',
+        'meta_value' => $applicant->id,
+        'date_created' => date('Y-m-d H:i:s'),
+        'date_updated' => date('Y-m-d H:i:s')
+      ]
+    );
+
+    // delete current supporter if they have no activity in the system
+    if ( !$currentSupporter->hasMeta() ){
+      $currentSupporter->delete();
+    }
+
+    $out['success'] = true;
+
+    return $out;
+  }
 }

@@ -49,6 +49,14 @@ class UcdlibAwardsUser {
     $this->assignedJudgesProps = $this->plugin->config::$assignedJudgesProps;
   }
 
+  public function updateEmail( $email ){
+    if ( !$this->record() ) return false;
+    global $wpdb;
+    $wpdb->update( $this->table, ['email' => $email], ['user_id' => $this->record()->user_id] );
+    $this->record = null;
+    return true;
+  }
+
   public function userIdMatches( $userId ){
     $record = $this->record();
     if ( empty($record) ) return false;
@@ -65,6 +73,17 @@ class UcdlibAwardsUser {
     $record = $this->record();
     if ( empty($record) ) return '';
     return $record->first_name . ' ' . $record->last_name;
+  }
+
+  public function hasMeta(){
+    $record = $this->record();
+    if ( empty($record) ) return false;
+
+    global $wpdb;
+
+    $sql = "SELECT COUNT(*) FROM $this->metaTable WHERE user_id = %d";
+    $count = $wpdb->get_var( $wpdb->prepare( $sql, $record->user_id ) );
+    return $count > 0;
   }
 
   public function cycleMeta($cycleId=null){
@@ -649,6 +668,14 @@ class UcdlibAwardsUser {
     if ( isset($this->metaCache[$cycleId]) ){
       unset($this->metaCache[$cycleId]);
     }
+    return true;
+  }
+
+  public function delete(){
+    global $wpdb;
+    $wpdb->delete( $this->metaTable, ['user_id' => $this->record()->user_id] );
+    $wpdb->delete( $this->table, ['user_id' => $this->record()->user_id] );
+    $this->clearCache();
     return true;
   }
 
