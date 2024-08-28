@@ -1,21 +1,23 @@
 import dateTimeUtils from "../utils/datetime.js";
+import { getLogger } from '@ucd-lib/cork-app-utils';
 
 /**
  * @description Controller for altering a forminator form DOM element in a public page.
  */
 export default class AwardsForm {
   constructor(){
+    this.logger = getLogger('awards-form');
     if ( window.awardFormConfig ){
       this.config = window.awardFormConfig;
       this.form = document.querySelector(`#forminator-module-${this.config.formId}`);
       if ( this.form ){
         this.init();
       } else {
-        console.warn(`Could not find form with id ${this.config.formId}. Cannot initialize awards form.`);
+        this.logger.error(`Could not find form with id ${this.config.formId}. Cannot initialize awards form.`);
       }
 
     } else {
-      console.warn('awardFormConfig not defined. Cannot initialize awards form.');
+      this.logger.error('awardFormConfig not defined. Cannot initialize awards form.');
     }
   }
 
@@ -100,14 +102,14 @@ export default class AwardsForm {
       this.displayError(`Sorry, the application${this.config.isSupportForm ? ' support ' : ' '}window is currently closed. It closed on ${date}.`);
     } else {
       this.displayError('This form is currently disabled.');
-      console.warn('Could not determine form window status.  Cannot display window closed message.');
+      this.logger.error('Could not determine form window status.  Cannot display window closed message.');
     }
   }
 
   displayError( message, disableSubmitButton ){
     const errorContainer = this.form.querySelector('.forminator-response-message.forminator-error');
     if ( !errorContainer ) {
-      console.warn('Could not find error container. Cannot display error.');
+      this.logger.error('Could not find error container. Cannot display error.');
       return;
     }
     errorContainer.innerHTML = message;

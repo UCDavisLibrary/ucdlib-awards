@@ -1,3 +1,4 @@
+import { getLogger } from '@ucd-lib/cork-app-utils';
 /**
  * @description Lit element controller for interacting with the wp-ajax endpoint.
  */
@@ -9,6 +10,7 @@ export default class wpAjax {
     this.action = '';
     this.responseTemplate = {};
     this.requestInProgress = {};
+    this.logger = getLogger(this.host.nodeName.toLowerCase());
   }
 
   hostUpdated(){
@@ -19,6 +21,7 @@ export default class wpAjax {
     try {
       hostProps = JSON.parse(script.text);
     } catch (error) {
+      this.logger.error('Error parsing host SSR properties', error);
       console.error('Error parsing JSON script', error);
     }
     if ( !hostProps.wpAjax ){
@@ -77,11 +80,24 @@ export default class wpAjax {
         template.messages = ['You either do not have permission to perform this action, or your session has expired. Please refresh the page and try again.'];
       } else {
         template.messages = ['An unknown error occurred. Please try again.'];
+        this.reportError({error, subAction, data});
       }
       responseData = template;
     }
 
     this.requestInProgress[subAction] = false;
+    if ( !responseData.success ) {
+      this.reportError({responseData, subAction, data});
+    }
     return responseData;
+  }
+
+  reportError(error={}){
+    error = {
+      url: this.url,
+      action: this.action,
+      ...error
+    }
+    this.logger.error('Error fetching data', error);
   }
 }

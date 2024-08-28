@@ -29,4 +29,6 @@ class LangPrize extends UcdlibAwardsAwardAbstract {
     'logTypeFilter' => ['application', 'evaluation']
   ];
 
+  protected $_loggerAppName = 'lang-prize';
+
 }

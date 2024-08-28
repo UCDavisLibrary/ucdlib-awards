@@ -29,4 +29,6 @@ class AggieOpen extends UcdlibAwardsAwardAbstract {
     'logTypeFilter' => ['application', 'evaluation']
   ];
 
+  protected $_loggerAppName = 'aggie-open';
+
 }

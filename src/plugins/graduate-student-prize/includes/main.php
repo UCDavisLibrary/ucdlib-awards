@@ -29,4 +29,6 @@ class GraduateStudentPrize extends UcdlibAwardsAwardAbstract {
     'logTypeFilter' => ['application', 'evaluation']
   ];
 
+  protected $_loggerAppName = 'graduate-student-prize';
+
 }

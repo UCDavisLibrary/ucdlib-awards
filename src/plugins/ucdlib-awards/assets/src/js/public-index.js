@@ -1,5 +1,5 @@
 import AwardsForm from "./controllers/awards-form.js";
 
 document.addEventListener("DOMContentLoaded", () => {
-  new AwardsForm();
+  window.ucdlibAwardsForm = new AwardsForm();
 });

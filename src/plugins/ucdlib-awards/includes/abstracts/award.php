@@ -49,6 +49,11 @@ class UcdlibAwardsAwardAbstract {
   protected $_adminCanImpersonateJudge = false;
 
   /**
+   * @description How app will be displayed in logger error reporting
+   */
+  protected $_loggerAppName = 'ucdlib-awards';
+
+  /**
    * CUSTOMIZE END
    */
 
@@ -94,6 +99,14 @@ class UcdlibAwardsAwardAbstract {
 
   final public function getAdminCanImpersonateJudge() {
     return $this->_adminCanImpersonateJudge;
+  }
+
+  final public function getLoggerAppName() {
+    return $this->_loggerAppName;
+  }
+
+  public function __construct() {
+    add_filter('ucdlib_awards_log_app_name', [$this, 'getLoggerAppName']);
   }
 
 }

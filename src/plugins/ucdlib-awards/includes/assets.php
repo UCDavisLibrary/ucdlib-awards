@@ -40,6 +40,24 @@ class UcdlibAwardsAssets {
         'window.awardFormConfig = ' . json_encode($this->plugin->formsCtl->getAwardFormConfig()),
         'before'
       );
+
+      $this->enqueueLoggerConfig($jsSlug);
+    }
+
+    /**
+     * @description Enqueue the config script for the browser-side logger.
+     * @param string $handle - the handle of the script to enqueue the logger config for.
+     */
+    public function enqueueLoggerConfig($handle){
+      if ( !$handle ) return;
+      $loggerConfigVar = 'corkLoggerConfig';
+      $loggerConfigAssignment = 'window.LOGGER_CONFIG_VAR="' . $loggerConfigVar . '";';
+      $loggerConfigAssignment .= 'window.' . $loggerConfigVar . ' = ' . json_encode($this->plugin->config->loggerConfig()) . ';';
+      wp_add_inline_script(
+        $handle,
+        $loggerConfigAssignment,
+        'before'
+      );
     }
 
     /**
@@ -72,5 +90,7 @@ class UcdlibAwardsAssets {
         [],
         $this->plugin->config->bundleVersion()
       );
+
+      $this->enqueueLoggerConfig($jsSlug);
     }
 }
