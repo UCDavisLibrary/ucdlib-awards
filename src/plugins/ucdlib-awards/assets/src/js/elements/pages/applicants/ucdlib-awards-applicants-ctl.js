@@ -67,16 +67,22 @@ export default class UcdlibAwardsApplicantsCtl extends Mixin(LitElement)
     this.doingAction = true;
 
     const action = e.detail.action;
+
     if ( action === 'delete' ) {
       await this.deleteSelectedApplicants();
     } else if ( action === 'getApplications' ) {
       await this.getApplications();
+    } else if ( action === 'assignToJudge' ) {
+      await this.assignJudges(e.detail.judges);
+    } else if ( action === 'unassignFromJudge' ) {
+      await this.unassignJudges(e.detail.judges);
     }
 
     this.selectedApplicants = [];
     this.doingAction = false;
     this.renderRoot.querySelector('ucdlib-awards-applicants-actions').selectedAction = '';
     this.renderRoot.querySelector('ucdlib-awards-applicants-display').selectedApplicants = [];
+    this.renderRoot.querySelector('ucdlib-awards-applicants-actions').selectedJudges = [];
   }
 
   _onSelectedApplicantsChange(e) {
@@ -93,6 +99,74 @@ export default class UcdlibAwardsApplicantsCtl extends Mixin(LitElement)
     } else {
       console.error('Error getting applications', response);
       let msg = 'Unable to get applications';
+      if ( response.messages.length) msg += `: ${response.messages?.[0] || ''}`;
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: msg,
+          type: 'error'
+        }
+      }));
+    }
+  }
+
+  async assignJudges(judges){
+    const payload = {
+      cycle_id: this.cycleId,
+      applicant_ids: this.selectedApplicants,
+      judge_ids: judges
+    }
+
+    const response = await this.wpAjax.request('assignToJudge', payload);
+    if ( response.success ){
+      this._setApplicants(response.data.applicants);
+      this.selectedApplicants = [];
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: response.messages[0],
+          type: 'success'
+        }
+      }));
+    } else {
+      console.error('Error assigning to judges', response);
+      let msg = 'Unable to assign to judge';
+      if ( response.messages.length) msg += `: ${response.messages?.[0] || ''}`;
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: msg,
+          type: 'error'
+        }
+      }));
+    }
+
+  }
+
+  async unassignJudges(judges){
+    const payload = {
+      cycle_id: this.cycleId,
+      applicant_ids: this.selectedApplicants,
+      judge_ids: judges
+    }
+    const response = await this.wpAjax.request('unassignFromJudge', payload);
+    if ( response.success ){
+      this._setApplicants(response.data.applicants);
+      this.selectedApplicants = [];
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: response.messages[0],
+          type: 'success'
+        }
+      }));
+    } else {
+      console.error('Error unassigning from judges', response);
+      let msg = 'Unable to unassign from judge';
       if ( response.messages.length) msg += `: ${response.messages?.[0] || ''}`;
       this.dispatchEvent(new CustomEvent('toast-request', {
         bubbles: true,

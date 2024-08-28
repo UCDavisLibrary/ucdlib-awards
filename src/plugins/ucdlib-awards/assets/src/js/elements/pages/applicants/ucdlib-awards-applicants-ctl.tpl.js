@@ -11,6 +11,8 @@ return html`
         @action-submit=${this._onActionSubmit}
         .selectedApplicants=${this.selectedApplicants}
         .doingAction=${this.doingAction}
+        .judges=${this.judges}
+        .categories=${this.categories}
       >
 
       </ucdlib-awards-applicants-actions>

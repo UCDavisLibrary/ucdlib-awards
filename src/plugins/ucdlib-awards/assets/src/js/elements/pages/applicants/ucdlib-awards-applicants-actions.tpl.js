@@ -54,6 +54,26 @@ export function renderActionPanel(){
               `)}
             </select>
           </div>
+          <div class='field-container' ?hidden=${!this.showJudgesSelect}>
+            <label>Judges</label>
+            <ucd-theme-slim-select @change=${this._onJudgeSelect}>
+            <select multiple>
+              ${this.categories.length ? html`
+                ${this.categories.map(category => html`
+                  <optgroup label="${category.label}">
+                    ${this.judges.filter(j => j.categoryObject?.value == category.value).map(judge => html`
+                      <option value="${judge.id}" ?selected=${this.selectedJudges.includes(judge.id)}>${judge.name}</option>
+                    `)}
+                  </optgroup>
+                `)}
+              ` : html`
+                ${this.judges.map(judge => html`
+                  <option value="${judge.id}" ?selected=${this.selectedJudges.includes(judge.id)}>${judge.name}</option>
+                `)}
+              `}
+            </select>
+          </ucd-theme-slim-select>
+          </div>
           <button ?disabled=${this.disableActionSubmit || this.doingAction} type="submit" class="btn marketing-highlight__cta border-box category-brand--redwood width-100">Apply</button>
         </form>
       </section>

@@ -341,6 +341,92 @@ class UcdlibAwardsAdminAjax {
         ];
         $response['success'] = true;
 
+      } else if ( $action === 'assignToJudge'){
+        $payload = json_decode( stripslashes($_POST['data']), true );
+        $cycle = $this->getCycle($payload, $response);
+        $cycleId = $cycle->cycleId;
+
+        if ( empty($payload['judge_ids'])){
+          $response['messages'][] = 'No judge ids specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        if ( empty($payload['applicant_ids']) ){
+          $response['messages'][] = 'No applicants specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        $assignments = $cycle->assignApplicants( $payload['applicant_ids'], $payload['judge_ids'] );
+        if ( empty($assignments) ){
+          $response['messages'][] = 'All applicant(s) are already assigned to specified judge(s).';
+          $this->utils->sendResponse($response);
+          return;
+        } else {
+          foreach ($assignments as $judge => $applicants) {
+            $this->logger->logApplicationAssignment($cycleId, $judge, $applicants);
+            $this->plugin->email->sendJudgeApplicantAssignmentEmail($cycleId, $judge);
+          }
+        }
+        $response['messages'][] = 'Judge assignment successfull.';
+
+        $args = [
+          'applicationEntry' => true,
+          'userMeta' => true
+        ];
+        $applicants = $cycle->getApplicants($args);
+        $args = [
+          'applicationEntryBrief' => $cycle->cycleId,
+          'applicationCategory' => $cycle->cycleId,
+          'applicationStatus' => $cycle->cycleId
+        ];
+        $response['data'] = ['applicants' => $this->plugin->users->toArrays($applicants, $args)];
+        $response['success'] = true;
+
+      } else if ( $action === 'unassignFromJudge' ) {
+        $payload = json_decode( stripslashes($_POST['data']), true );
+        $cycle = $this->getCycle($payload, $response);
+        $cycleId = $cycle->cycleId;
+
+        if ( empty($payload['judge_ids'])){
+          $response['messages'][] = 'No judge ids specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        if ( empty($payload['applicant_ids']) ){
+          $response['messages'][] = 'No applicants specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        $removed = $cycle->unassignApplicants( $payload['applicant_ids'], $payload['judge_ids'] );
+        if ( empty($removed) ){
+          $response['messages'][] = 'All applicant(s) are already unassigned from specified judge(s).';
+          $this->utils->sendResponse($response);
+          return;
+        } else {
+          foreach ($removed as $judge => $applicants) {
+            $this->logger->logApplicationUnassignment($cycleId, $judge, $applicants);
+          }
+        }
+
+        $response['messages'][] = 'Judge unassignment successfull.';
+
+        $args = [
+          'applicationEntry' => true,
+          'userMeta' => true
+        ];
+        $applicants = $cycle->getApplicants($args);
+        $args = [
+          'applicationEntryBrief' => $cycle->cycleId,
+          'applicationCategory' => $cycle->cycleId,
+          'applicationStatus' => $cycle->cycleId
+        ];
+        $response['data'] = ['applicants' => $this->plugin->users->toArrays($applicants, $args)];
+        $response['success'] = true;
+
       }
     } catch (\Throwable $th) {
       error_log('Error in UcdlibAwardsAdminAjax::applicants(): ' . $th->getMessage());

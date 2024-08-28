@@ -15,6 +15,10 @@ export default class UcdlibAwardsApplicantsActions extends Mixin(LitElement)
       selectedApplicants: { type: Array },
       disableActionSubmit: { type: Boolean },
       doingAction: { type: Boolean },
+      showJudgesSelect: { type: Boolean },
+      judges: { type: Array },
+      selectedJudges: { type: Array },
+      categories: { type: Array },
       _actions: {state: true}
     }
   }
@@ -29,6 +33,10 @@ export default class UcdlibAwardsApplicantsActions extends Mixin(LitElement)
     this.selectedApplicants = [];
     this.disableActionSubmit = false;
     this.doingAction = false;
+    this.showJudgesSelect = false;
+    this.judges = [];
+    this.selectedJudges = [];
+    this.categories = [];
 
     this.actions = [
       {
@@ -40,6 +48,18 @@ export default class UcdlibAwardsApplicantsActions extends Mixin(LitElement)
         label: 'Download Applications',
         slug: 'getApplications',
         bulk: true
+      },
+      {
+        label: 'Assign to Judge',
+        slug: 'assignToJudge',
+        bulk: true,
+        showJudges: true
+      },
+      {
+        label: 'Unassign from Judge',
+        slug: 'unassignFromJudge',
+        bulk: true,
+        showJudges: true
       }
     ];
   }
@@ -68,6 +88,15 @@ export default class UcdlibAwardsApplicantsActions extends Mixin(LitElement)
       });
       this.disableActionSubmit = disableActionSubmit;
     }
+
+    if ( props.has('selectedAction') ) {
+      const actions = this.actions.filter(action => action.showJudges).map(action => action.slug);
+      this.showJudgesSelect = actions.includes(this.selectedAction);
+    }
+  }
+
+  _onJudgeSelect(e){
+    this.selectedJudges = e.detail.map(judge => judge.value);
   }
 
   _onSearchInput(e) {
@@ -90,6 +119,10 @@ export default class UcdlibAwardsApplicantsActions extends Mixin(LitElement)
 
     const detail = {
       action: this.selectedAction
+    }
+
+    if ( action.showJudges ) {
+      detail.judges = this.selectedJudges;
     }
 
     this.dispatchEvent(new CustomEvent('action-submit', {detail}));
