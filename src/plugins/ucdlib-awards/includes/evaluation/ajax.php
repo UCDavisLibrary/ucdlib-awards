@@ -40,6 +40,8 @@ class UcdlibAwardsEvaluationAjax {
         $response = $this->getApplicants($response, $cycle, $payload);
       } else if ( $action === 'getApplicationEntry' ){
         $response = $this->getApplicationEntry($response, $cycle, $payload);
+      } else if ( $action === 'getAllApplicationEntries' ){
+        $response = $this->getAllApplicationEntries($response, $cycle, $payload);
       } else if ( $action === 'setConflictOfInterest' ){
         $response = $this->setConflictOfInterest($response, $cycle, $payload);
       } else if ( $action === 'getScores' ){
@@ -224,6 +226,65 @@ class UcdlibAwardsEvaluationAjax {
       $this->utils->sendResponse($response);
     }
     return $applicant;
+  }
+
+  public function getAllApplicationEntries($response, $cycle, $payload){
+    $this->doAuth($response, $cycle, $payload);
+    $cycleId = $cycle->cycleId;
+    $formId = $cycle->applicationFormId();
+    if ( empty($formId) ){
+      $response['messages'][] = 'No application form found.';
+      $this->utils->sendResponse($response);
+      return;
+    }
+
+    $formsModel = $this->plugin->forms;
+    $entries = $formsModel->getEntries($formId);
+    $entriesByApplicantId = [];
+    foreach ($entries as $entry) {
+      $applicantId = $entry->get_meta('forminator_addon_ucdlibawards_applicant_id');
+      if ( !empty($applicantId) ){
+        $entriesByApplicantId[$applicantId] = $entry;
+      }
+    }
+
+    $judges = $cycle->judges(true, ['assignments' => true]);
+    $assignments = [];
+    foreach ($judges as $judge) {
+      if ( $judge['id'] == $payload['judge_id'] ){
+        $assignments = $judge['assignments'];
+        break;
+      }
+    }
+    if ( empty($assignments) ){
+      $response['messages'][] = 'No assignments found for judge.';
+      $this->utils->sendResponse($response);
+    }
+    $applicants = $this->plugin->users->getByUserIds($assignments);
+
+    // get supporter form entries and attach to applicant model
+    if ( $cycle->supportIsEnabled() ){
+      $supporterById = $cycle->getSupportEntriesById('applicantId', true);
+      foreach ($applicants as &$applicant) {
+        if ( isset($supporterById[$applicant->id]) ){
+          $applicant->setSupportEntryExport($cycleId, $supporterById[$applicant->id]);
+        }
+      }
+    }
+
+    foreach ($applicants as &$applicant) {
+      $entry = isset($entriesByApplicantId[$applicant->id]) ? $entriesByApplicantId[$applicant->id] : false;
+      if ( $entry ){
+        $entry = $formsModel->exportEntry($entry, true);
+        $applicant->setApplicationEntryExport($cycleId, $entry);
+      }
+    }
+    $response['data'] = [
+      'htmlDoc' =>  UcdlibAwardsTimber::getApplicationsHtml($applicants, $this->plugin->award, $cycle)
+    ];
+
+    $response['success'] = true;
+    $this->utils->sendResponse($response);
   }
 
   public function getApplicationEntry($response, $cycle, $payload){

@@ -209,7 +209,12 @@ export function renderApplicantList(){
     </div>
   `;
   return html`
-    <h3>Your Assigned Applicants</h3>
+    <div class='flex-center flex-space-between flex-wrap u-space-mb'>
+      <h3 class='u-space-mr'>Your Assigned Applicants</h3>
+      <ul class="list--download" style='margin-bottom:.25em;'>
+        <li><a class="icon icon--link icon--download pointer" @click=${this._onDownloadAllApplicationsClick}>Download All Applications</a></li>
+      </ul>
+    </div>
     <div class='applicant-list'>
       <div class='applicant-list-row applicant-list-row--head l-2col l-2col--67-33'>
         <div class='l-first applicant-list-cell__name'>Name</div>

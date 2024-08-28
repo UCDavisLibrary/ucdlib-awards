@@ -206,6 +206,36 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
     }
   }
 
+  async _onDownloadAllApplicationsClick(){
+    if ( this.disableAllApplicationsDownload ) return;
+    this.disableAllApplicationsDownload = true;
+    console.log('Download all applications');
+    const payload = {
+      "judge_id": this.judge.id
+    }
+    const response = await this.wpAjax.request('getAllApplicationEntries', payload);
+    if ( response.success ){
+      const blob = new Blob([response.data.htmlDoc], {type: 'text/html'});
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+
+    } else {
+      console.error('Error getting applications', response);
+      let msg = 'Unable to get applications';
+      if ( response.messages.length) msg += `: ${response.messages?.[0] || ''}`;
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: msg,
+          type: 'error'
+        }
+      }));
+    }
+    this.disableAllApplicationsDownload = false;
+
+  }
+
   resetApplicantData(){
     this.coiCheck = '';
     this.coiDetails = '';
