@@ -1,13 +1,20 @@
 #! /bin/bash
 
-###
-# Build images for local development.  They will be tagged with local-dev and are
-# meant to be used with $LOCAL_DEV_DIRECTORY/docker-compose.yaml
-# Note: these images should never be pushed to docker hub
-###
+VERSION=$1
+if [ -z "$VERSION" ]; then
+  echo "Please provide a version number"
+  exit 1
+fi
 
-set -e
-CMDS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-cd $CMDS_DIR
+DEPTH=$2
+if [ -z "$DEPTH" ]; then
+  DEPTH=ALL
+fi
 
-LOCAL_BUILD=true ./build.sh
+cork-kube build exec \
+  --project ucdlib-awards \
+  --version $VERSION \
+  --override-tag local-dev \
+  --depth $DEPTH \
+  --no-cache-from
+

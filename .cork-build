@@ -1,0 +1,22 @@
+{
+  "registry" : "us-west1-docker.pkg.dev/digital-ucdavis-edu/wordpress",
+
+  "images" : {
+    "ucdlib-awards" : {
+      "contextPath" : ".",
+      "options" : {
+        "secret" : [
+          "id=google_key,env=ITIS-BACKUP-READER-KEY"
+        ]
+      }
+    },
+    "ucdlib-awards-utils" : {
+      "contextPath" : "./utils",
+      "options" : {
+        "build-arg" : [
+          "BASE_IMAGE=${ucdlib-awards.ucdlib-awards}"
+        ]
+      }
+    }
+  }
+}
