@@ -6,7 +6,7 @@
       "contextPath" : ".",
       "options" : {
         "secret" : [
-          "id=google_key,env=ITIS-BACKUP-READER-KEY"
+          "id=google_key,env=ITIS_BACKUP_READER_KEY"
         ]
       }
     },
