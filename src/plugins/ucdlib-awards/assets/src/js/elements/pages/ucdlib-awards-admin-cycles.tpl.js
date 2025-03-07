@@ -51,7 +51,7 @@ export function renderEditForm() {
 
   let disableAppFormSelect = false;
   if ( !this.siteForms.length ) disableAppFormSelect = true;
-  if ( this.requestedCycle?.applicantCount ) disableAppFormSelect = true;
+  if ( this.page === 'edit' && this.requestedCycle?.applicantCount ) disableAppFormSelect = true;
 
   let disableSupportFormSelect = false;
   if ( !this.siteForms.length ) disableSupportFormSelect = true;

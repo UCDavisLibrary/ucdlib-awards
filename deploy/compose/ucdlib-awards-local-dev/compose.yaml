@@ -1,0 +1,126 @@
+x-variables:
+  main-image: &main-image localhost/local-dev/ucdlib-awards:local-dev
+  utils-image: &utils-image localhost/local-dev/ucdlib-awards-utils:local-dev
+
+services:
+  wordpress:
+    image: *main-image
+    env_file:
+      - .env
+    ports:
+      - ${HOST_PORT:-3000}:80
+    environment:
+      APP_ENV: ${APP_ENV:-dev}
+      UCDLIB_AWARDS_EMAILING_ENABLED: ${UCDLIB_AWARDS_EMAILING_ENABLED:-false}
+      APP_REPORT_ERRORS_URL: ${APP_REPORT_ERRORS_URL:-https://client-error-reporter-akwemh35fa-uw.a.run.app}
+      WORDPRESS_DB_HOST: ${DB_HOST:-db:3306}
+      WORDPRESS_DB_DATABASE: ${DB_DATABASE:-wordpress}
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD:-wordpress}
+      WORDPRESS_DB_USER: ${DB_USER:-wordpress}
+      WORDPRESS_DEBUG: ${WORDPRESS_DEBUG:-1}
+      WORDPRESS_DEBUG_DISPLAY: ${WORDPRESS_DEBUG_DISPLAY:-1}
+      WORDPRESS_DISABLE_FATAL_ERROR_HANDLER: ${WORDPRESS_DISABLE_FATAL_ERROR_HANDLER:-1}
+      WORDPRESS_CONFIG_EXTRA: |
+        define( 'WP_ENVIRONMENT_TYPE', 'local' );
+      OIDC_ENDPOINT_LOGIN_URL: ${OIDC_ENDPOINT_LOGIN_URL:-https://auth.library.ucdavis.edu/realms/ucdlib-awards/protocol/openid-connect/auth}
+      OIDC_ENDPOINT_USERINFO_URL: ${OIDC_ENDPOINT_USERINFO_URL:-}
+      OIDC_ENDPOINT_TOKEN_URL: ${OIDC_ENDPOINT_TOKEN_URL:-https://auth.library.ucdavis.edu/realms/ucdlib-awards/protocol/openid-connect/token}
+      OIDC_ENDPOINT_LOGOUT_URL: ${OIDC_ENDPOINT_LOGOUT_URL:-https://auth.library.ucdavis.edu/realms/ucdlib-awards/protocol/openid-connect/logout}
+      OIDC_CLIENT_SCOPE: ${OIDC_CLIENT_SCOPE:-openid profile email roles}
+      OIDC_LOGIN_TYPE: ${OIDC_LOGIN_TYPE:-auto}
+      OIDC_CREATE_IF_DOES_NOT_EXIST: ${OIDC_CREATE_IF_DOES_NOT_EXIST:-true}
+      OIDC_LINK_EXISTING_USERS: ${OIDC_LINK_EXISTING_USERS:-true}
+      OIDC_REDIRECT_USER_BACK: ${OIDC_REDIRECT_USER_BACK:-true}
+      OIDC_ENFORCE_PRIVACY: ${OIDC_ENFORCE_PRIVACY:-false}
+    tmpfs:
+      - /run
+      - /tmp
+    volumes:
+      - uploads-data:/usr/src/wordpress/wp-content/uploads
+      - wp-logs-data:/var/log/wordpress
+      - ../../../src/plugins/aggie-open:/usr/src/wordpress/wp-content/plugins/aggie-open
+      - ../../../src/plugins/graduate-student-prize:/usr/src/wordpress/wp-content/plugins/graduate-student-prize
+      - ../../../src/plugins/lang-prize:/usr/src/wordpress/wp-content/plugins/lang-prize
+      - ../../../src/plugins/ucdlib-awards:/usr/src/wordpress/wp-content/plugins/ucdlib-awards
+      # - ../../../../forminator-theme-styles:/usr/src/wordpress/wp-content/plugins/forminator-theme-styles
+
+  init:
+    image: *utils-image
+    env_file:
+      - .env
+    environment:
+      RUN_INIT: "true"
+      SERVER_URL: http://localhost:${HOST_PORT:-3000}
+      GC_PROJECT: ${GC_PROJECT:-digital-ucdavis-edu}
+      GC_BUCKET_BACKUPS: ${GC_BUCKET_BACKUPS:-itis-backups/ucdlib-awards}
+      BACKUP_FILE_NAME: ${BACKUP_FILE_NAME:-db.sql.gz}
+      UPLOADS_FILE_NAME: ${UPLOADS_FILE_NAME:-uploads.tar.gz}
+      WORDPRESS_DB_HOST: ${DB_HOST:-db:3306}
+      WORDPRESS_DB_DATABASE: ${DB_DATABASE:-wordpress}
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD:-wordpress}
+      WORDPRESS_DB_USER: ${DB_USER:-wordpress}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-wordpress}
+    depends_on:
+      - db
+      - wordpress
+    volumes:
+      - uploads-data:/uploads
+      - ../../../utils/init:/deploy-utils/init
+      - ../../../utils/wp-scripts:/deploy-utils/wp-scripts
+      - ../../secrets/gc-reader-key.json:/etc/service-account.json
+    command: ./init/init.sh
+
+  backup:
+    image: *utils-image
+    env_file:
+      - .env
+    environment:
+      BACKUP_DATA_ENV: ${BACKUP_DATA_ENV:-localhost}
+      GC_BUCKET_BACKUPS: ${GC_BUCKET_BACKUPS:-itis-backups/ucdlib-awards}
+      BACKUP_FILE_NAME: ${BACKUP_FILE_NAME:-db.sql.gz}
+      UPLOADS_FILE_NAME: ${UPLOADS_FILE_NAME:-uploads.tar.gz}
+      WORDPRESS_DB_HOST: ${DB_HOST:-db:3306}
+      WORDPRESS_DB_DATABASE: ${DB_DATABASE:-wordpress}
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD:-wordpress}
+      WORDPRESS_DB_USER: ${DB_USER:-wordpress}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-wordpress}
+    depends_on:
+      - db
+      - wordpress
+    volumes:
+      - uploads-data:/uploads
+      - ../../../utils/backup:/deploy-utils/backup
+      - ../../../utils/wp-scripts:/deploy-utils/wp-scripts
+      - ../../secrets/gc-writer-key.json:/etc/service-account.json
+      - ../../../src/plugins/aggie-open:/usr/src/wordpress/wp-content/plugins/aggie-open
+      - ../../../src/plugins/graduate-student-prize:/usr/src/wordpress/wp-content/plugins/graduate-student-prize
+      - ../../../src/plugins/lang-prize:/usr/src/wordpress/wp-content/plugins/lang-prize
+      - ../../../src/plugins/ucdlib-awards:/usr/src/wordpress/wp-content/plugins/ucdlib-awards
+    command: ./tail.sh
+    # command: "./backup/entrypoint.sh"
+
+  db:
+    image: mysql:5.7
+    env_file:
+      - .env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-wordpress}
+      MYSQL_DATABASE: ${DB_DATABASE:-wordpress}
+      MYSQL_USER: ${DB_USER:-wordpress}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-wordpress}
+    volumes:
+      - db-data:/var/lib/mysql
+    ulimits:
+      nofile:
+        soft: 262114
+        hard: 262114
+
+  adminer:
+    image: adminer:4
+    ports:
+      - ${ADMINER_HOST_PORT:-8080}:8080
+
+volumes:
+  db-data:
+  uploads-data:
+  wp-logs-data:

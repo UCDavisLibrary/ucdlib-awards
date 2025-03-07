@@ -45,6 +45,10 @@ class UcdlibAwardsConfig {
     ['meta_key' => 'supporterApplicantSubmitted', 'outKey' => 'submitted']
   ];
 
+  public function __construct(){
+    $this->setBuildEnvVars();
+  }
+
   /**
    * @description Get App env (dev or prod) - determines what assets to load
    */
@@ -55,6 +59,15 @@ class UcdlibAwardsConfig {
     }
     $this->appEnv = getenv('APP_ENV') ?: 'prod';
     return $this->appEnv;
+  }
+
+  protected $buildTime;
+  public function buildTime(){
+    if ( !empty( $this->buildTime ) ){
+      return $this->buildTime;
+    }
+    $this->buildTime = getenv('BUILD_TIME');
+    return $this->buildTime;
   }
 
   /**
@@ -106,21 +119,57 @@ class UcdlibAwardsConfig {
     return $v;
   }
 
+ // sets the build environment variables from cork-build-info
+ public function setBuildEnvVars(){
+  $mainBuildInfo = $this->readBuildInfo('ucdlib-awards.json');
+  if ( $mainBuildInfo ) {
+    $appVersion = $this->getBuildVersion($mainBuildInfo);
+    if ( $appVersion ) {
+      putenv('APP_VERSION=' . $appVersion);
+    }
+    if ( !empty($mainBuildInfo['date']) ) {
+      putenv('BUILD_TIME=' . $mainBuildInfo['date']);
+    }
+  }
+}
+
+// reads build info from a cork-build-info file
+public function readBuildInfo($filename) {
+  $filePath = '/cork-build-info/' . $filename;
+  if (!file_exists($filePath)) {
+    return null;
+  }
+  $jsonContent = file_get_contents($filePath);
+  return json_decode($jsonContent, true);
+}
+
+public function getBuildVersion($buildInfo){
+  if ( !empty($buildInfo['tag']) ) {
+    return $buildInfo['tag'];
+  } else if ( !empty($buildInfo['branch']) ) {
+    return $buildInfo['branch'];
+  } else if ( !empty($buildInfo['imageTag']) ) {
+    $imageTag = explode(':', $buildInfo['imageTag']);
+    return end($imageTag);
+  }
+  return null;
+}
+
   /**
    * @description Get App bundle version - Breaks browser cache when app version changes, or in local dev
    */
   protected $bundleVersion;
   public function bundleVersion(){
-    if ( !empty( $this->bundleVersion ) ){
+    if ( !empty($this->bundleVersion) ) {
       return $this->bundleVersion;
     }
-    $appVersion = $this->appVersion();
-    if ( substr_compare($appVersion, '-1', -strlen('-1')) === 0 ) {
-      $this->bundleVersion = (new DateTime())->getTimestamp();
-    } else {
-      $this->bundleVersion = $appVersion;
+    $bundleVersion = (new DateTime())->getTimestamp();
+    if ( $this->appEnv() === 'prod' && $this->buildTime() ){
+      $bundleVersion = $this->buildTime();
     }
-    return $this->bundleVersion;
+
+    $this->bundleVersion = $bundleVersion;
+    return $bundleVersion;
   }
 
 }
