@@ -191,6 +191,21 @@ class UcdlibAwardsForms {
     return $this->applicationFormId;
   }
 
+  protected $nonActiveApplicationFormIds;
+  public function nonActiveApplicationFormIds(){
+    if ( !empty( $this->nonActiveApplicationFormIds ) ) return $this->nonActiveApplicationFormIds;
+    $cycles = $this->plugin->cycles->getAll();
+    $out = [];
+    foreach ( $cycles as $cycle ){
+      if ( $cycle->isActive() ) continue;
+      $formId = $cycle->applicationFormId();
+      if ( !$formId ) continue;
+      $out[] = $formId;
+    }
+    $this->nonActiveApplicationFormIds = $out;
+    return $this->nonActiveApplicationFormIds;
+  }
+
   protected $applicationForm;
   public function applicationForm(){
     if ( !empty( $this->applicationForm ) ) return $this->applicationForm;
@@ -209,6 +224,21 @@ class UcdlibAwardsForms {
     if ( !$activeCycle ) return false;
     $this->supportFormId = $activeCycle->supportFormId();
     return $this->supportFormId;
+  }
+
+  protected $nonActiveSupportFormIds;
+  public function nonActiveSupportFormIds(){
+    if ( !empty( $this->nonActiveSupportFormIds ) ) return $this->nonActiveSupportFormIds;
+    $cycles = $this->plugin->cycles->getAll();
+    $out = [];
+    foreach ( $cycles as $cycle ){
+      if ( $cycle->isActive() ) continue;
+      $formId = $cycle->supportFormId();
+      if ( !$formId ) continue;
+      $out[] = $formId;
+    }
+    $this->nonActiveSupportFormIds = $out;
+    return $this->nonActiveSupportFormIds;
   }
 
   protected $supportForm;

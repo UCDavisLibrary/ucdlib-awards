@@ -15,6 +15,14 @@ class Forminator_Ucdlibawards_Form_Hooks extends Forminator_Integration_Form_Hoo
   public function on_module_submit( $submitted_data ) {
     $formId = $this->module_id;
 
+    // check if is non-active form
+    $nonActiveApplicationFormIds = $this->plugin->forms->nonActiveApplicationFormIds();
+    $nonActiveSupportFormIds = $this->plugin->forms->nonActiveSupportFormIds();
+    if ( in_array( $formId, $nonActiveApplicationFormIds ) ||
+         in_array( $formId, $nonActiveSupportFormIds ) ) {
+      return "Submission failed! This form is no longer active.";
+    }
+
     // check form is for application or support letter
     $isApplicationForm = $formId == $this->plugin->forms->applicationFormId();
     $isSupportForm = $formId == $this->plugin->forms->supportFormId();

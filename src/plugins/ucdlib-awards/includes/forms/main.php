@@ -10,6 +10,7 @@ class UcdlibAwardsFormsMain {
   public $isApplicationForm;
   public $isSupportForm;
   public $formId;
+  public $isPastForm;
 
   public function __construct( $plugin ) {
     $this->plugin = $plugin;
@@ -20,6 +21,7 @@ class UcdlibAwardsFormsMain {
     // properties for tracking if we're on a page with an active awards form
     $this->isApplicationForm = false;
     $this->isSupportForm = false;
+    $this->isPastForm = false;
     $this->formId = 0;
   }
 
@@ -42,6 +44,9 @@ class UcdlibAwardsFormsMain {
     $out = [
       'isApplicationForm' => $this->isApplicationForm,
       'isSupportForm' => $this->isSupportForm,
+      'nonActiveApplicationFormIds' => $this->plugin->forms->nonActiveApplicationFormIds(),
+      'nonActiveSupportFormIds' => $this->plugin->forms->nonActiveSupportFormIds(),
+      'isPastForm' => $this->isPastForm,
       'formId' => $this->formId
     ];
     $activeCycle = $this->plugin->cycles->activeCycle();
@@ -90,14 +95,14 @@ class UcdlibAwardsFormsMain {
    * @description Force login if a post contains activated forms (application and support letters)
    */
   public function forceLoginForActivatedForms(){
-    if ( $this->isApplicationForm || $this->isSupportForm ) return;
+    if ( $this->isApplicationForm || $this->isSupportForm || $this->isPastForm ) return;
     if ( is_admin() ) return;
     if ( !has_block( self::$formBlockName ) ) return;
 
 
     global $post;
     $blocks = parse_blocks( $post->post_content );
-    $this->checkForActivatedForms( $blocks );
+    $this->checkForAwardsForms( $blocks );
     if ( !$this->isApplicationForm && !$this->isSupportForm ) return;
     $this->formId = $this->isApplicationForm ? $this->plugin->forms->applicationFormId() : $this->plugin->forms->supportFormId();
     if ( is_user_logged_in() ) return;
@@ -106,13 +111,13 @@ class UcdlibAwardsFormsMain {
   }
 
   // recursive function to check all inner blocks for application or support forms
-  public function checkForActivatedForms($blocks){
+  public function checkForAwardsForms($blocks){
     // already found a form, no need to continue
-    if ( $this->isApplicationForm || $this->isSupportForm ) return;
+    if ( $this->isApplicationForm || $this->isSupportForm || $this->isPastForm ) return;
 
     foreach ($blocks as $block) {
       if (isset( $block['innerBlocks'] ) && ! empty( $block['innerBlocks'] )) {
-        $this->checkForActivatedForms( $block['innerBlocks'] );
+        $this->checkForAwardsForms( $block['innerBlocks'] );
       }
 
       if ( $block['blockName'] !== self::$formBlockName ) continue;
@@ -120,8 +125,12 @@ class UcdlibAwardsFormsMain {
       $formId = $block['attrs']['module_id'];
       $this->isApplicationForm = $formId == $this->plugin->forms->applicationFormId();
       $this->isSupportForm = $formId == $this->plugin->forms->supportFormId();
+      $isPastApplicationForm = in_array( $formId, $this->plugin->forms->nonActiveApplicationFormIds() );
+      $isPastSupportForm = in_array( $formId, $this->plugin->forms->nonActiveSupportFormIds() );
+      $this->isPastForm = $isPastApplicationForm || $isPastSupportForm;
     }
   }
+
 
   /**
    * @description By default, on form creation, Forminator will send an email to the site admin.

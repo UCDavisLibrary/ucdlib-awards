@@ -9,16 +9,32 @@ export default class AwardsForm {
     this.logger = getLogger('awards-form');
     if ( window.awardFormConfig ){
       this.config = window.awardFormConfig;
-      this.form = document.querySelector(`#forminator-module-${this.config.formId}`);
-      if ( this.form ){
-        this.init();
+      if ( this.config.isPastForm ){
+        this.form = document.querySelector(`form.forminator-custom-form`);
+        if ( this.form ){
+          this.initPastForm();
+        } else {
+          this.logger.error(`Could not find past form. Cannot initialize awards form.`);
+        }
       } else {
-        this.logger.error(`Could not find form with id ${this.config.formId}. Cannot initialize awards form.`);
+        this.form = document.querySelector(`#forminator-module-${this.config.formId}`);
+        if ( this.form ){
+          this.init();
+        } else {
+          this.logger.error(`Could not find form with id ${this.config.formId}. Cannot initialize awards form.`);
+        }
       }
 
     } else {
       this.logger.error('awardFormConfig not defined. Cannot initialize awards form.');
     }
+  }
+
+  initPastForm(){
+    this.logger.warn('This form is from a non-active cycle. It will not be displayed. The page should be updated to display the current cycle form instead.');
+    this.hideAllFormFields();
+    this.displayError('The form is no longer active.', true);
+
   }
 
   init(){
@@ -70,12 +86,22 @@ export default class AwardsForm {
   }
 
   disableSubmitButton(){
-    const submitButton = this.form.querySelector('button.forminator-button-submit');
-    if ( !submitButton ) {
-      console.warn('Could not find submit button. Cannot disable submit button.');
-      return;
-    }
-    submitButton.disabled = true;
+    setTimeout(() => {
+      const submitButton = this.form.querySelector('button.forminator-button-submit');
+      const nextButton = this.form.querySelector('button.forminator-button-next');
+      if ( !submitButton && !nextButton ) {
+        console.warn('Could not find submit or next button. Cannot disable.');
+        return;
+      }
+      let button = submitButton;
+      if ( nextButton ) {
+        button = nextButton;
+      }
+      button.disabled = true;
+      button.style.opacity = '0.5';
+      button.style.pointerEvents = 'none';
+    }, 200);
+
   }
 
   hideAllFormFields(){
