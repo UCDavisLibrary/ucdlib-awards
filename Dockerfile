@@ -9,7 +9,7 @@ ARG OPENID_CONNECT_GENERIC_DIR="openid-connect-generic-3.10.0"
 ARG OPENID_CONNECT_GENERIC_ZIP_FILE="${OPENID_CONNECT_GENERIC_DIR}.zip"
 
 # Download plugins from Google Cloud Storage
-FROM google/cloud-sdk:alpine as gcloud
+FROM google/cloud-sdk:alpine AS gcloud
 RUN mkdir -p /cache
 WORKDIR /cache
 ARG GC_BUCKET_PLUGINS="wordpress-general/plugins"
@@ -25,7 +25,7 @@ RUN gsutil cp gs://${GC_BUCKET_PLUGINS}/openid-connect-generic/${OPENID_CONNECT_
 && gsutil cp gs://${GC_BUCKET_PLUGINS}/redirection/${REDIRECTION_ZIP_FILE} .
 
 # Main build
-FROM wordpress:${WP_CORE_VERSION} as wordpress
+FROM wordpress:${WP_CORE_VERSION} AS wordpress
 
 # WP Filesystem paths
 ARG WP_LOG_ROOT=/var/log/wordpress
@@ -108,7 +108,7 @@ RUN mv $OPENID_CONNECT_GENERIC_DIR openid-connect-generic
 # Retrieve any custom plugins from github
 RUN git -c advice.detachedHead=false \
 	clone https://github.com/UCDavisLibrary/forminator-theme-styles.git \
-	--branch v1.1.0 --single-branch --depth 1
+	--branch v1.2.0 --single-branch --depth 1
 
 # Copy our custom awards plugins
 COPY src/plugins/aggie-open aggie-open
