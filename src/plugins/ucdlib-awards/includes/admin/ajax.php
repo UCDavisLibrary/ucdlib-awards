@@ -862,10 +862,17 @@ class UcdlibAwardsAdminAjax {
           $this->utils->sendResponse($response);
           return;
         }
+
+        // in order to associate a cycle with a form, we need to add some settings data to its post meta
+        // git issue #26
+        $formId = $data['application_form_id'];
+        $formIntegrationSettings = ['is_ucdlibawards_form' => true];
+        update_post_meta($formId, 'forminator_addon_ucdlibawards_form_settings', $formIntegrationSettings);
+
         if ( $action == 'edit' ){
           $cycleId = $data['cycle_id'];
           $cycle = $this->plugin->cycles->getById($cycleId);
-          if ( !$cycle->isActive() && $data['is_active'] ){
+          if ( !$cycle->isActive() && !empty($data['is_active']) ){
             $this->plugin->cycles->deactivateAll();
           }
           $cycle->update($data);
@@ -873,7 +880,7 @@ class UcdlibAwardsAdminAjax {
           $response['messages'][] = 'Cycle updated successfully.';
           $response['data'] = ['cycle' => $cycle->recordArray(['applicantCount' => true])];
         } else {
-          if ( $data['is_active'] ){
+          if ( !empty($data['is_active']) ){
             $this->plugin->cycles->deactivateAll();
           }
           $cycleId = $this->plugin->cycles->create($data);
