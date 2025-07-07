@@ -1,15 +1,15 @@
 # Multistage build args
-ARG WP_CORE_VERSION="6.6.1"
+ARG WP_CORE_VERSION="6.8.1"
 ARG NODE_VERSION="20"
-ARG THEME_TAG="v3.8.2"
-ARG REDIRECTION_ZIP_FILE="redirection-5.5.0.zip"
-ARG SMTP_MAILER_ZIP_FILE="smtp-mailer-1.1.15.zip"
-ARG FORMINATOR_ZIP_FILE="forminator-pro-1.34.1.zip"
+ARG THEME_TAG="v4.1.0"
+ARG REDIRECTION_ZIP_FILE="redirection-5.5.2.zip"
+ARG SMTP_MAILER_ZIP_FILE="smtp-mailer-1.1.20.zip"
+ARG FORMINATOR_ZIP_FILE="forminator-pro-1.44.zip"
 ARG OPENID_CONNECT_GENERIC_DIR="openid-connect-generic-3.10.0"
 ARG OPENID_CONNECT_GENERIC_ZIP_FILE="${OPENID_CONNECT_GENERIC_DIR}.zip"
 
 # Download plugins from Google Cloud Storage
-FROM google/cloud-sdk:alpine as gcloud
+FROM google/cloud-sdk:alpine AS gcloud
 RUN mkdir -p /cache
 WORKDIR /cache
 ARG GC_BUCKET_PLUGINS="wordpress-general/plugins"
@@ -25,10 +25,10 @@ RUN gsutil cp gs://${GC_BUCKET_PLUGINS}/openid-connect-generic/${OPENID_CONNECT_
 && gsutil cp gs://${GC_BUCKET_PLUGINS}/redirection/${REDIRECTION_ZIP_FILE} .
 
 # Main build
-FROM wordpress:${WP_CORE_VERSION} as wordpress
+FROM wordpress:${WP_CORE_VERSION} AS wordpress
 
 # WP Filesystem paths
-ARG WP_LOG_ROOT
+ARG WP_LOG_ROOT=/var/log/wordpress
 ARG WP_SRC_ROOT=/usr/src/wordpress
 ARG WP_CONTENT_DIR=$WP_SRC_ROOT/wp-content
 ARG WP_THEME_DIR=$WP_CONTENT_DIR/themes
@@ -108,7 +108,7 @@ RUN mv $OPENID_CONNECT_GENERIC_DIR openid-connect-generic
 # Retrieve any custom plugins from github
 RUN git -c advice.detachedHead=false \
 	clone https://github.com/UCDavisLibrary/forminator-theme-styles.git \
-	--branch v1.1.0 --single-branch --depth 1
+	--branch v1.2.0 --single-branch --depth 1
 
 # Copy our custom awards plugins
 COPY src/plugins/aggie-open aggie-open

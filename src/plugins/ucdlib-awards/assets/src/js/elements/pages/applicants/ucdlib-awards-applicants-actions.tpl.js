@@ -55,7 +55,7 @@ export function renderActionPanel(){
             </select>
           </div>
           <div class='field-container' ?hidden=${!this.showJudgesSelect}>
-            <label>Judges</label>
+            <label>Reviewers</label>
             <ucd-theme-slim-select @change=${this._onJudgeSelect}>
             <select multiple>
               ${this.categories.length ? html`

@@ -42,6 +42,7 @@ services:
       - ../../../src/plugins/graduate-student-prize:/usr/src/wordpress/wp-content/plugins/graduate-student-prize
       - ../../../src/plugins/lang-prize:/usr/src/wordpress/wp-content/plugins/lang-prize
       - ../../../src/plugins/ucdlib-awards:/usr/src/wordpress/wp-content/plugins/ucdlib-awards
+      # - ../../../../forminator:/usr/src/wordpress/wp-content/plugins/forminator
       # - ../../../../forminator-theme-styles:/usr/src/wordpress/wp-content/plugins/forminator-theme-styles
 
   init:

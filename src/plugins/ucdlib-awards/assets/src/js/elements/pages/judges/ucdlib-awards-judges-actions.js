@@ -48,7 +48,7 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
     this._actions = [];
     this.actions = [
       {
-        label: 'Delete Judge',
+        label: 'Delete Reviewer',
         slug: 'delete',
         bulk: true,
         applicants: false

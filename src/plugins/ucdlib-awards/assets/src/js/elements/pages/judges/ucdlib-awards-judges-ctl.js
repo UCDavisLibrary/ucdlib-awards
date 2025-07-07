@@ -89,14 +89,14 @@ export default class UcdlibAwardsJudgesCtl extends Mixin(LitElement)
         bubbles: true,
         composed: true,
         detail: {
-          message: 'Judge Added',
+          message: 'Reviewer Added',
           type: 'success'
         }
       }));
 
     } else {
-      console.error('Error adding judge', response);
-      let msg = 'Unable to add judge';
+      console.error('Error adding reviewer', response);
+      let msg = 'Unable to add reviewer';
       if ( response.messages.length) msg += `: ${response.messages[0]}`;
       this.dispatchEvent(new CustomEvent('toast-request', {
         bubbles: true,
@@ -248,8 +248,8 @@ export default class UcdlibAwardsJudgesCtl extends Mixin(LitElement)
         }
       }));
     } else {
-      console.error('Error deleting judges', response);
-      let msg = 'Unable to delete judges';
+      console.error('Error deleting reviewers', response);
+      let msg = 'Unable to delete reviewers';
       if ( response.messages.length) msg += `: ${response.messages?.[0] || ''}`;
       this.dispatchEvent(new CustomEvent('toast-request', {
         bubbles: true,

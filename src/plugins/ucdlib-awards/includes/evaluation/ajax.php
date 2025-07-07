@@ -105,17 +105,17 @@ class UcdlibAwardsEvaluationAjax {
 
     $assignedJudges = $applicant->assignedJudgeIds($cycleId)['assigned'];
     if ( !in_array($payload['judge_id'], $assignedJudges) ){
-      $response['messages'][] = 'Judge is not assigned to this applicant.';
+      $response['messages'][] = 'Reviewer is not assigned to this applicant.';
       $this->utils->sendResponse($response);
     }
 
     $applicationStatus = $applicant->applicationStatus($cycleId);
     if ( in_array($payload['judge_id'], $applicationStatus['conflictOfInterestJudgeIds']) ){
-      $response['messages'][] = 'Judge has a potential conflict of interest with applicant.';
+      $response['messages'][] = 'Reviewer has a potential conflict of interest with applicant.';
       $this->utils->sendResponse($response);
     }
     if ( in_array($payload['judge_id'], $applicationStatus['evaluatedJudgeIds']) ){
-      $response['messages'][] = 'Judge has already evaluated this applicant.';
+      $response['messages'][] = 'Reviewer has already evaluated this applicant.';
       $this->utils->sendResponse($response);
     }
 
@@ -172,7 +172,7 @@ class UcdlibAwardsEvaluationAjax {
 
     $assignedJudges = $applicant->assignedJudgeIds($cycleId)['assigned'];
     if ( !in_array($payload['judge_id'], $assignedJudges) ){
-      $response['messages'][] = 'Judge is not assigned to this applicant.';
+      $response['messages'][] = 'Reviewer is not assigned to this applicant.';
       $this->utils->sendResponse($response);
     }
 
@@ -192,18 +192,18 @@ class UcdlibAwardsEvaluationAjax {
   private function getJudge($response, $cycle, $payload){
     $cycleId = $cycle->cycleId;
     if ( empty($payload['judge_id']) ){
-      $response['messages'][] = 'No judge ID specified.';
+      $response['messages'][] = 'No reviewer ID specified.';
       $this->utils->sendResponse($response);
     }
     $judge = $this->plugin->users->getByUserIds($payload['judge_id']);
     if ( empty($judge) ){
-      $response['messages'][] = 'No judge found.';
+      $response['messages'][] = 'No reviewer found.';
       $this->utils->sendResponse($response);
     }
     $judge = $judge[0];
 
     if ( !$judge->isJudge($cycleId) ){
-      $response['messages'][] = 'User is not a judge.';
+      $response['messages'][] = 'User is not a reviewer.';
       $this->utils->sendResponse($response);
     }
     return $judge;
@@ -257,7 +257,7 @@ class UcdlibAwardsEvaluationAjax {
       }
     }
     if ( empty($assignments) ){
-      $response['messages'][] = 'No assignments found for judge.';
+      $response['messages'][] = 'No assignments found for reviewer.';
       $this->utils->sendResponse($response);
     }
     $applicants = $this->plugin->users->getByUserIds($assignments);
@@ -370,7 +370,7 @@ class UcdlibAwardsEvaluationAjax {
   public function doAuth($response, $cycle, $payload, $isWriteAction = false){
     $cycleId = $cycle->cycleId;
     if ( empty($payload['judge_id']) ){
-      $response['messages'][] = 'No judge ID specified.';
+      $response['messages'][] = 'No reviewer ID specified.';
       $this->utils->sendResponse($response);
     }
     $judgeId = $payload['judge_id'];

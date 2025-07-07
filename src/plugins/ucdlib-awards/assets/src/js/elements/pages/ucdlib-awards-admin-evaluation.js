@@ -43,14 +43,14 @@ export default class UcdlibAwardsAdminEvaluation extends Mixin(LitElement)
     const headers = [
       'Applicant Name',
       'Applicant Id',
-      'Judge Name',
-      'Judge Id',
+      'Reviewer Name',
+      'Reviewer Id',
       'Category',
       'Rubric Item',
       'Rubric Item Id',
       'Rubric Item Weight',
       'Score',
-      'Judge Comment'
+      'Reviewer Comment'
     ];
     csvContent += headers.join(',') + '\n';
 

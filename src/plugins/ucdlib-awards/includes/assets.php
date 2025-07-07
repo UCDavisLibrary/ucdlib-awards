@@ -21,7 +21,11 @@ class UcdlibAwardsAssets {
     public function enqueuePublicScripts(){
 
       // only load assets if we're on a page with an active awards form
-      if ( !$this->plugin->formsCtl->isApplicationForm && !$this->plugin->formsCtl->isSupportForm ) return;
+      if (
+        !$this->plugin->formsCtl->isApplicationForm &&
+        !$this->plugin->formsCtl->isSupportForm &&
+        !$this->plugin->formsCtl->isPastForm
+        ) return;
 
       // main JS bundle
       $jsSlug = $this->plugin->config::$publicJsSlug;

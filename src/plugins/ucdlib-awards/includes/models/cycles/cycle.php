@@ -1092,6 +1092,102 @@ class UcdlibAwardsCycle {
     return $this->categories;
   }
 
+  public function updateUploadField($applicantEmail, $uploadFieldId, $mediaLibraryUrl, $mediaBaseDir){
+    $out = ['success' => false, 'message' => ''];
+
+    // bail if applicant does not exist
+    $applicant = $this->plugin->users->getByEmail( $applicantEmail );
+    if ( !$applicant ){
+      $out['message'] = 'Applicant not found';
+      return $out;
+    }
+
+    $entry = $applicant->applicationEntry();
+    if ( !$entry ){
+      $out['message'] = 'Applicant does not have an application entry';
+      return $out;
+    }
+
+    if ( empty($entry->meta_data[$uploadFieldId]) ){
+      $out['message'] = 'Upload field not found in applicant entry';
+      return $out;
+    }
+
+    if ( empty($entry->meta_data[$uploadFieldId]['value']['file']['file_path']) ){
+      $out['message'] = 'Upload field does not have a file path';
+      return $out;
+    }
+
+    if ( empty($entry->meta_data[$uploadFieldId]['id']) ){
+      $out['message'] = 'Upload field does not have an ID';
+      return $out;
+    }
+
+    $metaValue = $entry->meta_data[$uploadFieldId]['value'];
+    $metaId = $entry->meta_data[$uploadFieldId]['id'];
+
+
+    $uploadDir = wp_upload_dir();
+    $baseDir = $mediaBaseDir ? $mediaBaseDir : $uploadDir['basedir'];
+    $baseUrl = $uploadDir['baseurl'];
+
+    // Convert media library URL to file path
+    $mediaLibraryRelativePath = str_replace($baseUrl, '', $mediaLibraryUrl);
+    $mediaLibraryPath = $baseDir . $mediaLibraryRelativePath;
+    if ( !file_exists($mediaLibraryPath) ){
+      $out['message'] = 'File does not exist in media library';
+      return $out;
+    }
+
+    $relativeForminatorMediaPath = explode('wp-content/uploads/forminator/', $metaValue['file']['file_path'])[1];
+    $forminatorMediaDir = $baseDir . '/forminator/' . preg_replace('/\/[^\/]*$/', '', $relativeForminatorMediaPath);
+    if ( !file_exists($forminatorMediaDir) ){
+      $out['message'] = 'Forminator media directory for this form does not exist';
+      return $out;
+    }
+
+    // Move the file from media library to Forminator media directory
+    $uniqid = preg_replace('/[^a-zA-Z0-9]/', '', uniqid('', true));
+    $fileName = $uniqid . '-' . basename($mediaLibraryPath);
+    $newFilePath = $forminatorMediaDir . '/' . $fileName;
+    if ( !rename($mediaLibraryPath, $newFilePath) ){
+      $out['message'] = 'Failed to move file from media library to Forminator media directory';
+      return $out;
+    }
+
+    // Update the meta value with the new file path
+    $ogFileName = $metaValue['file']['file_name'];
+    $metaValue['file']['file_name'] = $fileName;
+    $metaValue['file']['file_path'] = str_replace($ogFileName, $fileName, $metaValue['file']['file_path']);
+    $metaValue['file']['file_url'] = str_replace($ogFileName, $fileName, $metaValue['file']['file_url']);
+
+    // update meta_value col in wp_frmt_form_entry_meta table given meta_id
+    global $wpdb;
+    $formEntryMetaTable = UcdlibAwardsDbTables::get_table_name( UcdlibAwardsDbTables::FORM_ENTRY_META );
+    $updated = $wpdb->update(
+      $formEntryMetaTable,
+      [
+        'meta_value' => maybe_serialize($metaValue)
+      ],
+      [
+        'meta_id' => $metaId
+      ]
+    );
+    if ( false === $updated ){
+      $out['message'] = 'Failed to update upload field in applicant entry';
+      return $out;
+    }
+
+    $attachmentId = attachment_url_to_postid($mediaLibraryUrl);
+    if ( $attachmentId ){
+      wp_delete_attachment($attachmentId, true);
+    }
+
+    $out['success'] = true;
+
+    return $out;
+  }
+
   public function updateApplicantSupporter($applicantEmail, $currentSupporterEmail, $newSupporterEmail){
     $out = ['success' => false, 'message' => ''];
 

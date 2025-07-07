@@ -347,7 +347,7 @@ class UcdlibAwardsAdminAjax {
         $cycleId = $cycle->cycleId;
 
         if ( empty($payload['judge_ids'])){
-          $response['messages'][] = 'No judge ids specified.';
+          $response['messages'][] = 'No reviewer ids specified.';
           $this->utils->sendResponse($response);
           return;
         }
@@ -360,7 +360,7 @@ class UcdlibAwardsAdminAjax {
 
         $assignments = $cycle->assignApplicants( $payload['applicant_ids'], $payload['judge_ids'] );
         if ( empty($assignments) ){
-          $response['messages'][] = 'All applicant(s) are already assigned to specified judge(s).';
+          $response['messages'][] = 'All applicant(s) are already assigned to specified reviewer(s).';
           $this->utils->sendResponse($response);
           return;
         } else {
@@ -369,7 +369,7 @@ class UcdlibAwardsAdminAjax {
             $this->plugin->email->sendJudgeApplicantAssignmentEmail($cycleId, $judge);
           }
         }
-        $response['messages'][] = 'Judge assignment successfull.';
+        $response['messages'][] = 'Reviewer assignment successfull.';
 
         $args = [
           'applicationEntry' => true,
@@ -390,7 +390,7 @@ class UcdlibAwardsAdminAjax {
         $cycleId = $cycle->cycleId;
 
         if ( empty($payload['judge_ids'])){
-          $response['messages'][] = 'No judge ids specified.';
+          $response['messages'][] = 'No reviewer ids specified.';
           $this->utils->sendResponse($response);
           return;
         }
@@ -403,7 +403,7 @@ class UcdlibAwardsAdminAjax {
 
         $removed = $cycle->unassignApplicants( $payload['applicant_ids'], $payload['judge_ids'] );
         if ( empty($removed) ){
-          $response['messages'][] = 'All applicant(s) are already unassigned from specified judge(s).';
+          $response['messages'][] = 'All applicant(s) are already unassigned from specified reviewer(s).';
           $this->utils->sendResponse($response);
           return;
         } else {
@@ -412,7 +412,7 @@ class UcdlibAwardsAdminAjax {
           }
         }
 
-        $response['messages'][] = 'Judge unassignment successfull.';
+        $response['messages'][] = 'Reviewer unassignment successfull.';
 
         $args = [
           'applicationEntry' => true,
@@ -446,7 +446,7 @@ class UcdlibAwardsAdminAjax {
         $cycleId = $cycle->cycleId;
 
         if ( empty($payload['judge']['email'])){
-          $response['messages'][] = 'No judge email specified.';
+          $response['messages'][] = 'No reviewer email specified.';
           $this->utils->sendResponse($response);
           return;
         }
@@ -462,7 +462,7 @@ class UcdlibAwardsAdminAjax {
           ]);
         }
         if ( $user->cycleMetaItem('isJudge', $cycleId) ){
-          $response['messages'][] = 'User is already a judge for this cycle.';
+          $response['messages'][] = 'User is already a reviewer for this cycle.';
           $this->utils->sendResponse($response);
           return;
         }
@@ -471,7 +471,7 @@ class UcdlibAwardsAdminAjax {
           $user->updateMeta('judgeCategory', $payload['judge']['category'], $cycleId);
         }
         $this->logger->logJudgeAddition($cycleId, $user->id);
-        $response['messages'][] = 'Judge added successfully.';
+        $response['messages'][] = 'Reviewer added successfully.';
         $response['data'] = ['judges' => $cycle->judges(true, ['assignments' => true, 'conflictsOfInterest' => true, 'completedEvaluations' => true])];
         $response['success'] = true;
       } else if ($action == 'delete'){
@@ -481,7 +481,7 @@ class UcdlibAwardsAdminAjax {
         $cycleId = $cycle->cycleId;
 
         if ( empty($payload['judge_ids'])){
-          $response['messages'][] = 'No judge ids specified.';
+          $response['messages'][] = 'No reviewer ids specified.';
           $this->utils->sendResponse($response);
           return;
         }
@@ -490,7 +490,7 @@ class UcdlibAwardsAdminAjax {
         $existingJudgeIds = $cycle->judgeIds();
         $missingJudgeIds = array_diff($userIds, $existingJudgeIds);
         if ( count($missingJudgeIds) ){
-          $response['messages'][] = 'One or more judges could not be deleted because they could not be found.';
+          $response['messages'][] = 'One or more reviewers could not be deleted because they could not be found.';
           $this->utils->sendResponse($response);
           return;
         }
@@ -500,9 +500,9 @@ class UcdlibAwardsAdminAjax {
           $this->logger->logJudgeRemoval($cycleId, $userId);
         }
         if ( count($userIds) > 1 ){
-          $response['messages'][] = 'Judges deleted successfully.';
+          $response['messages'][] = 'Reviewers deleted successfully.';
         } else {
-          $response['messages'][] = 'Judge deleted successfully.';
+          $response['messages'][] = 'Reviewer deleted successfully.';
         }
         $response['data'] = ['judges' => $cycle->judges(true, ['assignments' => true, 'conflictsOfInterest' => true, 'completedEvaluations' => true])];
         $response['success'] = true;
@@ -513,7 +513,7 @@ class UcdlibAwardsAdminAjax {
         $cycleId = $cycle->cycleId;
 
         if ( empty($payload['judge_ids'])){
-          $response['messages'][] = 'No judge ids specified.';
+          $response['messages'][] = 'No reviewer ids specified.';
           $this->utils->sendResponse($response);
           return;
         }
@@ -526,7 +526,7 @@ class UcdlibAwardsAdminAjax {
 
         $assignments = $cycle->assignApplicants( $payload['applicant_ids'], $payload['judge_ids'] );
         if ( empty($assignments) ){
-          $response['messages'][] = 'All applicant(s) are already assigned to specified judge(s).';
+          $response['messages'][] = 'All applicant(s) are already assigned to specified reviewer(s).';
           $this->utils->sendResponse($response);
           return;
         } else {
@@ -546,7 +546,7 @@ class UcdlibAwardsAdminAjax {
         $cycleId = $cycle->cycleId;
 
         if ( empty($payload['judge_ids'])){
-          $response['messages'][] = 'No judge ids specified.';
+          $response['messages'][] = 'No reviewer ids specified.';
           $this->utils->sendResponse($response);
           return;
         }
@@ -559,7 +559,7 @@ class UcdlibAwardsAdminAjax {
 
         $removed = $cycle->unassignApplicants( $payload['applicant_ids'], $payload['judge_ids'] );
         if ( empty($removed) ){
-          $response['messages'][] = 'All applicant(s) are already unassigned from specified judge(s).';
+          $response['messages'][] = 'All applicant(s) are already unassigned from specified reviewer(s).';
           $this->utils->sendResponse($response);
           return;
         } else {
@@ -577,7 +577,7 @@ class UcdlibAwardsAdminAjax {
         $cycleId = $cycle->cycleId;
 
         if ( empty($payload['judge_ids'])){
-          $response['messages'][] = 'No judge ids specified.';
+          $response['messages'][] = 'No reviewer ids specified.';
           $this->utils->sendResponse($response);
           return;
         }
@@ -862,10 +862,17 @@ class UcdlibAwardsAdminAjax {
           $this->utils->sendResponse($response);
           return;
         }
+
+        // in order to associate a cycle with a form, we need to add some settings data to its post meta
+        // git issue #26
+        $formId = $data['application_form_id'];
+        $formIntegrationSettings = ['is_ucdlibawards_form' => true];
+        update_post_meta($formId, 'forminator_addon_ucdlibawards_form_settings', $formIntegrationSettings);
+
         if ( $action == 'edit' ){
           $cycleId = $data['cycle_id'];
           $cycle = $this->plugin->cycles->getById($cycleId);
-          if ( !$cycle->isActive() && $data['is_active'] ){
+          if ( !$cycle->isActive() && !empty($data['is_active']) ){
             $this->plugin->cycles->deactivateAll();
           }
           $cycle->update($data);
@@ -873,7 +880,7 @@ class UcdlibAwardsAdminAjax {
           $response['messages'][] = 'Cycle updated successfully.';
           $response['data'] = ['cycle' => $cycle->recordArray(['applicantCount' => true])];
         } else {
-          if ( $data['is_active'] ){
+          if ( !empty($data['is_active']) ){
             $this->plugin->cycles->deactivateAll();
           }
           $cycleId = $this->plugin->cycles->create($data);
