@@ -13,6 +13,17 @@ To get the app up and running on your machine:
 5.  Enter the local dev compose directory, and run `docker compose up -d` to bring up your local cluster
 
 
+## Deployment
+1. Create a PR into main and merge
+2. Pull most recent changes on main and tag your release: `git tag v1.2.3` `git push origin --tags`
+3. Update build information in [cork-build-registry](https://github.com/ucd-library/cork-build-registry)
+4. Build image with `deploy/cmds/build.sh <tag>`
+5. Update image version in relevant files in `deploy/compose` and push changes
+6. ssh into `awards.library.ucdavis.edu`, and go to `opt/ucdlib-awards/deploy/compose`
+7. Go to an award, and run `git pull` and then `docker compose pull`
+8. Take down cluster with `docker compose down`, and bring it back up with `docker compose up -d`. There will be a brief service outage.
+
+
 ## Maintenance
 Most maintenance tasks (adding reviewers, setting up a new cycle, changing automated emails, etc) can be performed by any site admin via the GUI. Documentation can be found in the [ITIS share drive](https://drive.google.com/drive/folders/1zIPVWnY__DCTLBaRyEYrDT1sZVOsssQF).
 
