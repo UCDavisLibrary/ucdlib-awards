@@ -88,23 +88,23 @@ class UcdlibAwardsLogs {
         'subTypes' => [
           'judge-added' => [
             'slug' => 'judge-added',
-            'label' => 'Judge Added',
-            'description' => 'Judge added to evaluation'
+            'label' => 'Reviewer Added',
+            'description' => 'Reviewer added to evaluation'
           ],
           'judge-removed' => [
             'slug' => 'judge-removed',
-            'label' => 'Judge Removed',
-            'description' => 'Judge removed from evaluation'
+            'label' => 'Reviewer Removed',
+            'description' => 'Reviewer removed from evaluation'
           ],
           'application-assignment' => [
             'slug' => 'application-assignment',
             'label' => 'Application Assignment',
-            'description' => 'Application assigned to judge'
+            'description' => 'Application assigned to reviewer'
           ],
           'application-unassigned' => [
             'slug' => 'application-unassigned',
             'label' => 'Application Unassigned',
-            'description' => 'Application unassigned from judge'
+            'description' => 'Application unassigned from reviewer'
           ]
         ]
       ],
@@ -141,12 +141,12 @@ class UcdlibAwardsLogs {
           'applicant-assigned' => [
             'slug' => 'applicant-assigned',
             'label' => 'Applicant Assigned',
-            'description' => 'Email sent to judge when applicant(s) assigned'
+            'description' => 'Email sent to reviewer when applicant(s) assigned'
           ],
           'evaluation-nudge' => [
             'slug' => 'evaluation-nudge',
             'label' => 'Evaluation Nudge',
-            'description' => 'Evaluation reminder email sent to judge'
+            'description' => 'Evaluation reminder email sent to reviewer'
           ],
           'support-requested' => [
             'slug' => 'support-requested',
@@ -211,7 +211,7 @@ class UcdlibAwardsLogs {
 
     $filters[] = [
       'queryVar' => 'judge',
-      'label' => 'Judge',
+      'label' => 'Reviewer',
       'type' => 'multiSelect',
       'options' => array_map(function($user){
         return [

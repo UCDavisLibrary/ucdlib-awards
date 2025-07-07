@@ -50,13 +50,13 @@ export default class UcdlibAwardsApplicantsActions extends Mixin(LitElement)
         bulk: true
       },
       {
-        label: 'Assign to Judge',
+        label: 'Assign to Reviewer',
         slug: 'assignToJudge',
         bulk: true,
         showJudges: true
       },
       {
-        label: 'Unassign from Judge',
+        label: 'Unassign from Reviewer',
         slug: 'unassignFromJudge',
         bulk: true,
         showJudges: true

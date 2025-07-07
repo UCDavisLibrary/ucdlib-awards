@@ -52,7 +52,7 @@ export default class UcdlibAwardsAdminEmail extends Mixin(LitElement)
     this.pages = [
       { label: 'General Settings', value: 'general', formProperty: 'formGeneral' },
       { label: 'Admin Notifications', value: 'admin', formProperty: 'formAdmin' },
-      { label: 'Judge Notifications', value: 'judge', formProperty: 'formJudge' },
+      { label: 'Reviewer Notifications', value: 'judge', formProperty: 'formJudge' },
       { label: 'Applicant Notifications', value: 'applicant', formProperty: 'formApplicant' },
       { label: 'Supporter Notifications', value: 'supporter', formProperty: 'formSupporter', hidden: true },
     ];

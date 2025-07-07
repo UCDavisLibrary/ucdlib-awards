@@ -14,7 +14,7 @@ class UcdlibAwardsEmail {
 
     $this->templateVariables = [
       'applicantName' => 'Applicant Name',
-      'judgeName' => 'Judge Name',
+      'judgeName' => 'Reviewer Name',
       'supporterName' => 'Supporter Name',
       'prizeName' => 'Prize Name',
       'evaluationUrl' => 'Evaluation Link',

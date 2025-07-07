@@ -14,7 +14,7 @@ To get the app up and running on your machine:
 
 
 ## Maintenance
-Most maintenance tasks (adding judges, setting up a new cycle, changing automated emails, etc) can be performed by any site admin via the GUI. Documentation can be found in the [ITIS share drive](https://drive.google.com/drive/folders/1zIPVWnY__DCTLBaRyEYrDT1sZVOsssQF).
+Most maintenance tasks (adding reviewers, setting up a new cycle, changing automated emails, etc) can be performed by any site admin via the GUI. Documentation can be found in the [ITIS share drive](https://drive.google.com/drive/folders/1zIPVWnY__DCTLBaRyEYrDT1sZVOsssQF).
 
 However, some tasks do require programmer intervention by running a php file with the wp cli.
 1. bash into the backup container: `docker compose exec backup bash`
