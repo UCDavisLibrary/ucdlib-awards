@@ -24,10 +24,10 @@ else
   WORDPRESS_DB_JUST_HOST=$WORDPRESS_DB_HOST
   WORDPRESS_DB_JUST_PORT=3306
 fi
-alias mysql="mysql --user=$WORDPRESS_DB_USER --host=$WORDPRESS_DB_JUST_HOST --port=$WORDPRESS_DB_JUST_PORT --password=$WORDPRESS_DB_PASSWORD $WORDPRESS_DB_DATABASE"
+alias mysql="mysql --ssl --ssl-verify-server-cert=OFF --user=$WORDPRESS_DB_USER --host=$WORDPRESS_DB_JUST_HOST --port=$WORDPRESS_DB_JUST_PORT --password=$WORDPRESS_DB_PASSWORD $WORDPRESS_DB_DATABASE"
 
 echo "Generating sqldump file"
-mysqldump --password="$MYSQL_ROOT_PASSWORD" --host=$WORDPRESS_DB_JUST_HOST --port=$WORDPRESS_DB_JUST_PORT "$WORDPRESS_DB_DATABASE" | gzip > $DATA_DIR/$BACKUP_FILE_NAME
+mysqldump --ssl --ssl-verify-server-cert=OFF --password="$MYSQL_ROOT_PASSWORD" --host=$WORDPRESS_DB_JUST_HOST --port=$WORDPRESS_DB_JUST_PORT "$WORDPRESS_DB_DATABASE" | gzip > $DATA_DIR/$BACKUP_FILE_NAME
 
 echo "Compressing wp media uploads directory"
 tar -czvf $DATA_DIR/$UPLOADS_FILE_NAME $UPLOAD_DIR
