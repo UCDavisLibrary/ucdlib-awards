@@ -1,6 +1,6 @@
 x-variables:
-  main-image: &main-image us-west1-docker.pkg.dev/digital-ucdavis-edu/wordpress/ucdlib-awards:v1.4.0
-  utils-image: &utils-image us-west1-docker.pkg.dev/digital-ucdavis-edu/wordpress/ucdlib-awards-utils:v1.4.0
+  main-image: &main-image us-west1-docker.pkg.dev/digital-ucdavis-edu/wordpress/ucdlib-awards:v1.4.1
+  utils-image: &utils-image us-west1-docker.pkg.dev/digital-ucdavis-edu/wordpress/ucdlib-awards-utils:v1.4.1
 
 services:
   wordpress:
