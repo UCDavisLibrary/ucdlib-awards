@@ -17,6 +17,7 @@ class UcdlibAwardsFormsMain {
     add_action( 'forminator_addons_loaded', [$this, 'registerAddon'] );
     add_filter( 'forminator_form_notifications', [$this, 'removeDefaultEmailNotification'], 10, 4 );
     add_action( 'the_post', [$this, 'forceLoginForActivatedForms'], 9 );
+    add_action( 'save_post_forminator_forms', [$this, 'onFormSaved'] );
 
     // properties for tracking if we're on a page with an active awards form
     $this->isApplicationForm = false;
@@ -33,6 +34,46 @@ class UcdlibAwardsFormsMain {
     require_once dirname( __FILE__ ) . '/addon-hooks.php';
     if ( class_exists( 'Forminator_Integration_Loader' ) ) {
       Forminator_Integration_Loader::get_instance()->register( 'Forminator_Integration_Ucdlibawards' );
+    }
+  }
+
+  /**
+   * @description Ensures the addon postmeta is set on a newly saved Forminator form.
+   * Forminator now pre-filters addons by postmeta before calling is_module_connected(),
+   * so forms without the meta key are silently skipped and on_module_submit never fires.
+   *
+   * @param int $postId The ID of the saved form post.
+   */
+  public function onFormSaved( $postId ) {
+    self::connectAddonToForm( $postId );
+  }
+
+  /**
+   * @description Sets the addon connection postmeta on a single form if not already present.
+   *
+   * @param int $formId The Forminator form post ID.
+   */
+  public static function connectAddonToForm( $formId ) {
+    $metaKey = 'forminator_addon_ucdlibawards_form_settings';
+    $existing = get_post_meta( $formId, $metaKey, true );
+    if ( empty( $existing ) ) {
+      update_post_meta( $formId, $metaKey, [ 'connected' => true ] );
+    }
+  }
+
+  /**
+   * @description Seeds the addon connection postmeta on all existing Forminator forms.
+   * Intended to be called once on plugin activation.
+   */
+  public static function seedAddonConnections() {
+    $formIds = get_posts([
+      'post_type'      => 'forminator_forms',
+      'post_status'    => 'publish',
+      'posts_per_page' => -1,
+      'fields'         => 'ids',
+    ]);
+    foreach ( $formIds as $formId ) {
+      self::connectAddonToForm( $formId );
     }
   }
 
