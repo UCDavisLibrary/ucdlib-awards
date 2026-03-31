@@ -102,6 +102,7 @@ class UcdlibAwards {
    * @description Callback for this plugin activation.
    */
   public function _onActivation(){
+    UcdlibAwardsFormsMain::seedAddonConnections();
     UcdlibAwardsDbTables::install_database_tables();
   }
 
