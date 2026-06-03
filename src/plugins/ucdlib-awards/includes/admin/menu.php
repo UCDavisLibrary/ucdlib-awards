@@ -323,6 +323,7 @@ class UcdlibAwardsAdminMenu {
     if ( $requestedCycle ){
       $pageProps['cycleId'] = $requestedCycle->cycleId;
       $pageProps['categories'] = $requestedCycle->categories();
+      $pageProps['requestedCycle'] = $context['pageContainerProps']['requestedCycle'];
       $args = [
         'applicationEntry' => true,
         'userMeta' => true

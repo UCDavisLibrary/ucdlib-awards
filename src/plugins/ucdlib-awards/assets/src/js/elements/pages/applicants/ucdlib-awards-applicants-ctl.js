@@ -22,7 +22,8 @@ export default class UcdlibAwardsApplicantsCtl extends Mixin(LitElement)
       displayedApplicants: { type: Array },
       selectedApplicants: { type: Array },
       doingAction: { type: Boolean },
-      cycleId: { type: Number }
+      cycleId: { type: Number },
+      requestedCycle: { type: Object }
     }
   }
 
@@ -40,6 +41,7 @@ export default class UcdlibAwardsApplicantsCtl extends Mixin(LitElement)
     this.selectedApplicants = [];
     this.doingAction = false;
     this.cycleId = 0;
+    this.requestedCycle = null;
   }
 
   willUpdate(props) {
@@ -238,6 +240,7 @@ export default class UcdlibAwardsApplicantsCtl extends Mixin(LitElement)
     if ( data.applicants ) {
       this._setApplicants(data.applicants);
     }
+    if ( data.requestedCycle ) this.requestedCycle = data.requestedCycle;
 
   }
 
