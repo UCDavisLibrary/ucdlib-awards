@@ -248,7 +248,7 @@ export function renderCalculationPanel(){
         </div>
         <select @change=${this._onCalculationChange} .value=${this.scoringCalculation}>
           <option value='sum' ?selected=${this.scoringCalculation === 'sum'}>Sum</option>
-          <option value='average' ?selected=${this.scoringCalculation === 'average'}>Average</option>
+          <option value='average' ?selected=${this.scoringCalculation === 'average'}>Weighted Average</option>
         </select>
       </section>
     </div>
