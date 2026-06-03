@@ -28,7 +28,7 @@ export function renderNewJudgePanel(){
             <label>UC Davis Email</label>
             <input type="email" @input=${e => this._onNewJudgeInput('email', e.target.value)} .value=${this.newJudgeData?.email || ''}>
           </div>
-          <div class="field-container">
+          <div class="field-container" ?hidden=${!this.categories.length}>
             <label>Category</label>
             <select @change=${e => this._onNewJudgeInput('category', e.target.value)} .value=${this.newJudgeData?.category || ''}>
               <option value="">Select a category</option>
