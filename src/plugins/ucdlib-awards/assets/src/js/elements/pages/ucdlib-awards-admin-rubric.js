@@ -61,6 +61,15 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
     this.wpAjax = new wpAjaxController(this);
   }
 
+  get defaultRubricItem(){
+    return {
+      weight: 1,
+      range_min: 1,
+      range_max: 5,
+      range_step: 1
+    }
+  }
+
   willUpdate(props){
     if ( props.has('rubricItems') ){
       this.editedRubricItems = JSON.parse(JSON.stringify(this.rubricItems));
@@ -89,7 +98,7 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
 
   _onFormInput(itemIndex, prop, value){
     if ( itemIndex == 0 && !this.editedRubricItems.length ) {
-      this.editedRubricItems.push({});
+      this.editedRubricItems.push(this.defaultRubricItem);
     }
 
     if ( this.fieldsWithErrors[prop] && Array.isArray(this.fieldsWithErrors[prop]) ) {
@@ -97,7 +106,7 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
     }
 
     const ints = ['range_min', 'range_max', 'range_step', 'weight'];
-    if ( ints.includes(prop) ) value = parseInt(value);
+    if ( ints.includes(prop) && value !== '' ) value = parseInt(value);
 
     this.editedRubricItems[itemIndex][prop] = value;
     this.requestUpdate();
@@ -278,7 +287,7 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
   }
 
   _onInsertItem(index){
-    this.editedRubricItems.splice(index, 0, {});
+    this.editedRubricItems.splice(index, 0, this.defaultRubricItem);
     const expandedItems = this.expandedItems.map(i => {
       if ( i >= index ) return i+1;
       return i;

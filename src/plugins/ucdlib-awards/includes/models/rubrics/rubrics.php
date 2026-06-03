@@ -103,21 +103,28 @@ class UcdlibAwardsRubrics {
       'weight'
     ];
     foreach( $integerFields as $field ){
-      if ( !empty($rubric[$field]) && !is_numeric($rubric[$field]) ){
+      if ( isset($rubric[$field]) && !is_numeric($rubric[$field]) ){
         $out[1]['errorMessages'][] = "The '$fieldLabels[$field]' field must be a number.";
         $out[1]['errorFields'][$field] = true;
       }
-      if ( !empty($rubric[$field]) && $rubric[$field] < 0 ){
+      if ( isset($rubric[$field]) && $rubric[$field] <= 0 ){
         $out[1]['errorMessages'][] = "The '$fieldLabels[$field]' field must be a positive number.";
         $out[1]['errorFields'][$field] = true;
       }
     }
 
     // range max is greater than range min
-    $range_min = !empty($rubric['range_min']) && is_numeric($rubric['range_min']) ? intval($rubric['range_min']) : 1;
-    $range_max = !empty($rubric['range_max']) && is_numeric($rubric['range_max']) ? intval($rubric['range_max']) : 5;
+    $range_min = isset($rubric['range_min']) && is_numeric($rubric['range_min']) ? intval($rubric['range_min']) : 1;
+    $range_max = isset($rubric['range_max']) && is_numeric($rubric['range_max']) ? intval($rubric['range_max']) : 5;
     if ( $range_max <= $range_min ){
       $out[1]['errorMessages'][] = "The '$fieldLabels[range_max]' field must be greater than the '$fieldLabels[range_min]' field.";
+      $out[1]['errorFields']['range_max'] = true;
+    }
+
+    // range_max must be reachable from range_min using range_step
+    $range_step = isset($rubric['range_step']) && is_numeric($rubric['range_step']) ? intval($rubric['range_step']) : 1;
+    if ( !isset($out[1]['errorFields']['range_max']) && $range_step > 0 && ($range_max - $range_min) % $range_step !== 0 ){
+      $out[1]['errorMessages'][] = "The '$fieldLabels[range_max]' field must be reachable from the minimum value ($range_min) using the specified step size ($range_step).";
       $out[1]['errorFields']['range_max'] = true;
     }
 

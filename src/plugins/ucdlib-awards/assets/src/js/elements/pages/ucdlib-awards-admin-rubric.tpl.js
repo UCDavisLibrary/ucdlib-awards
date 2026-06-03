@@ -90,7 +90,7 @@ export function renderForm() {
       <div class='hint-text u-space-mb'>
         Start by making a single item, click the "Create" button, then add more items as needed.
       </div>
-      ${this.renderFormItem(this.editedRubricItems.length ? this.editedRubricItems[0] : {}, 0, {noActions: true})}
+      ${this.renderFormItem(this.editedRubricItems.length ? this.editedRubricItems[0] : this.defaultRubricItem, 0, {noActions: true})}
     `}
     <button type='submit' class="btn btn--primary border-box">${this.hasRubric ? 'Save Items' : 'Create'}</button>
     </form>
@@ -100,10 +100,10 @@ export function renderForm() {
 export function renderFormItem(item, index, args={}) {
   const title = item.title || '';
   const description = item.description || '';
-  const weight = item.weight || '1';
-  const rangeMin = item.range_min || '1';
-  const rangeMax = item.range_max || '5';
-  const rangeStep = item.range_step || '1';
+  const weight = item.weight || '';
+  const rangeMin = item.range_min || '';
+  const rangeMax = item.range_max || '';
+  const rangeStep = item.range_step || '';
   const noActions = args.noActions || false;
   const noMoveUp = index === 0;
   const noMoveDown = index === this.editedRubricItems.length - 1;
