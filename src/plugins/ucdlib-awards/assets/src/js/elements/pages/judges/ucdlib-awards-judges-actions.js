@@ -22,7 +22,8 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
       disableActionSubmit: { type: Boolean },
       applicants: { type: Array },
       selectedApplicants: { type: Array },
-      showApplicantsSelect: { type: Boolean }
+      showApplicantsSelect: { type: Boolean },
+      selectedCategory: { type: String }
     }
   }
 
@@ -44,6 +45,7 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
     this.showApplicantsSelect = false;
     this.selectedApplicants = [];
     this.doingAction = false;
+    this.selectedCategory = '';
 
     this._actions = [];
     this.actions = [
@@ -75,6 +77,11 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
         label: 'Send Email Reminder',
         slug: 'send-reminder',
         bulk: true
+      },
+      {
+        label: 'Update Category',
+        slug: 'update-category',
+        bulk: true
       }
     ];
   }
@@ -93,6 +100,9 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
         action.selected = action.slug === this.selectedAction;
 
         if ( !action.slug || !this.selectedJudges.length ) action.disabled = true;
+        if ( action.slug === 'update-category' && !this.categories.length ) {
+          return null;
+        }
         if ( !action.bulk && this.selectedJudges.length > 1 ) {
           action.disabled = true;
           if ( action.selected ) {
@@ -100,7 +110,7 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
           }
         }
         return action;
-      });
+      }).filter(action => action);
       this.disableActionSubmit = disableActionSubmit;
     }
 
@@ -141,6 +151,7 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
       action: this.selectedAction
     }
     if ( action.applicants ) detail.applicants = this.selectedApplicants;
+    if ( action.slug === 'update-category' ) detail.category = this.selectedCategory;
 
     this.dispatchEvent(new CustomEvent('action-submit', {detail}));
   }

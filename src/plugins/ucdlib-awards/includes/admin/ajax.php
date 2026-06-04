@@ -597,6 +597,55 @@ class UcdlibAwardsAdminAjax {
         $response['messages'][] = 'Email' . (count($completed) > 1 ? 's' : '') . ' sent successfully.';
         $response['success'] = true;
 
+      } else if ( $action === 'update-category'){
+        $payload = json_decode( stripslashes($_POST['data']), true );
+        $cycle = $this->getCycle($payload, $response);
+        $cycleId = $cycle->cycleId;
+
+        if ( empty($payload['judge_ids']) ){
+          $response['messages'][] = 'No reviewer ids specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        if ( empty($payload['category']) ){
+          $response['messages'][] = 'No category specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        $categories = $cycle->categories();
+        if ( empty($categories) ){
+          $response['messages'][] = 'This cycle does not have categories configured.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+        $validCategoryValues = array_column($categories, 'value');
+        if ( !in_array($payload['category'], $validCategoryValues) ){
+          $response['messages'][] = 'Invalid category specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        $userIds = is_array($payload['judge_ids']) ? $payload['judge_ids'] : [$payload['judge_ids']];
+        $existingJudgeIds = $cycle->judgeIds();
+        $missingJudgeIds = array_diff($userIds, $existingJudgeIds);
+        if ( count($missingJudgeIds) ){
+          $response['messages'][] = 'One or more reviewers could not be found.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        $judges = $this->plugin->users->getByUserIds($userIds);
+        foreach ($judges as $judge) {
+          $judge->updateMeta('judgeCategory', $payload['category'], $cycleId);
+          $this->logger->logJudgeCategoryUpdate($cycleId, $judge->id);
+        }
+
+        $ct = count($userIds);
+        $response['messages'][] = 'Reviewer categor' . ($ct > 1 ? 'ies' : 'y') . ' updated successfully.';
+        $response['data'] = ['judges' => $cycle->judges(true, ['assignments' => true, 'conflictsOfInterest' => true, 'completedEvaluations' => true])];
+        $response['success'] = true;
       }
     } catch (\Throwable $th) {
       error_log('Error in UcdlibAwardsAdminAjax::cycles(): ' . $th->getMessage());

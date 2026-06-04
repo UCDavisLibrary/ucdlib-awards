@@ -105,6 +105,11 @@ class UcdlibAwardsLogs {
             'slug' => 'application-unassigned',
             'label' => 'Application Unassigned',
             'description' => 'Application unassigned from reviewer'
+          ],
+          'judge-category-updated' => [
+            'slug' => 'judge-category-updated',
+            'label' => 'Reviewer Category Updated',
+            'description' => 'Reviewer category updated'
           ]
         ]
       ],
@@ -506,6 +511,25 @@ class UcdlibAwardsLogs {
 
     if ( count($logDetails) > 0 ) {
       $log['log_value'] = json_encode($logDetails);
+    }
+
+    global $wpdb;
+    $wpdb->insert( $this->table, $log );
+    return true;
+  }
+
+  public function logJudgeCategoryUpdate($cycleId, $judgeId) {
+    $log = [
+      'log_type' => 'evaluation-admin',
+      'log_subtype' => 'judge-category-updated',
+      'cycle_id' => $cycleId,
+      'user_id_object' => $judgeId,
+      'date_created' =>  date('Y-m-d H:i:s')
+    ];
+
+    $currentUser = $this->plugin->users->currentUser();
+    if ( $currentUser->record() ){
+      $log['user_id_subject'] = $currentUser->record()->user_id;
     }
 
     global $wpdb;

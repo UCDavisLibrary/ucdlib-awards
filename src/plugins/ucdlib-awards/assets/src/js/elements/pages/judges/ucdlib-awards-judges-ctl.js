@@ -130,12 +130,46 @@ export default class UcdlibAwardsJudgesCtl extends Mixin(LitElement)
       return;
     } else if ( action === 'send-reminder' ) {
       await this.sendEmailReminder();
+    } else if ( action === 'update-category' ) {
+      await this.updateJudgeCategory(e.detail.category);
     }
 
     this.selectedJudges = [];
     this.doingAction = false;
     this.renderRoot.querySelector('ucdlib-awards-judges-actions').selectedAction = '';
     this.renderRoot.querySelector('ucdlib-awards-judges-display').selectedJudges = [];
+  }
+
+  async updateJudgeCategory(category){
+    const payload = {
+      cycle_id: this.cycleId,
+      judge_ids: this.selectedJudges,
+      category: category
+    }
+    const response = await this.wpAjax.request('update-category', payload);
+    if ( response.success ) {
+      this.judges = response.data.judges;
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: response.messages[0],
+          type: 'success'
+        }
+      }));
+    } else {
+      console.error('Error updating reviewer category', response);
+      let msg = 'Unable to update reviewer category';
+      if ( response.messages.length) msg += `: ${response.messages[0]}`;
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: msg,
+          type: 'error'
+        }
+      }));
+    }
   }
 
   async sendEmailReminder(){

@@ -128,6 +128,8 @@ export default class UcdlibAwardsLogs extends Mixin(LitElement)
       log.displayText = `Applicant ${this.getUserName(log.user_id_subject)} assigned to ${this.getUserName(log.user_id_object)} for evaluation`;
     } else if ( log.log_subtype === 'application-unassigned' ) {
       log.displayText = `Applicant ${this.getUserName(log.user_id_subject)} unassigned from ${this.getUserName(log.user_id_object)}`;
+    } else if ( log.log_subtype === 'judge-category-updated' ) {
+      log.displayText = `${this.getUserName(log.user_id_object)} reviewer category updated by ${this.getUserName(log.user_id_subject)}`;
     }
     return log;
   }

@@ -91,6 +91,15 @@ export function renderActionPanel(){
             </select>
           </ucd-theme-slim-select>
         </div>
+        <div class='field-container' ?hidden=${this.selectedAction !== 'update-category'}>
+          <label>New Category</label>
+          <select @change=${e => this.selectedCategory = e.target.value} .value=${this.selectedCategory}>
+            <option value="">Select a category</option>
+            ${this.categories.map(category => html`
+              <option value="${category.value}" ?selected=${this.selectedCategory == category.value}>${category.label}</option>
+            `)}
+          </select>
+         </div>
         <button ?disabled=${this.disableActionSubmit || this.doingAction} type="submit" class="btn marketing-highlight__cta border-box category-brand--redwood width-100">Apply</button>
       </form>
     </div>
