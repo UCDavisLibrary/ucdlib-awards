@@ -160,6 +160,79 @@ class UcdlibAwardsUsers {
 
   }
 
+  /**
+   * @description Get all users who have been a judge in any cycle, with their cycle and category metadata.
+   * @param array $opts
+   * @param int|null $opts['exclude_cycle_id'] - exclude judges assigned to this cycle
+   * @returns array - each item has basic user fields plus 'cycles' (array of cycle_ids) and 'categories' (array of {cycle_id, category})
+   */
+  public function getAllJudges($opts=[]){
+    global $wpdb;
+
+    $excludeCycleId = isset($opts['exclude_cycle_id']) ? intval($opts['exclude_cycle_id']) : null;
+
+    $excludeClause = '';
+    if ( $excludeCycleId ){
+      $excludeClause = $wpdb->prepare(
+        "AND u.user_id NOT IN (
+          SELECT user_id FROM $this->metaTable
+          WHERE meta_key = 'isJudge' AND meta_value = 'true' AND cycle_id = %d
+        )",
+        $excludeCycleId
+      );
+    }
+
+    $sql = "
+    SELECT DISTINCT u.*
+    FROM $this->table u
+    INNER JOIN $this->metaTable m ON u.user_id = m.user_id
+    WHERE m.meta_key = 'isJudge' AND m.meta_value = 'true'
+    $excludeClause
+    ";
+    $userRecords = $wpdb->get_results( $sql );
+    if ( empty($userRecords) ) return [];
+
+    $userIds = array_map(function($r){ return $r->user_id; }, $userRecords);
+    $placeholders = implode(',', array_fill(0, count($userIds), '%d'));
+
+    $cycleSql = $wpdb->prepare(
+      "SELECT user_id, cycle_id FROM $this->metaTable
+       WHERE meta_key = 'isJudge' AND meta_value = 'true' AND user_id IN ($placeholders)",
+      ...$userIds
+    );
+    $cycleRows = $wpdb->get_results( $cycleSql );
+
+    $categorySql = $wpdb->prepare(
+      "SELECT user_id, cycle_id, meta_value as category FROM $this->metaTable
+       WHERE meta_key = 'judgeCategory' AND user_id IN ($placeholders)",
+      ...$userIds
+    );
+    $categoryRows = $wpdb->get_results( $categorySql );
+
+    $cyclesByUserId = [];
+    foreach ( $cycleRows as $row ){
+      $cyclesByUserId[$row->user_id][] = intval($row->cycle_id);
+    }
+
+    $categoriesByUserId = [];
+    foreach ( $categoryRows as $row ){
+      $categoriesByUserId[$row->user_id][] = [
+        'cycle_id' => intval($row->cycle_id),
+        'category' => $row->category
+      ];
+    }
+
+    $out = [];
+    foreach ( $userRecords as $record ){
+      $uid = $record->user_id;
+      $user = (array) $record;
+      $user['cycles'] = isset($cyclesByUserId[$uid]) ? $cyclesByUserId[$uid] : [];
+      $user['categories'] = isset($categoriesByUserId[$uid]) ? $categoriesByUserId[$uid] : [];
+      $out[] = $user;
+    }
+    return $out;
+  }
+
   public function getApplicantCount($cycleId){
     if ( !$cycleId ) return 0;
     global $wpdb;

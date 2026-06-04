@@ -4,7 +4,7 @@ export function render() {
 return html`
   ${this.renderActionPanel()}
   ${this.renderNewJudgePanel()}
-
+  ${renderJudgeCopyForm.call(this)}
 `;}
 
 export function renderNewJudgePanel(){
@@ -37,10 +37,59 @@ export function renderNewJudgePanel(){
               `)}
             </select>
           </div>
-          <button ?disabled=${!this.newJudgeDataIsValid || this.addingNewJudge} type="submit" class="btn marketing-highlight__cta border-box category-brand--arboretum width-100">Add</button>
+          <div class='add-judge-buttons'>
+            <button ?disabled=${!this.newJudgeDataIsValid || this.addingNewJudge} type="submit" class="btn marketing-highlight__cta border-box category-brand--arboretum width-100">Add</button>
+            <div class='or-divider'>&#8212; Or &#8212;</div>
+            <button ?disabled=${this.fetchingPreviousJudges} type="button" class="btn marketing-highlight__cta border-box category-brand--arboretum width-100" @click=${this._onCopyJudgeClick}>Copy from a previous cycle</button>
+          </div>
         </form>
       </section>
     </div>
+  `;
+}
+
+function renderJudgeCopyForm(){
+  return html`
+  <ucdlib-awards-modal dismiss-text='Cancel' content-title='Copy Reviewers from a Previous Cycle'>
+    <div class='${this.categories.length ? 'judge-copy-has-categories' : 'judge-copy-no-categories'}'>
+      <div>
+        <div class='judge-copy-row judge-copy-row--header border-bottom-gold'>
+          <div>
+            <input type="checkbox" @input=${this._toggleSelectAllHistoricalJudges} .checked=${this.historicalJudges.filter(j => !j.hidden).every(j => j.selected)}>
+          </div>
+          <div>Reviewer</div>
+          <div class='category-column'>Category</div>
+        </div>
+        <div>
+          ${this.historicalJudges.map(judge => html`
+            <div class='judge-copy-row' ?hidden=${judge.hidden}>
+              <div>
+                <input type="checkbox" @input=${() => this._toggleHistoricalJudgeSelect(judge.data.user_id)} .checked=${judge.selected}>
+              </div>
+              <div>
+                <div>${judge.name}</div>
+                <div class='category-column-mobile'>${renderJudgeCategorySelect.call(this, judge)}</div>
+              </div>
+              <div class='category-column'>
+                ${renderJudgeCategorySelect.call(this, judge)}
+              </div>
+            </div>
+          `)}
+        </div>
+      </div>
+    </div>
+  </ucdlib-awards-modal>
+  `;
+}
+
+function renderJudgeCategorySelect(judge){
+  return html`
+    <select @change=${e => this._onCopyJudgeCategoryChange(judge, e.target.value)} .value=${judge?.category?.value || ''}>
+      <option value="">Select a category</option>
+      ${this.categories.map(category => html`
+        <option value="${category.value}" ?selected=${judge?.category?.value === category.value}>${category.label}</option>
+      `)}
+    </select>
   `;
 }
 

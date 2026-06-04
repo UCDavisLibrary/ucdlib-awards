@@ -646,6 +646,16 @@ class UcdlibAwardsAdminAjax {
         $response['messages'][] = 'Reviewer categor' . ($ct > 1 ? 'ies' : 'y') . ' updated successfully.';
         $response['data'] = ['judges' => $cycle->judges(true, ['assignments' => true, 'conflictsOfInterest' => true, 'completedEvaluations' => true])];
         $response['success'] = true;
+      } else if ( $action === 'get-all-judges') {
+        $payload = json_decode( stripslashes($_POST['data']), true );
+
+        $opts = [];
+        if ( !empty($payload['exclude_current_cycle']) ){
+          $opts['exclude_cycle_id'] = intval($payload['exclude_current_cycle']);
+        }
+
+        $response['data'] = ['judges' => $this->plugin->users->getAllJudges($opts)];
+        $response['success'] = true;
       }
     } catch (\Throwable $th) {
       error_log('Error in UcdlibAwardsAdminAjax::cycles(): ' . $th->getMessage());

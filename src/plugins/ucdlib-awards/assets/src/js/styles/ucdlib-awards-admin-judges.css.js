@@ -55,7 +55,53 @@ const customStyles = css`
   }
   ucdlib-awards-judges-display .has-mb-details {
       align-items: flex-start;
+  }
+  ucdlib-awards-judges-actions .add-judge-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+  }
+  ucdlib-awards-judges-actions .add-judge-buttons .or-divider {
+    text-align: center;
+    color: #022851;
+  }
+  ucdlib-awards-judges-actions .judge-copy-row {
+    display: grid;
+    grid-template-columns: 15px 1fr;
+    gap: 1rem;
+    padding: .5rem .25rem;
+  }
+  ucdlib-awards-judges-actions .judge-copy-row.judge-copy-row--header {
+    font-weight: 700;
+    color: #022851;
+  }
+  ucdlib-awards-judges-actions .judge-copy-has-categories .judge-copy-row {
+    grid-template-columns: 15px 1fr 1fr;
+  }
+  ucdlib-awards-judges-actions .judge-copy-has-categories .category-column select {
+    max-width: 300px;
+  }
+  ucdlib-awards-judges-actions .judge-copy-no-categories .category-column, ucdlib-awards-judges-actions .judge-copy-no-categories .category-column-mobile {
+    display: none !important;
+  }
+  ucdlib-awards-judges-actions .category-column-mobile {
+    display: none;
+  }
+  ucdlib-awards-judges-actions .judge-copy-row:nth-child(2n) {
+    background-color: #ebf3fa;
+  }
+  @media (max-width: 1000px) {
+    ucdlib-awards-judges-actions .judge-copy-has-categories .judge-copy-row {
+      grid-template-columns: 15px 1fr;
     }
+    ucdlib-awards-judges-actions .judge-copy-has-categories .category-column {
+      display: none !important;
+    }
+    ucdlib-awards-judges-actions .category-column-mobile {
+      display: block !important;
+      margin-top: .5rem;
+    }
+  }
   @media (min-width: 1200px) {
     ucdlib-awards-judges-display .row {
     display: grid;

@@ -23,7 +23,9 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
       applicants: { type: Array },
       selectedApplicants: { type: Array },
       showApplicantsSelect: { type: Boolean },
-      selectedCategory: { type: String }
+      selectedCategory: { type: String },
+      fetchingPreviousJudges: { state: true },
+      historicalJudges: { type: Array }
     }
   }
 
@@ -46,6 +48,8 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
     this.selectedApplicants = [];
     this.doingAction = false;
     this.selectedCategory = '';
+    this.fetchingPreviousJudges = false;
+    this.historicalJudges = [];
 
     this._actions = [];
     this.actions = [
@@ -120,6 +124,29 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
     }
   }
 
+  get allCycles(){
+    if ( this._allCycles ) return this._allCycles;
+    const parent = this.closest('ucdlib-awards-page');
+    if ( !parent?.cycles ) {
+      console.error('Unable to find parent page element with cycles property');
+      return [];
+    }
+    this._allCycles = parent.cycles;
+    return this._allCycles;
+  }
+
+
+  get wpAjax(){
+    if ( this._wpAjax ) return this._wpAjax;
+    const parent = this.closest('ucdlib-awards-judges-ctl');
+    if ( !parent?.wpAjax ) {
+      console.error('Unable to find parent controller element');
+      return null;
+    }
+    this._wpAjax = parent.wpAjax;
+    return this._wpAjax;
+  }
+
   _onApplicantsSelect(e){
     this.selectedApplicants = e.detail.map(applicant => applicant.value);
   }
@@ -136,6 +163,80 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
     this.dispatchEvent(new CustomEvent('add-judge', {
       detail: this.newJudgeData
     }));
+  }
+
+  _onCopyJudgeCategoryChange(judge, categoryValue){
+    this.historicalJudges = this.historicalJudges.map(j => {
+      if ( j.data.user_id === judge.data.user_id ) {
+        return {
+          ...j, 
+          category: this.categories.find(c => c.value == categoryValue) || null
+        };
+      }
+      return j;
+    });
+  }
+
+  async _onCopyJudgeClick(){
+    if ( this.fetchingPreviousJudges ) return;
+    this.fetchingPreviousJudges = true;
+
+    const payload = {
+      exclude_current_cycle: this.wpAjax.host.cycleId
+    }
+    const response = await this.wpAjax.request('get-all-judges', payload);
+    if ( response.success ) {
+
+      this.historicalJudges = response.data.judges.map( judge => {
+        const d = {
+          name: `${judge.first_name || ''} ${judge.last_name || ''}`.trim() || judge.email,
+          data: judge,
+          selected: false,
+          hidden: false,
+          category: this.categories.find(c => judge.categories?.some(jc => jc.category === c.value)) || null
+        }
+        return d;
+      }).sort((a, b) => {
+        const aName = a.name.toLowerCase();
+        const bName = b.name.toLowerCase();
+        if ( aName < bName ) return -1;
+        if ( aName > bName ) return 1;
+        return 0;
+      });
+
+      this.renderRoot.querySelector('ucdlib-awards-modal').show();
+    } else {
+      console.error('Unable to fetch previous judges', response);
+      let msg = 'Unable to fetch previous judges';
+      if ( response.messages.length) msg += `: ${response.messages[0]}`;
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: msg,
+          type: 'error'
+        }
+      }));
+    }
+
+    this.fetchingPreviousJudges = false;
+  }
+
+  _toggleHistoricalJudgeSelect(judgeId){
+    this.historicalJudges = this.historicalJudges.map(j => {
+      if ( j.data.user_id === judgeId ) {
+        return {...j, selected: !j.selected};
+      }
+      return j;
+    });
+  }
+
+  _toggleSelectAllHistoricalJudges(){
+    const allSelected = this.historicalJudges.filter(j => !j.hidden).every(j => j.selected);
+    this.historicalJudges = this.historicalJudges.map(j => {
+      if ( j.hidden ) return j;
+      return {...j, selected: !allSelected};
+    });
   }
 
   _onActionSubmit(e){
