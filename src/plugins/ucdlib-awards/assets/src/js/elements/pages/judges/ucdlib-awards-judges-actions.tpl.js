@@ -40,7 +40,7 @@ export function renderNewJudgePanel(){
           <div class='add-judge-buttons'>
             <button ?disabled=${!this.newJudgeDataIsValid || this.addingNewJudge} type="submit" class="btn marketing-highlight__cta border-box category-brand--arboretum width-100">Add</button>
             <div class='or-divider'>&#8212; Or &#8212;</div>
-            <button ?disabled=${this.fetchingPreviousJudges} type="button" class="btn marketing-highlight__cta border-box category-brand--arboretum width-100" @click=${this._onCopyJudgeClick}>Copy from a previous cycle</button>
+            <button ?disabled=${this.judgeCopyActionInProgess} type="button" class="btn marketing-highlight__cta border-box category-brand--arboretum width-100" @click=${this._onCopyJudgeClick}>Copy from a previous cycle</button>
           </div>
         </form>
       </section>
@@ -49,13 +49,29 @@ export function renderNewJudgePanel(){
 }
 
 function renderJudgeCopyForm(){
+  const visibleJudges = this.historicalJudges.filter(j => !j.hidden);
+  const selectedJudges = visibleJudges.filter(j => j.selected);
   return html`
-  <ucdlib-awards-modal dismiss-text='Cancel' content-title='Copy Reviewers from a Previous Cycle'>
+  <ucdlib-awards-modal dismiss-text='Cancel' content-title='Copy Reviewers from a Previous Cycle' .closeOnConfirm=${false}>
     <div class='${this.categories.length ? 'judge-copy-has-categories' : 'judge-copy-no-categories'}'>
+      <div class='alert alert--error' ?hidden=${!this.judgeCopyErrors.length}>
+        <ul>
+          ${this.judgeCopyErrors.map(error => html`<li>${error}</li>`)}
+        </ul>
+      </div>
+      <div class='field-container'>
+        <label>Application Cycle</label>
+        <select @change=${e => this._onCopyJudgeCycleFilterChange(e.target.value)} .value=${this.judgeCopyCycleFilter || ''} style='max-width: 300px;'>
+          <option value="">All Cycles</option>
+          ${this.allCycles.filter(cycle => cycle.cycle_id != this.cycleId).map(cycle => html`
+            <option value="${cycle.cycle_id}" ?selected=${this.judgeCopyCycleFilter === cycle.cycle_id}>${cycle.title}</option>
+          `)}
+        </select>
+      </div>
       <div>
         <div class='judge-copy-row judge-copy-row--header border-bottom-gold'>
           <div>
-            <input type="checkbox" @input=${this._toggleSelectAllHistoricalJudges} .checked=${this.historicalJudges.filter(j => !j.hidden).every(j => j.selected)}>
+            <input type="checkbox" @input=${this._toggleSelectAllHistoricalJudges} .checked=${visibleJudges.length && visibleJudges.every(j => j.selected)}>
           </div>
           <div>Reviewer</div>
           <div class='category-column'>Category</div>
@@ -78,6 +94,14 @@ function renderJudgeCopyForm(){
         </div>
       </div>
     </div>
+    <button
+      slot="confirmButton"
+      class='btn btn--primary'
+      ?disabled=${!selectedJudges.length || this.judgeCopyActionInProgess}
+      @click=${this._onConfirmCopyJudges}
+    >
+      Copy ${selectedJudges.length} Reviewer(s)
+    </button>
   </ucdlib-awards-modal>
   `;
 }

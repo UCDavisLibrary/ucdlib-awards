@@ -72,6 +72,12 @@ export function styles() {
       justify-content: center;
       height: 100px;
     }
+    .footer a {
+      box-sizing: border-box;
+    }
+    .footer ::slotted(button) {
+      box-sizing: border-box !important;
+    }
   `;
 
   return [
@@ -98,7 +104,7 @@ export function render() {
       <div class="body-content"><slot></slot></div>
       <div class="footer" ?hidden=${this.hideFooter}>
         <div>
-          <a class='btn btn--alt3 btn--sm' @click="${this.hide}">${this.dismissText}</a>
+          <a class='btn btn--alt3' @click="${this.hide}">${this.dismissText}</a>
           <slot name="confirmButton" @click="${this._onConfirmClicked}"></slot>
         </div>
       </div>

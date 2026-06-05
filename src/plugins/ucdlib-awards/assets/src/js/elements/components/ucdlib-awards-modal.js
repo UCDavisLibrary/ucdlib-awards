@@ -104,6 +104,15 @@ export default class UcdlibAwardsModal extends LitElement {
   }
 
   /**
+   * @method scrollToTop
+   * @description Scrolls the modal body content area to the top.
+   */
+  scrollToTop() {
+    const body = this.renderRoot.querySelector('.body-content');
+    if ( body ) body.scrollTop = 0;
+  }
+
+  /**
    * @method _onConfirmClicked
    * @description bound to click event on confirm slot.  Close modal
    * if this.closeOnConfirm is set to true.

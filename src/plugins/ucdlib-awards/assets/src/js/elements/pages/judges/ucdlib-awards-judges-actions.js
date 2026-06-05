@@ -9,6 +9,7 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
 
   static get properties() {
     return {
+      cycleId: { type: Number },
       newJudgeData: { type: Object },
       newJudgeDataIsValid: { type: Boolean },
       addingNewJudge: { type: Boolean },
@@ -24,8 +25,10 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
       selectedApplicants: { type: Array },
       showApplicantsSelect: { type: Boolean },
       selectedCategory: { type: String },
-      fetchingPreviousJudges: { state: true },
-      historicalJudges: { type: Array }
+      judgeCopyActionInProgess: { state: true },
+      historicalJudges: { type: Array },
+      judgeCopyCycleFilter: { type: String },
+      judgeCopyErrors: { type: Array }
     }
   }
 
@@ -35,6 +38,7 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
     this.renderNewJudgePanel = templates.renderNewJudgePanel.bind(this);
     this.renderActionPanel = templates.renderActionPanel.bind(this);
 
+    this.cycleId = 0;
     this.newJudgeData = {};
     this.newJudgeDataIsValid = false;
     this.selectedAction = '';
@@ -48,8 +52,10 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
     this.selectedApplicants = [];
     this.doingAction = false;
     this.selectedCategory = '';
-    this.fetchingPreviousJudges = false;
+    this.judgeCopyActionInProgess = false;
     this.historicalJudges = [];
+    this.judgeCopyCycleFilter = '';
+    this.judgeCopyErrors = [];
 
     this._actions = [];
     this.actions = [
@@ -126,7 +132,7 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
 
   get allCycles(){
     if ( this._allCycles ) return this._allCycles;
-    const parent = this.closest('ucdlib-awards-page');
+    const parent = document.querySelector('ucdlib-awards-page')
     if ( !parent?.cycles ) {
       console.error('Unable to find parent page element with cycles property');
       return [];
@@ -177,9 +183,59 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
     });
   }
 
+  _onCopyJudgeCycleFilterChange(cycleId){
+    this.judgeCopyCycleFilter = cycleId;
+    this.historicalJudges = this.historicalJudges.map(j => {
+      const wasHidden = j.hidden;
+      cycleId = parseInt(cycleId);
+      const hasCategoryInCycle = !cycleId || j.data.cycles.includes(cycleId);
+      j.hidden = !hasCategoryInCycle;
+      if ( wasHidden && !j.hidden ) {
+        j.selected = false;
+      }
+      return j;
+    });
+  }
+
+  async _onConfirmCopyJudges(){
+    this.judgeCopyActionInProgess = true;
+
+    const payload = {
+      cycle_id: this.cycleId,
+      judges: this.historicalJudges.filter(j => j.selected).map(j => {
+        return {
+          user_id: j.data.user_id,
+          category: j.category?.value || null
+        }
+      })
+    }
+    const response = await this.wpAjax.request('copy', payload);
+    if ( response.success ) {
+      this.wpAjax.host.judges = response.data.judges;
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: response.messages?.[0] || 'Reviewers copied successfully',
+          type: 'success'
+        }
+      }));
+      this.renderRoot.querySelector('ucdlib-awards-modal').hide();
+
+    } else {
+      console.error('Unable to copy judges', response);
+      this.judgeCopyErrors = response.messages.length ? response.messages : ['Unable to copy judges'];
+      this.renderRoot.querySelector('ucdlib-awards-modal').scrollToTop();
+    }
+
+    this.judgeCopyActionInProgess = false;
+    
+  }
+
   async _onCopyJudgeClick(){
-    if ( this.fetchingPreviousJudges ) return;
-    this.fetchingPreviousJudges = true;
+    if ( this.judgeCopyActionInProgess ) return;
+    this.judgeCopyActionInProgess = true;
+    this.judgeCopyErrors = [];
 
     const payload = {
       exclude_current_cycle: this.wpAjax.host.cycleId
@@ -219,7 +275,7 @@ export default class UcdlibAwardsJudgesActions extends Mixin(LitElement)
       }));
     }
 
-    this.fetchingPreviousJudges = false;
+    this.judgeCopyActionInProgess = false;
   }
 
   _toggleHistoricalJudgeSelect(judgeId){

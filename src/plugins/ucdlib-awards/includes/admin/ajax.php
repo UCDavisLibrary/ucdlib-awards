@@ -461,17 +461,60 @@ class UcdlibAwardsAdminAjax {
             'last_name' => isset($payload['judge']['last_name']) ? $payload['judge']['last_name'] : ''
           ]);
         }
-        if ( $user->cycleMetaItem('isJudge', $cycleId) ){
-          $response['messages'][] = 'User is already a reviewer for this cycle.';
+
+        $category = !empty($payload['judge']['category']) ? $payload['judge']['category'] : null;
+        $result = $this->addJudgeToCycle($user, $cycle, $category);
+        if ( $result !== true ){
+          $response['messages'][] = $result;
           $this->utils->sendResponse($response);
           return;
         }
-        $user->updateMeta('isJudge', true, $cycleId);
-        if ( !empty($payload['judge']['category']) ){
-          $user->updateMeta('judgeCategory', $payload['judge']['category'], $cycleId);
-        }
-        $this->logger->logJudgeAddition($cycleId, $user->id);
+
         $response['messages'][] = 'Reviewer added successfully.';
+        $response['data'] = ['judges' => $cycle->judges(true, ['assignments' => true, 'conflictsOfInterest' => true, 'completedEvaluations' => true])];
+        $response['success'] = true;
+      } else if ( $action === 'copy') {
+        $payload = json_decode( stripslashes($_POST['data']), true );
+        $cycle = $this->getCycle($payload, $response);
+        $cycleId = $cycle->cycleId;
+
+        if ( empty($payload['judges']) || !is_array($payload['judges']) ){
+          $response['messages'][] = 'No reviewers specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        $resolved = [];
+        foreach ($payload['judges'] as $judgeData) {
+          if ( empty($judgeData['user_id']) ) continue;
+          $user = $this->plugin->users->getByUserId($judgeData['user_id']);
+          if ( !$user || !$user->record() ){
+            $response['messages'][] = 'One or more reviewers could not be found.';
+            $this->utils->sendResponse($response);
+            return;
+          }
+          $category = !empty($judgeData['category']) ? $judgeData['category'] : null;
+          $check = $this->addJudgeToCycle($user, $cycle, $category, true);
+          if ( $check !== true ){
+            $response['messages'][] = $check;
+            $this->utils->sendResponse($response);
+            return;
+          }
+          $resolved[] = ['user' => $user, 'category' => $category];
+        }
+
+        if ( empty($resolved) ){
+          $response['messages'][] = 'No reviewers were added.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        foreach ($resolved as $item) {
+          $this->addJudgeToCycle($item['user'], $cycle, $item['category']);
+        }
+
+        $ct = count($resolved);
+        $response['messages'][] = $ct . ' reviewer' . ($ct > 1 ? 's' : '') . ' added successfully.';
         $response['data'] = ['judges' => $cycle->judges(true, ['assignments' => true, 'conflictsOfInterest' => true, 'completedEvaluations' => true])];
         $response['success'] = true;
       } else if ($action == 'delete'){
@@ -662,6 +705,44 @@ class UcdlibAwardsAdminAjax {
     }
     $this->utils->sendResponse($response);
 
+  }
+
+  /**
+   * @description Add a user as a judge to a cycle. Returns true on success or an error message string on failure.
+   * @param UcdlibAwardsUser $user
+   * @param object $cycle
+   * @param string|null $category - category value to assign; required and validated when the cycle has categories configured
+   * @param bool $validateOnly - if true, run all checks but do not write anything
+   * @returns bool|string - true on success, error message on failure
+   */
+  protected function addJudgeToCycle($user, $cycle, $category = null, $validateOnly = false){
+    $cycleId = $cycle->cycleId;
+
+    if ( $user->cycleMetaItem('isJudge', $cycleId) ){
+      return 'User is already a reviewer for this cycle.';
+    }
+
+    $categories = $cycle->categories();
+    if ( !empty($categories) ){
+      if ( empty($category) ){
+        return 'A category is required for this cycle.';
+      }
+      $validValues = array_column($categories, 'value');
+      if ( !in_array($category, $validValues) ){
+        return 'Invalid category specified.';
+      }
+    }
+
+    if ( $validateOnly ) return true;
+
+    $user->updateMeta('isJudge', true, $cycleId);
+
+    if ( !empty($category) ){
+      $user->updateMeta('judgeCategory', $category, $cycleId);
+    }
+
+    $this->logger->logJudgeAddition($cycleId, $user->id);
+    return true;
   }
 
   public function getCycle($payload, $response){

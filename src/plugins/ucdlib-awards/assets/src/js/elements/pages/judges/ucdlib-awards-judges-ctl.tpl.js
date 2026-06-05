@@ -23,6 +23,7 @@ return html`
         .judgeCt=${this.judges.length}
         .selectedJudges=${this.selectedJudges}
         .applicants=${this.applicants}
+        .cycleId=${this.cycleId}
       ></ucdlib-awards-judges-actions>
     </div>
     <div class="l-first panel o-box">

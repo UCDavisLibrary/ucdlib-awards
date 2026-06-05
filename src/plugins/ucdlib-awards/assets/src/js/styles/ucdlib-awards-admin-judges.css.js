@@ -87,7 +87,7 @@ const customStyles = css`
   ucdlib-awards-judges-actions .category-column-mobile {
     display: none;
   }
-  ucdlib-awards-judges-actions .judge-copy-row:nth-child(2n) {
+  ucdlib-awards-judges-actions .judge-copy-row:nth-child(2n of .judge-copy-row:not([hidden])) {
     background-color: #ebf3fa;
   }
   @media (max-width: 1000px) {

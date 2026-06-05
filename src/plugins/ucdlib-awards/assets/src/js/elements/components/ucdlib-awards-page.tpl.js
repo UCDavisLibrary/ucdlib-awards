@@ -15,6 +15,7 @@ import breadcrumbs from "@ucd-lib/theme-sass/4_component/_nav-breadcrumbs.css.js
 import priorityLinks from "@ucd-lib/theme-sass/4_component/_priority-links.css.js";
 import responsiveTable from "@ucd-lib/theme-sass/4_component/_responsive-table.css.js";
 import verticalLink from "@ucd-lib/theme-sass/4_component/_vertical-link.css.js";
+import alert from "@ucd-lib/theme-sass/4_component/_messaging-alert.css.js";
 import layouts from "@ucd-lib/theme-sass/5_layout/_index.css.js";
 import spaceUtils from "@ucd-lib/theme-sass/6_utility/_u-space.css.js";
 import displayUtils from "@ucd-lib/theme-sass/6_utility/_u-visibility.css.js";
@@ -38,6 +39,7 @@ export function styles() {
     priorityLinks,
     responsiveTable,
     verticalLink,
+    alert,
     layouts,
     spaceUtils,
     displayUtils,
