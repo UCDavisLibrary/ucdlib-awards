@@ -143,7 +143,7 @@ export function renderLogsPanel(){
         </ucdlib-awards-logs>
         <a class="icon-ucdlib" href=${this.logsLink}>
           <ucdlib-icon class="" icon="ucd-public:fa-circle-chevron-right"></ucdlib-icon>
-          <span>View All</span>
+          <span>View All Logs</span>
         </a>
       </section>
     </div>

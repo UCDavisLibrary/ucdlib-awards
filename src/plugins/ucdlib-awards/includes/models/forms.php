@@ -14,6 +14,36 @@ class UcdlibAwardsForms {
     $this->forminatorActivated = class_exists( 'Forminator_API' );
   }
 
+
+  /**
+   * @description Finds published posts containing a Forminator form block with the given form ID.
+   * Searches post_content for the block comment pattern used by the forminator/forms Gutenberg block.
+   * @param int $formId - the Forminator form ID to search for
+   * @param bool $returnPostIds - if true, returns an array of post IDs; otherwise returns Timber post objects
+   * @returns int[]|Timber\PostCollection - matching post IDs or Timber post objects
+   */
+  public function getPostsWithForm($formId, $returnPostIds=false){
+    global $wpdb;
+
+    $blockPattern = '%<!-- wp:forminator/forms {"module_id":"' . $wpdb->esc_like( $formId ) . '"}%';
+
+    $postIds = $wpdb->get_col(
+        $wpdb->prepare(
+            "SELECT ID FROM {$wpdb->posts}
+             WHERE post_status = 'publish'
+             AND post_content LIKE %s",
+            $blockPattern
+        )
+    );
+    if ( $returnPostIds ) return $postIds;
+    if ( empty($postIds) ) return [];
+
+    return Timber::get_posts([
+      'post__in' => $postIds,
+      'post_type' => 'any'
+    ] );
+  }
+
   public function getForms($form_ids=null, $current_page=1, $per_page=10 ){
     if ( !$this->forminatorActivated ) return [];
     $forms = Forminator_API::get_forms($form_ids, $current_page, $per_page);

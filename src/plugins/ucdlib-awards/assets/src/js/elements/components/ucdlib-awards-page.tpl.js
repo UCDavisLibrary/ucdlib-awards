@@ -71,6 +71,14 @@ return html`
       </div>
     </div>
   </div>
+  <div ?hidden=${!this.selectedIsActive}>
+    <div ?hidden=${!(this.wpBool(this.selectedCycle?.application_form_id) && !this.applicationFormPage)} class='brand-textbox category-brand__background category-brand--redbud u-space-mb--large'>
+        The selected cycle is active, but there is no application form page associated with it. Please add the application form to a Wordpress page to allow applicants to apply.
+    </div>
+    <div ?hidden=${!(this.wpBool(this.selectedCycle?.support_form_id) && !this.supporterFormPage)} class='brand-textbox category-brand__background category-brand--redbud u-space-mb--large'>
+        The selected cycle is active, but there is no supporter form page associated with it. Please add the supporter form to a Wordpress page to allow supporters to submit letters of support.
+    </div>
+  </div>
   <div ?hidden=${this.hideCycleNotification} class="basic-notification">
     <ucdlib-icon class='double-decker u-space-mr' icon="ucd-public:fa-circle-exclamation"></ucdlib-icon>
     <div class='notification-text'>
