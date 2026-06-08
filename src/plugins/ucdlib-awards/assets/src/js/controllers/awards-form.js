@@ -38,7 +38,7 @@ export default class AwardsForm {
   }
 
   init(){
-    if ( this.config.formWindowStatus !== 'active' ){
+    if ( this.config.formWindowStatus['status'] !== 'active' ){
       this.disableSubmitButton();
       this.displayWindowClosedMessage();
 
@@ -120,12 +120,11 @@ export default class AwardsForm {
   }
 
   displayWindowClosedMessage(){
-    if ( this.config.formWindowStatus === 'upcoming' ){
-      const date = dateTimeUtils.mysqlToDateString(this.config.formWindowStart, true);
+    if ( this.config.formWindowStatus?.status === 'upcoming' ){
+      const date = dateTimeUtils.mysqlToDateString(this.config.formWindowStatus?.rangeStart?.date, true);
       this.displayError(`Sorry, the application${this.config.isSupportForm ? ' support ' : ' '}window is currently closed. It will open on ${date}.`);
-    } else if ( this.config.formWindowStatus === 'past' ){
-      const date = dateTimeUtils.mysqlToDateString(this.config.formWindowEnd, true);
-      this.displayError(`Sorry, the application${this.config.isSupportForm ? ' support ' : ' '}window is currently closed. It closed on ${date}.`);
+    } else if ( this.config.formWindowStatus?.status === 'past' ){
+      this.displayError(`Sorry, the application${this.config.isSupportForm ? ' support ' : ' '}window is currently closed.`);
     } else {
       this.displayError('This form is currently disabled.');
       this.logger.error('Could not determine form window status.  Cannot display window closed message.');

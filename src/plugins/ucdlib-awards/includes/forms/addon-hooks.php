@@ -36,9 +36,9 @@ class Forminator_Ucdlibawards_Form_Hooks extends Forminator_Integration_Form_Hoo
     // Check that form is active
     $formWindowStatus = '';
     if ( $isApplicationForm ) {
-      $formWindowStatus = $activeCycle->applicationWindowStatus();
+      $formWindowStatus = $activeCycle->applicationWindowStatus()['status'];
     } else if ( $isSupportForm ) {
-      $formWindowStatus = $activeCycle->supportWindowStatus();
+      $formWindowStatus = $activeCycle->supportWindowStatus()['status'];
     }
     if ( !$formWindowStatus ){
       return "Submission failed! Could not determine application window status.";

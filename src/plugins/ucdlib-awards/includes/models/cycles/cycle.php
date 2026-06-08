@@ -393,13 +393,22 @@ class UcdlibAwardsCycle {
     $rangeEnd = new DateTime( $end, $tz );
     $rangeEnd->add( new DateInterval('P1D') );
 
+    $out = [
+      'tz' => $tz,
+      'now' => $now,
+      'rangeStart' => $rangeStart,
+      'rangeEnd' => $rangeEnd,
+      'status' => null
+    ];
+
     if ( $now < $rangeStart ) {
-      return 'upcoming';
-    } elseif ( $now > $rangeEnd ) {
-      return 'past';
+      $out['status'] = 'upcoming';
+    } elseif ( $now >= $rangeEnd ) {
+      $out['status'] = 'past';
     } else {
-      return 'active';
+      $out['status'] = 'active';
     }
+    return $out;
   }
 
   protected $applicationForm;
