@@ -245,7 +245,7 @@ class UcdlibAwardsRubric {
     $cycle = $this->plugin->cycles->getById( $this->cycleId );
     $cycleMeta = $cycle->cycleMeta();
     if ( !empty($cycleMeta['use_rubric_link'])){
-      return empy($cycleMeta['rubric_link']) ? '' : $cycleMeta['rubric_link'];
+      return empty($cycleMeta['rubric_link']) ? '' : $cycleMeta['rubric_link'];
     }
     $uploadedFile = $this->uploadedFile();
     return empty($uploadedFile) ? '' : $uploadedFile;
