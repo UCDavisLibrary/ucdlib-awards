@@ -344,6 +344,9 @@ class UcdlibAwardsAdminMenu {
     UcdlibAwardsTimber::renderAdminPage( 'applicants', $context );
   }
 
+  /**
+   * @description Render the admin Rubric page.
+   */
   public function renderRubric(){
     $context = $this->context();
     $requestedCycle = $context['requestedCycle'];
@@ -359,7 +362,12 @@ class UcdlibAwardsAdminMenu {
         $pageProps['rubricItems'] = $requestedCycle->rubric()->items();
       }
       $pageProps['scoringCalculation'] = $requestedCycle->rubric()->scoringCalculation();
-      $pageProps['uploadedFile'] = $requestedCycle->rubric()->uploadedFile();
+      
+      $rubricReferenceObject = $requestedCycle->rubric()->referenceLinkObject();
+      $pageProps['uploadedFile'] = $rubricReferenceObject['rubric_file'];
+      $pageProps['useRubricLink'] = $rubricReferenceObject['use_rubric_link'];
+      $pageProps['rubricLink'] = $rubricReferenceObject['rubric_link'];
+
       $cyclesWithRubric = $this->plugin->cycles->filterByRubric();
       foreach ($cyclesWithRubric as $c) {
         if ( $c->cycleId == $requestedCycle->cycleId ) continue;

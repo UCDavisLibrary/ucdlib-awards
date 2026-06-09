@@ -38,6 +38,12 @@ class UcdlibAwardsRubrics {
     if ( !empty($existingCycle->cycleMeta()['rubric_file']) ){
       $newCycleMeta['rubric_file'] = $existingCycle->cycleMeta()['rubric_file'];
     }
+    if ( isset($existingCycle->cycleMeta()['use_rubric_link']) ){
+      $newCycleMeta['use_rubric_link'] = $existingCycle->cycleMeta()['use_rubric_link'];
+    }
+    if ( !empty($existingCycle->cycleMeta()['rubric_link']) ){
+      $newCycleMeta['rubric_link'] = $existingCycle->cycleMeta()['rubric_link'];
+    }
     if ( !empty($newCycleMeta) ){
       $newCycle = $this->plugin->cycles->getById( $cycleToId );
       $newCycle->updateMeta( $newCycleMeta );

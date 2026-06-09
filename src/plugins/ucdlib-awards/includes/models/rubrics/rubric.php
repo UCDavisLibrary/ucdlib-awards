@@ -241,6 +241,35 @@ class UcdlibAwardsRubric {
     return false;
   }
 
+  public function referenceLink(){
+    $cycle = $this->plugin->cycles->getById( $this->cycleId );
+    $cycleMeta = $cycle->cycleMeta();
+    if ( !empty($cycleMeta['use_rubric_link'])){
+      return $cycleMeta['rubric_link'] ?? '';
+    }
+    $uploadedFile = $this->uploadedFile();
+    return empty($uploadedFile) ? '' : $uploadedFile;
+  }
+
+  public function referenceLinkObject(){
+    $out = [
+      'use_rubric_link' => false,
+      'rubric_link' => '',
+      'rubric_file' => ''    ];
+    $cycle = $this->plugin->cycles->getById( $this->cycleId );
+    $cycleMeta = $cycle->cycleMeta();
+    if ( isset($cycleMeta['use_rubric_link']) ){
+      $out['use_rubric_link'] = $cycleMeta['use_rubric_link'];
+    }
+    if ( isset($cycleMeta['rubric_link']) ){
+      $out['rubric_link'] = $cycleMeta['rubric_link'];
+    }
+    if ( isset($cycleMeta['rubric_file']) ){
+      $out['rubric_file'] = $cycleMeta['rubric_file'];
+    }
+    return $out;
+  }
+
   public function scoringCalculation(){
     $cycle = $this->plugin->cycles->getById( $this->cycleId );
     $cycleMeta = $cycle->cycleMeta();

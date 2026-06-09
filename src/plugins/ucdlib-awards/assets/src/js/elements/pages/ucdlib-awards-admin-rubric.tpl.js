@@ -12,8 +12,8 @@ return html`
           ${this.renderForm()}
         </div>
         <div class="l-second panel o-box">
-          ${this.renderUploadPanel()}
           ${this.renderCalculationPanel()}
+          ${this.renderUploadPanel()}
         </div>
       </div>
     </div>
@@ -200,36 +200,49 @@ export function renderUploadPanel(){
   return html`
     <div class="panel panel--icon panel--icon-custom o-box category-brand--poppy">
       <h2 class="panel__title">
-        <ucdlib-icon icon="ucd-public:fa-file-pdf" class="panel__custom-icon"></ucdlib-icon>
-        <span>Rubric Document</span>
+        <ucdlib-icon icon="ucd-public:fa-table" class="panel__custom-icon"></ucdlib-icon>
+        <span>Rubric Reference</span>
       </h2>
       <section>
         <div class='hint-text u-space-mb'>
-          Upload a full rubric as a PDF or Word document for the reviewer to download and reference.
-          Should be used in conjunction with the rubric items form when a rubric is complex.
+          If rubric is very complex, upload or link to a full rubric for the reviewer to reference when scoring items.
         </div>
-        <div ?hidden=${!this.uploadedFile}>
-          <ul class="list--download u-space-mb">
-          <li class='flex-center flex-space-between'>
-            <a class="icon icon--link icon--download" href=${this.uploadedFile} target='_blank'>${this.uploadedFileName}</a>
-            <div class='u-space-ml flex-center upload-action-icons'>
-              <ucdlib-icon
-                title='Remove'
-                icon="ucd-public:fa-circle-minus"
-                class="icon-hover double-decker pointer"
-                @click=${this._onUploadFileRemove}>
-              </ucdlib-icon>
-              <ucdlib-icon
-                title='Replace'
-                icon="ucd-public:fa-upload"
-                class="icon-hover primary pointer u-space-ml--small"
-                @click=${() => this.hideFileUploadInput = !this.hideFileUploadInput}>
-              </ucdlib-icon>
-            </div>
-          </li>
-          </ul>
+        <div class='field-container'>
+          <label for='rubricType'>Rubric Reference Type</label>
+          <select id='rubricType' @change=${e => this.useRubricLink = e.target.value === 'link'} .value=${this.useRubricLink ? 'link' : 'upload'}>
+            <option value='upload' ?selected=${!this.useRubricLink}>Uploaded File</option>
+            <option value='link' ?selected=${this.useRubricLink}>Link to External Rubric</option>
+          </select>
         </div>
-        <input type="file" @change=${this._onUploadFileChange} ?hidden=${this.hideFileUploadInput}>
+        <div ?hidden=${this.useRubricLink}>
+          <div ?hidden=${!this.uploadedFile}>
+            <ul class="list--download u-space-mb">
+              <li class='flex-center flex-space-between'>
+                <a class="icon icon--link icon--download" href=${this.uploadedFile} target='_blank'>${this.uploadedFileName}</a>
+                <div class='u-space-ml flex-center upload-action-icons'>
+                  <ucdlib-icon
+                    title='Remove'
+                    icon="ucd-public:fa-circle-minus"
+                    class="icon-hover double-decker pointer"
+                    @click=${this._onUploadFileRemove}>
+                  </ucdlib-icon>
+                  <ucdlib-icon
+                    title='Replace'
+                    icon="ucd-public:fa-upload"
+                    class="icon-hover primary pointer u-space-ml--small"
+                    @click=${() => this.hideFileUploadInput = !this.hideFileUploadInput}>
+                  </ucdlib-icon>
+                </div>
+              </li>
+            </ul>
+          </div>
+          <input type="file" @change=${this._onUploadFileChange} ?hidden=${this.hideFileUploadInput}>
+        </div>
+        <div ?hidden=${!this.useRubricLink} class='field-container'>
+          <label for='rubricLink'>Rubric Link</label>
+          <input id='rubricLink' type="url" placeholder='https://library.ucdavis.edu/my-rubric' @input=${(e) => this.rubricLink = e.target.value} .value=${this.rubricLink}>
+        </div>
+        <button type="button" class="btn marketing-highlight__cta border-box category-brand--poppy width-100" @click=${this._onUpdateRubricReference}>Update Rubric Reference</button>
       </section>
     </div>
   `;

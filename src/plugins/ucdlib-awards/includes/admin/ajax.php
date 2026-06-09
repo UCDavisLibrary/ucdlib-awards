@@ -900,7 +900,7 @@ class UcdlibAwardsAdminAjax {
         }
         $movefile = wp_handle_upload($file, ['test_form' => false]);
         if ( $movefile && !isset( $movefile['error'] ) ) {
-          $cycle->updateMeta(['rubric_file' => $movefile['url']]);
+          $cycle->updateMeta(['rubric_file' => $movefile['url'], 'use_rubric_link' => false]);
           $this->logger->logRubricEvent($cycle->cycleId, 'update');
           $response['messages'][] = 'Rubric file uploaded successfully.';
           $response['data'] = ['rubricFile' => $movefile['url']];
@@ -919,6 +919,23 @@ class UcdlibAwardsAdminAjax {
         $cycle->updateMeta(['rubric_file' => '']);
         $this->logger->logRubricEvent($cycle->cycleId, 'update');
         $response['messages'][] = 'Rubric file deleted successfully.';
+        $response['success'] = true;
+      } else if ( $action === 'updateRubricReference' ){
+        $payload = json_decode( stripslashes($_POST['data']), true );
+        $cycle = $this->plugin->cycles->getById($payload['cycle_id']);
+        if ( !$cycle ){
+          $response['messages'][] = 'Cycle not found.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+        $meta = ['use_rubric_link' => !!$payload['use_rubric_link']];
+        if ( isset($payload['rubric_link']) ){
+          $meta['rubric_link'] = $payload['rubric_link'];
+        }
+        $cycle->updateMeta($meta);
+        $this->logger->logRubricEvent($cycle->cycleId, 'update');
+        $response['messages'][] = 'Rubric reference updated successfully.';
+        $response['data'] = ['rubricLink' => $payload['rubric_link']];
         $response['success'] = true;
       }
     } catch (\Throwable $th) {

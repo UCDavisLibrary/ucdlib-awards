@@ -308,7 +308,7 @@ export function renderRubricPanel(){
             </li>
           `)}
         </ul>
-        <a class="icon-ucdlib" href=${this.rubricUploadedFile} ?hidden=${!this.rubricUploadedFile} target='_blank'>
+        <a class="icon-ucdlib" href=${this.rubricReferenceLink} ?hidden=${!this.rubricReferenceLink} target='_blank'>
           <ucdlib-icon class="" icon="ucd-public:fa-circle-chevron-right"></ucdlib-icon>
           <span>View Entire Rubric</span>
         </a>

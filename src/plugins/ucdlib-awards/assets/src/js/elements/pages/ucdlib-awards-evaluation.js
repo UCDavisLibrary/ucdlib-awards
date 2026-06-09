@@ -20,7 +20,7 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
       _rubricItems: { type: Array },
       errorMessage: { type: String },
       rubricScoringCalculation: { type: String },
-      rubricUploadedFile: { type: String },
+      rubricReferenceLink: { type: String },
       applicants: { type: Array },
       selectedApplicant: { type: Object },
       applicationEntryCache: { state: true},
@@ -57,7 +57,7 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
     this.rubricItems = [];
     this._rubricItems = [];
     this.rubricScoringCalculation = '';
-    this.rubricUploadedFile = '';
+    this.rubricReferenceLink = '';
     this.applicants = [];
     this.selectedApplicant = {};
     this.applicationEntryCache = {};
@@ -476,8 +476,8 @@ export default class UcdlibAwardsEvaluation extends Mixin(LitElement)
     if ( data.rubricScoringCalculation ) {
       this.rubricScoringCalculation = data.rubricScoringCalculation;
     }
-    if ( data.rubricUploadedFile ) {
-      this.rubricUploadedFile = data.rubricUploadedFile;
+    if ( data.rubricReferenceLink ) {
+      this.rubricReferenceLink = data.rubricReferenceLink;
     }
     if ( data.awardsTitle ) {
       this.awardsTitle = data.awardsTitle;
