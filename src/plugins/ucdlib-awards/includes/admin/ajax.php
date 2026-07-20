@@ -284,7 +284,8 @@ class UcdlibAwardsAdminAjax {
         $args = [
           'applicationEntryBrief' => $cycle->cycleId,
           'applicationCategory' => $cycle->cycleId,
-          'applicationStatus' => $cycle->cycleId
+          'applicationStatus' => $cycle->cycleId,
+          'uploadedFieldIds' => $cycle->cycleId
         ];
         $response['data'] = ['applicants' => $this->plugin->users->toArrays($applicants, $args)];
         $response['success'] = true;
@@ -379,7 +380,8 @@ class UcdlibAwardsAdminAjax {
         $args = [
           'applicationEntryBrief' => $cycle->cycleId,
           'applicationCategory' => $cycle->cycleId,
-          'applicationStatus' => $cycle->cycleId
+          'applicationStatus' => $cycle->cycleId,
+          'uploadedFieldIds' => $cycle->cycleId
         ];
         $response['data'] = ['applicants' => $this->plugin->users->toArrays($applicants, $args)];
         $response['success'] = true;
@@ -422,10 +424,55 @@ class UcdlibAwardsAdminAjax {
         $args = [
           'applicationEntryBrief' => $cycle->cycleId,
           'applicationCategory' => $cycle->cycleId,
-          'applicationStatus' => $cycle->cycleId
+          'applicationStatus' => $cycle->cycleId,
+          'uploadedFieldIds' => $cycle->cycleId
         ];
         $response['data'] = ['applicants' => $this->plugin->users->toArrays($applicants, $args)];
         $response['success'] = true;
+
+      } else if ( $action === 'updateUploadField' ) {
+        $cycle = $this->plugin->cycles->getById($_POST['cycle_id']);
+        if ( !$cycle ){
+          $response['messages'][] = 'Cycle not found.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+        $applicant = $this->plugin->users->getByUserId($_POST['applicant_id']);
+        if ( !$applicant ){
+          $response['messages'][] = 'Applicant not found.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+        $uploadFieldId = $_POST['upload_field_id'] ?? '';
+        if ( empty($uploadFieldId) ){
+          $response['messages'][] = 'No upload field specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+        if ( empty($_FILES['file']) ){
+          $response['messages'][] = 'No file uploaded.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        if ( ! function_exists( 'wp_handle_upload' ) ) {
+          require_once( ABSPATH . 'wp-admin/includes/file.php' );
+        }
+        $movefile = wp_handle_upload($_FILES['file'], ['test_form' => false]);
+        if ( !$movefile || isset( $movefile['error'] ) ) {
+          $response['messages'][] = 'Error uploading file.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        $r = $cycle->updateUploadField($applicant->record()->email, $uploadFieldId, $movefile['url'], '');
+        if ( $r['success'] ) {
+          $this->logger->logUploadFieldUpdate($cycle->cycleId, $applicant->record()->user_id, $uploadFieldId);
+          $response['messages'][] = 'File updated successfully.';
+          $response['success'] = true;
+        } else {
+          $response['messages'][] = $r['message'];
+        }
 
       }
     } catch (\Throwable $th) {

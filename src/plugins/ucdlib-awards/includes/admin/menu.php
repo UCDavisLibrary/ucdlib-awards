@@ -326,6 +326,8 @@ class UcdlibAwardsAdminMenu {
       $pageProps['cycleId'] = $requestedCycle->cycleId;
       $pageProps['categories'] = $requestedCycle->categories();
       $pageProps['requestedCycle'] = $context['pageContainerProps']['requestedCycle'];
+      $pageProps['uploadFields'] = $requestedCycle->uploadFields();
+      $pageProps['isActiveCycle'] = (bool) $requestedCycle->isActive();
       $args = [
         'applicationEntry' => true,
         'userMeta' => true
@@ -334,7 +336,8 @@ class UcdlibAwardsAdminMenu {
       $args = [
         'applicationEntryBrief' => $requestedCycle->cycleId,
         'applicationCategory' => $requestedCycle->cycleId,
-        'applicationStatus' => $requestedCycle->cycleId
+        'applicationStatus' => $requestedCycle->cycleId,
+        'uploadedFieldIds' => $requestedCycle->cycleId
       ];
       $pageProps['applicants'] = $this->plugin->users->toArrays($applicants, $args);
       $pageProps['judges'] = $requestedCycle->judges(true);

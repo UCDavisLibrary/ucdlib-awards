@@ -23,7 +23,11 @@ export default class UcdlibAwardsApplicantsCtl extends Mixin(LitElement)
       selectedApplicants: { type: Array },
       doingAction: { type: Boolean },
       cycleId: { type: Number },
-      requestedCycle: { type: Object }
+      requestedCycle: { type: Object },
+      uploadFields: { type: Array },
+      manageUploadApplicantId: { type: Number },
+      uploadSubmitting: { type: Boolean },
+      isActiveCycle: { type: Boolean }
     }
   }
 
@@ -42,6 +46,10 @@ export default class UcdlibAwardsApplicantsCtl extends Mixin(LitElement)
     this.doingAction = false;
     this.cycleId = 0;
     this.requestedCycle = null;
+    this.uploadFields = [];
+    this.manageUploadApplicantId = 0;
+    this.uploadSubmitting = false;
+    this.isActiveCycle = false;
   }
 
   willUpdate(props) {
@@ -181,6 +189,45 @@ export default class UcdlibAwardsApplicantsCtl extends Mixin(LitElement)
     }
   }
 
+  _onManageUploadRequest(e){
+    this.manageUploadApplicantId = e.detail.applicantId;
+  }
+
+  async _onManageUploadSubmit(e){
+    this.uploadSubmitting = true;
+    const formData = new FormData();
+    formData.append('cycle_id', this.cycleId);
+    formData.append('applicant_id', e.detail.applicantId);
+    formData.append('upload_field_id', e.detail.uploadFieldId);
+    formData.append('file', e.detail.file);
+
+    const response = await this.wpAjax.request('updateUploadField', formData);
+    this.uploadSubmitting = false;
+    if ( response.success ) {
+      this.manageUploadApplicantId = 0;
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: response.messages[0],
+          type: 'success'
+        }
+      }));
+    } else {
+      console.error('Error updating upload field', response);
+      let msg = 'Unable to update file';
+      if ( response.messages.length) msg += `: ${response.messages?.[0] || ''}`;
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: msg,
+          type: 'error'
+        }
+      }));
+    }
+  }
+
   async deleteSelectedApplicants(){
     const response = await this.wpAjax.request('delete', {cycle_id: this.cycleId, applicant_ids: this.selectedApplicants});
     if ( response.success ) {
@@ -241,6 +288,8 @@ export default class UcdlibAwardsApplicantsCtl extends Mixin(LitElement)
       this._setApplicants(data.applicants);
     }
     if ( data.requestedCycle ) this.requestedCycle = data.requestedCycle;
+    if ( data.uploadFields ) this.uploadFields = data.uploadFields;
+    this.isActiveCycle = !!data.isActiveCycle;
 
   }
 

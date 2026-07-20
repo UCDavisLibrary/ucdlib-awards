@@ -1101,6 +1101,30 @@ class UcdlibAwardsCycle {
     return $this->categories;
   }
 
+  protected $uploadFields;
+  public function uploadFields(){
+    if ( isset($this->uploadFields) ) return $this->uploadFields;
+    $formId = $this->applicationFormId();
+    if ( empty($formId) ) {
+      $this->uploadFields = [];
+      return $this->uploadFields;
+    }
+    $formFields = $this->plugin->forms->getFormFields( $formId );
+    $uploadFields = [];
+    foreach( $formFields as $fieldWrapper ){
+      if ( !is_array($fieldWrapper['fields']) ) continue;
+      foreach( $fieldWrapper['fields'] as $field ){
+        if ( ($field['type'] ?? '') !== 'upload' ) continue;
+        $uploadFields[] = [
+          'id' => $field['element_id'],
+          'label' => $field['field_label'] ?? $field['element_id']
+        ];
+      }
+    }
+    $this->uploadFields = $uploadFields;
+    return $this->uploadFields;
+  }
+
   public function updateUploadField($applicantEmail, $uploadFieldId, $mediaLibraryUrl, $mediaBaseDir){
     $out = ['success' => false, 'message' => ''];
 

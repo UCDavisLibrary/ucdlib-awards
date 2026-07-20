@@ -58,6 +58,11 @@ class UcdlibAwardsLogs {
             'slug' => 'support-submitted',
             'label' => 'Support Submitted',
             'description' => 'Support letter submitted'
+          ],
+          'upload-field-update' => [
+            'slug' => 'upload-field-update',
+            'label' => 'Upload Field Update',
+            'description' => 'Applicant upload field file replaced'
           ]
         ]
       ],
@@ -543,6 +548,26 @@ class UcdlibAwardsLogs {
       'log_subtype' => 'delete',
       'cycle_id' => $cycleId,
       'user_id_object' => $userId,
+      'date_created' =>  date('Y-m-d H:i:s')
+    ];
+
+    $currentUser = $this->plugin->users->currentUser();
+    if ( $currentUser->record() ){
+      $log['user_id_subject'] = $currentUser->record()->user_id;
+    }
+
+    global $wpdb;
+    $wpdb->insert( $this->table, $log );
+    return true;
+  }
+
+  public function logUploadFieldUpdate($cycleId, $userId, $uploadFieldId) {
+    $log = [
+      'log_type' => 'application',
+      'log_subtype' => 'upload-field-update',
+      'cycle_id' => $cycleId,
+      'user_id_object' => $userId,
+      'log_value' => json_encode(['uploadFieldId' => $uploadFieldId]),
       'date_created' =>  date('Y-m-d H:i:s')
     ];
 

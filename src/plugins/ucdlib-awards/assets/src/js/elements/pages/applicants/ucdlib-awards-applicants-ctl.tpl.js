@@ -29,9 +29,15 @@ return html`
     <div class="l-first panel o-box">
       <ucdlib-awards-applicants-display
         @selected-applicants-change=${this._onSelectedApplicantsChange}
+        @manage-upload-request=${this._onManageUploadRequest}
+        @manage-upload-submit=${this._onManageUploadSubmit}
         .applicants=${this.displayedApplicants}
         .showCategories=${this.hasCategories}
         .judges=${this.judges}
+        .uploadFields=${this.uploadFields}
+        .manageUploadApplicantId=${this.manageUploadApplicantId}
+        .uploadSubmitting=${this.uploadSubmitting}
+        .isActiveCycle=${this.isActiveCycle}
       >
       </ucdlib-awards-applicants-display>
     </div>

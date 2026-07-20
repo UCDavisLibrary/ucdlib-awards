@@ -370,7 +370,28 @@ class UcdlibAwardsUser {
       $cycleId = $additionalProps['assignedJudgeIds'];
       $out['assignedJudgeIds'] = $this->assignedJudgeIds($cycleId);
     }
+    if ( !empty($additionalProps['uploadedFieldIds']) ){
+      $cycleId = $additionalProps['uploadedFieldIds'];
+      $out['uploadedFieldIds'] = $this->uploadedFieldIds($cycleId);
+    }
 
+    return $out;
+  }
+
+  /**
+   * @description Get the element_ids of upload fields on this user's application entry that have a file uploaded
+   * @param int $cycleId - the cycle id
+   * @return array
+   */
+  public function uploadedFieldIds($cycleId=null){
+    $entry = $this->applicationEntry($cycleId);
+    if ( !$entry || empty($entry->meta_data) ) return [];
+    $out = [];
+    foreach ( $entry->meta_data as $fieldId => $meta ){
+      if ( !empty($meta['value']['file']['file_path']) ){
+        $out[] = $fieldId;
+      }
+    }
     return $out;
   }
 
