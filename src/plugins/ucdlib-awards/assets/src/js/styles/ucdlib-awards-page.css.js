@@ -81,6 +81,9 @@ const customStyles = css`
 input[type="text"] {
   box-sizing: border-box;
 }
+input[type="url"] {
+  box-sizing: border-box;
+}
 input[type="date"] {
   box-sizing: border-box;
 }

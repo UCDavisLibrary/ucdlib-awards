@@ -93,6 +93,8 @@ class UcdlibAwardsEvaluationAjax {
     $cycleId = $cycle->cycleId;
     $rubric = $cycle->rubric();
 
+    $this->checkEvalWindow($response, $cycle);
+
     $submitActions = ['save', 'finalize'];
     if ( empty($payload['submit_action']) || !in_array($payload['submit_action'], $submitActions) ){
       $response['messages'][] = 'No submit action specified.';
@@ -165,6 +167,7 @@ class UcdlibAwardsEvaluationAjax {
 
   public function setConflictOfInterest($response, $cycle, $payload){
     $this->doAuth($response, $cycle, $payload, true);
+    $this->checkEvalWindow($response, $cycle);
     $cycleId = $cycle->cycleId;
     $applicant = $this->getApplicant($response, $cycle, $payload);
 
@@ -365,6 +368,21 @@ class UcdlibAwardsEvaluationAjax {
     ];
     return $this->plugin->users->toArrays($applicants, $args);
 
+  }
+
+  private function checkEvalWindow($response, $cycle){
+    $evalWindowStatus = $cycle->evaluationWindowStatus();
+    if ( !$evalWindowStatus ) {
+      $response['messages'][] = 'Could not determine evaluation window status.';
+      $this->utils->sendResponse($response);
+    } else if ( $evalWindowStatus['status'] === 'past' ) {
+      $response['messages'][] = 'The evaluation window is closed.';
+      $this->utils->sendResponse($response);
+    } else if ( $evalWindowStatus['status'] === 'upcoming' ) {
+      $openDate = $evalWindowStatus['rangeStart']->format('M j, Y');
+      $response['messages'][] = 'The evaluation window has not yet opened. It opens on ' . $openDate . '.';
+      $this->utils->sendResponse($response);
+    }
   }
 
   public function doAuth($response, $cycle, $payload, $isWriteAction = false){

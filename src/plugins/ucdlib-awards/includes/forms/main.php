@@ -93,20 +93,12 @@ class UcdlibAwardsFormsMain {
     $activeCycle = $this->plugin->cycles->activeCycle();
 
     $formWindowStatus = '';
-    $formWindowStart = '';
-    $formWindowEnd = '';
     if ( $this->isApplicationForm ) {
       $formWindowStatus = $activeCycle->applicationWindowStatus();
-      $formWindowStart = $activeCycle->record()->application_start;
-      $formWindowEnd = $activeCycle->record()->application_end;
     } else if ( $this->isSupportForm ) {
       $formWindowStatus = $activeCycle->supportWindowStatus();
-      $formWindowStart = $activeCycle->record()->support_start;
-      $formWindowEnd = $activeCycle->record()->support_end;
     }
     $out['formWindowStatus'] = $formWindowStatus;
-    $out['formWindowStart'] = $formWindowStart;
-    $out['formWindowEnd'] = $formWindowEnd;
 
     $user = $this->plugin->users->currentUser();
     $previousEntry = false;

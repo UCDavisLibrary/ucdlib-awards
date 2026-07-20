@@ -30,8 +30,11 @@ return html`
     <div class='table-body'>
       ${this._applicants.map(this.renderApplicantRow)}
     </div>
-    <ucdlib-awards-modal dismiss-text='Close'>
+    <ucdlib-awards-modal id='assignment-modal' dismiss-text='Close'>
       ${this.renderAssignmentModalContent()}
+    </ucdlib-awards-modal>
+    <ucdlib-awards-modal id='upload-modal' dismiss-text='Cancel' content-title='Update Upload' .closeOnConfirm=${false}>
+      ${this.renderUploadModalContent()}
     </ucdlib-awards-modal>
   </div>
 `;}
@@ -54,6 +57,9 @@ export function renderApplicantRow(applicant){
       <div>
         <div>${applicant.name}</div>
         <div ?hidden=${!applicant.hasConflictOfInterest} class='double-decker bold small-text'>Conflict of Interest</div>
+        <div ?hidden=${!this.isActiveCycle || !applicant.uploadedFieldIds?.length}>
+          <a class='pointer' @click=${() => this._onManageUploadsClick(applicant.user_id)}>Replace Submitted Document(s)</a>
+        </div>
       </div>
       <div class='${expanded ? 'mb-details' : 'hidden'}'>
         <div class='flex-center' ?hidden=${!this.showCategories}>
@@ -143,6 +149,41 @@ export function renderAssignmentModalContent() {
         `)}
       </ul>
 </div>`
+}
+
+export function renderUploadModalContent() {
+  if ( !this.manageUploadApplicantId ) return html``;
+  const applicant = this.applicants.find(a => a.user_id === this.manageUploadApplicantId);
+  if ( !applicant ) return html``;
+
+  const availableFields = (this.uploadFields || []).filter(field => (applicant.uploadedFieldIds || []).includes(field.id));
+
+  return html`
+    <div>
+      <p>Replace an uploaded file for <strong>${applicant.name}</strong>.</p>
+      <div class='alert alert--warning'>This will permanently replace the applicant's existing file. This action cannot be undone.</div>
+      <div class='field-container'>
+        <label>Upload Field</label>
+        <select @change=${e => this._onUploadFieldSelect(e.target.value)} .value=${this._selectedUploadFieldId}>
+          <option value=''>Select a field</option>
+          ${availableFields.map(field => html`
+            <option value=${field.id} ?selected=${this._selectedUploadFieldId === field.id}>${field.label}</option>
+          `)}
+        </select>
+      </div>
+      <div class='field-container'>
+        <label>Replacement File</label>
+        <input type='file' @change=${e => this._onUploadFileChange(e)}>
+      </div>
+    </div>
+    <button
+      slot='confirmButton'
+      class='btn btn--primary'
+      ?disabled=${!this._selectedUploadFieldId || !this._selectedUploadFile || this.uploadSubmitting}
+      @click=${() => this._onUploadConfirm()}>
+      ${this.uploadSubmitting ? 'Uploading...' : 'Replace File'}
+    </button>
+  `;
 }
 
 export function renderSortIcon(field, sortDirection){

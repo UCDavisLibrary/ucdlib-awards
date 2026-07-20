@@ -31,6 +31,8 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
       formErrors: {state: true},
       formErrorMessages: {state: true},
       dashboardLink: {type: String},
+      supporterFormPage: {type: Object},
+      applicationFormPage: {type: Object}
     }
   }
 
@@ -57,6 +59,8 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
     this.formsLink = '';
     this.page = 'view';
     this.dashboardLink = '';
+    this.supportederFormPage = null;
+    this.applicationFormPage = null;
 
     this.mutationObserver = new MutationObserverController(this);
     this.wpAjax = new wpAjaxController(this);
@@ -428,6 +432,9 @@ export default class UcdlibAwardsAdminCycles extends Mixin(LitElement)
         this.applicationFormFieldsCache[this.requestedCycle.application_form_id] = [...data.applicationFormFields];
       }
     }
+
+    if ( data.supporterFormPage ) this.supporterFormPage = data.supporterFormPage;
+    if ( data.applicationFormPage ) this.applicationFormPage = data.applicationFormPage;
 
   }
 

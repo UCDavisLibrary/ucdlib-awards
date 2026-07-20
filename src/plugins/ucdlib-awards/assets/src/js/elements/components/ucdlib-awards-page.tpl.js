@@ -15,6 +15,7 @@ import breadcrumbs from "@ucd-lib/theme-sass/4_component/_nav-breadcrumbs.css.js
 import priorityLinks from "@ucd-lib/theme-sass/4_component/_priority-links.css.js";
 import responsiveTable from "@ucd-lib/theme-sass/4_component/_responsive-table.css.js";
 import verticalLink from "@ucd-lib/theme-sass/4_component/_vertical-link.css.js";
+import alert from "@ucd-lib/theme-sass/4_component/_messaging-alert.css.js";
 import layouts from "@ucd-lib/theme-sass/5_layout/_index.css.js";
 import spaceUtils from "@ucd-lib/theme-sass/6_utility/_u-space.css.js";
 import displayUtils from "@ucd-lib/theme-sass/6_utility/_u-visibility.css.js";
@@ -38,6 +39,7 @@ export function styles() {
     priorityLinks,
     responsiveTable,
     verticalLink,
+    alert,
     layouts,
     spaceUtils,
     displayUtils,
@@ -67,6 +69,14 @@ return html`
       <div class='u-space-mt--small'>
         <a href='https://drive.google.com/drive/folders/1BBR-kWM-u8xYAkjJjnoQPIXu0CefQqbG?usp=share_link' target='_blank'>View Platform Documentation</a>
       </div>
+    </div>
+  </div>
+  <div ?hidden=${!this.selectedIsActive}>
+    <div ?hidden=${!(this.wpBool(this.selectedCycle?.application_form_id) && !this.applicationFormPage)} class='brand-textbox category-brand__background category-brand--redbud u-space-mb--large'>
+        The selected cycle is active, but there is no application form page associated with it. Please add the application form to a Wordpress page to allow applicants to apply.
+    </div>
+    <div ?hidden=${!(this.wpBool(this.selectedCycle?.support_form_id) && !this.supporterFormPage)} class='brand-textbox category-brand__background category-brand--redbud u-space-mb--large'>
+        The selected cycle is active, but there is no supporter form page associated with it. Please add the supporter form to a Wordpress page to allow supporters to submit letters of support.
     </div>
   </div>
   <div ?hidden=${this.hideCycleNotification} class="basic-notification">

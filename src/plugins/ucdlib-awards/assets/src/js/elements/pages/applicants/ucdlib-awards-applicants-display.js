@@ -16,8 +16,14 @@ export default class UcdlibAwardsApplicantsDisplay extends Mixin(LitElement)
       expandedRecords: { type: Array },
       judges: { type: Array },
       assignmentStatusApplicant: {type: String},
+      uploadFields: { type: Array },
+      manageUploadApplicantId: { type: Number },
+      uploadSubmitting: { type: Boolean },
+      isActiveCycle: { type: Boolean },
       _applicants: { state: true },
-      _allSelected: { state: true }
+      _allSelected: { state: true },
+      _selectedUploadFieldId: { state: true },
+      _selectedUploadFile: { state: true }
     }
   }
 
@@ -27,6 +33,7 @@ export default class UcdlibAwardsApplicantsDisplay extends Mixin(LitElement)
     this.renderSortIcon = templates.renderSortIcon.bind(this);
     this.renderApplicantRow = templates.renderApplicantRow.bind(this);
     this.renderAssignmentModalContent = templates.renderAssignmentModalContent.bind(this);
+    this.renderUploadModalContent = templates.renderUploadModalContent.bind(this);
     this.applicants = [];
     this._applicants = [];
     this.selectedApplicants = [];
@@ -36,6 +43,12 @@ export default class UcdlibAwardsApplicantsDisplay extends Mixin(LitElement)
     this.expandedRecords = [];
     this.judges = [];
     this.assignmentStatusApplicant = '';
+    this.uploadFields = [];
+    this.manageUploadApplicantId = 0;
+    this.uploadSubmitting = false;
+    this.isActiveCycle = false;
+    this._selectedUploadFieldId = '';
+    this._selectedUploadFile = null;
   }
 
   willUpdate(props) {
@@ -68,16 +81,55 @@ export default class UcdlibAwardsApplicantsDisplay extends Mixin(LitElement)
       this._applicants = applicants;
       this._allSelected = this._applicants.length && this._applicants.every(applicant => applicant.selected);
     }
+
+    if ( props.has('manageUploadApplicantId') && !this.manageUploadApplicantId ) {
+      const modal = this.querySelector('#upload-modal');
+      if ( modal ) modal.hide();
+    }
   }
 
   _onAssignmentView(applicant_id){
     if ( !applicant_id ) return;
     this.assignmentStatusApplicant = applicant_id;
 
-    const modal = this.querySelector('ucdlib-awards-modal');
+    const modal = this.querySelector('#assignment-modal');
     if ( modal ) {
       modal.show();
     }
+  }
+
+  _onManageUploadsClick(applicant_id){
+    if ( !applicant_id ) return;
+    this._selectedUploadFieldId = '';
+    this._selectedUploadFile = null;
+    this.manageUploadApplicantId = applicant_id;
+    this.dispatchEvent(new CustomEvent('manage-upload-request', {
+      detail: { applicantId: applicant_id }
+    }));
+
+    const modal = this.querySelector('#upload-modal');
+    if ( modal ) {
+      modal.show();
+    }
+  }
+
+  _onUploadFieldSelect(uploadFieldId){
+    this._selectedUploadFieldId = uploadFieldId;
+  }
+
+  _onUploadFileChange(e){
+    this._selectedUploadFile = e.target.files[0] || null;
+  }
+
+  _onUploadConfirm(){
+    if ( !this._selectedUploadFieldId || !this._selectedUploadFile || this.uploadSubmitting ) return;
+    this.dispatchEvent(new CustomEvent('manage-upload-submit', {
+      detail: {
+        applicantId: this.manageUploadApplicantId,
+        uploadFieldId: this._selectedUploadFieldId,
+        file: this._selectedUploadFile
+      }
+    }));
   }
 
   sortApplicants(field, direction) {

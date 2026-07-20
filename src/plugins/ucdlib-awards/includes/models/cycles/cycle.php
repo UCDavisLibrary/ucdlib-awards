@@ -393,13 +393,22 @@ class UcdlibAwardsCycle {
     $rangeEnd = new DateTime( $end, $tz );
     $rangeEnd->add( new DateInterval('P1D') );
 
+    $out = [
+      'tz' => $tz,
+      'now' => $now,
+      'rangeStart' => $rangeStart,
+      'rangeEnd' => $rangeEnd,
+      'status' => null
+    ];
+
     if ( $now < $rangeStart ) {
-      return 'upcoming';
-    } elseif ( $now > $rangeEnd ) {
-      return 'past';
+      $out['status'] = 'upcoming';
+    } elseif ( $now >= $rangeEnd ) {
+      $out['status'] = 'past';
     } else {
-      return 'active';
+      $out['status'] = 'active';
     }
+    return $out;
   }
 
   protected $applicationForm;
@@ -1090,6 +1099,30 @@ class UcdlibAwardsCycle {
     }
     $this->categories = null;
     return $this->categories;
+  }
+
+  protected $uploadFields;
+  public function uploadFields(){
+    if ( isset($this->uploadFields) ) return $this->uploadFields;
+    $formId = $this->applicationFormId();
+    if ( empty($formId) ) {
+      $this->uploadFields = [];
+      return $this->uploadFields;
+    }
+    $formFields = $this->plugin->forms->getFormFields( $formId );
+    $uploadFields = [];
+    foreach( $formFields as $fieldWrapper ){
+      if ( !is_array($fieldWrapper['fields']) ) continue;
+      foreach( $fieldWrapper['fields'] as $field ){
+        if ( ($field['type'] ?? '') !== 'upload' ) continue;
+        $uploadFields[] = [
+          'id' => $field['element_id'],
+          'label' => $field['field_label'] ?? $field['element_id']
+        ];
+      }
+    }
+    $this->uploadFields = $uploadFields;
+    return $this->uploadFields;
   }
 
   public function updateUploadField($applicantEmail, $uploadFieldId, $mediaLibraryUrl, $mediaBaseDir){

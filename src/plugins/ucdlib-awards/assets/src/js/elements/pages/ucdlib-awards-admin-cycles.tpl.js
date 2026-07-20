@@ -352,6 +352,7 @@ export function renderOverview(){
             <a href=${this.formsLink + '-wizard&id=' + applicationForm.id} target='_blank'><ucdlib-icon icon='ucd-public:fa-pen-to-square'></ucdlib-icon></a>
           </div>
         </div>
+        <div ?hidden=${!this.applicationFormPage}><a href=${this.applicationFormPage?.link}>View Public Application Form Page</a></div>
       </div>
       <div class='u-space-mb'>
         <label>Letters of Support Form</label>
@@ -362,6 +363,7 @@ export function renderOverview(){
               <a href=${this.formsLink + '-wizard&id=' + supportForm.id} target='_blank'><ucdlib-icon icon='ucd-public:fa-pen-to-square'></ucdlib-icon></a>
             </div>
           </div>
+          <div ?hidden=${!this.supporterFormPage}><a href=${this.supporterFormPage?.link}>View Public Support Form Page</a></div>
         ` : html`
           <div>Not Enabled</div>
         `}

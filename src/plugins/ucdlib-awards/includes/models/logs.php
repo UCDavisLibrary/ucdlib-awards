@@ -58,6 +58,11 @@ class UcdlibAwardsLogs {
             'slug' => 'support-submitted',
             'label' => 'Support Submitted',
             'description' => 'Support letter submitted'
+          ],
+          'upload-field-update' => [
+            'slug' => 'upload-field-update',
+            'label' => 'Upload Field Update',
+            'description' => 'Applicant upload field file replaced'
           ]
         ]
       ],
@@ -105,6 +110,11 @@ class UcdlibAwardsLogs {
             'slug' => 'application-unassigned',
             'label' => 'Application Unassigned',
             'description' => 'Application unassigned from reviewer'
+          ],
+          'judge-category-updated' => [
+            'slug' => 'judge-category-updated',
+            'label' => 'Reviewer Category Updated',
+            'description' => 'Reviewer category updated'
           ]
         ]
       ],
@@ -513,12 +523,51 @@ class UcdlibAwardsLogs {
     return true;
   }
 
+  public function logJudgeCategoryUpdate($cycleId, $judgeId) {
+    $log = [
+      'log_type' => 'evaluation-admin',
+      'log_subtype' => 'judge-category-updated',
+      'cycle_id' => $cycleId,
+      'user_id_object' => $judgeId,
+      'date_created' =>  date('Y-m-d H:i:s')
+    ];
+
+    $currentUser = $this->plugin->users->currentUser();
+    if ( $currentUser->record() ){
+      $log['user_id_subject'] = $currentUser->record()->user_id;
+    }
+
+    global $wpdb;
+    $wpdb->insert( $this->table, $log );
+    return true;
+  }
+
   public function logApplicationDelete($cycleId, $userId) {
     $log = [
       'log_type' => 'application',
       'log_subtype' => 'delete',
       'cycle_id' => $cycleId,
       'user_id_object' => $userId,
+      'date_created' =>  date('Y-m-d H:i:s')
+    ];
+
+    $currentUser = $this->plugin->users->currentUser();
+    if ( $currentUser->record() ){
+      $log['user_id_subject'] = $currentUser->record()->user_id;
+    }
+
+    global $wpdb;
+    $wpdb->insert( $this->table, $log );
+    return true;
+  }
+
+  public function logUploadFieldUpdate($cycleId, $userId, $uploadFieldId) {
+    $log = [
+      'log_type' => 'application',
+      'log_subtype' => 'upload-field-update',
+      'cycle_id' => $cycleId,
+      'user_id_object' => $userId,
+      'log_value' => json_encode(['uploadFieldId' => $uploadFieldId]),
       'date_created' =>  date('Y-m-d H:i:s')
     ];
 

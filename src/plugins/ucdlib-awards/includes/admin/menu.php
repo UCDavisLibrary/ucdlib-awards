@@ -248,7 +248,9 @@ class UcdlibAwardsAdminMenu {
       'siteForms' => $forms,
       'dashboardLink' => $context['links']['dashboard'],
       'applicationFormFields' => $applicationFormFields,
-      'formsLink' => admin_url( 'admin.php?page=' . $this->plugin->config::$forminatorSlugs['forms'] )
+      'formsLink' => admin_url( 'admin.php?page=' . $this->plugin->config::$forminatorSlugs['forms'] ),
+      'applicationFormPage' => $context['pageContainerProps']['applicationFormPage'],
+      'supporterFormPage' => $context['pageContainerProps']['supporterFormPage']
     ];
     UcdlibAwardsTimber::renderAdminPage( 'cycles', $context );
   }
@@ -323,6 +325,9 @@ class UcdlibAwardsAdminMenu {
     if ( $requestedCycle ){
       $pageProps['cycleId'] = $requestedCycle->cycleId;
       $pageProps['categories'] = $requestedCycle->categories();
+      $pageProps['requestedCycle'] = $context['pageContainerProps']['requestedCycle'];
+      $pageProps['uploadFields'] = $requestedCycle->uploadFields();
+      $pageProps['isActiveCycle'] = (bool) $requestedCycle->isActive();
       $args = [
         'applicationEntry' => true,
         'userMeta' => true
@@ -331,7 +336,8 @@ class UcdlibAwardsAdminMenu {
       $args = [
         'applicationEntryBrief' => $requestedCycle->cycleId,
         'applicationCategory' => $requestedCycle->cycleId,
-        'applicationStatus' => $requestedCycle->cycleId
+        'applicationStatus' => $requestedCycle->cycleId,
+        'uploadedFieldIds' => $requestedCycle->cycleId
       ];
       $pageProps['applicants'] = $this->plugin->users->toArrays($applicants, $args);
       $pageProps['judges'] = $requestedCycle->judges(true);
@@ -341,6 +347,9 @@ class UcdlibAwardsAdminMenu {
     UcdlibAwardsTimber::renderAdminPage( 'applicants', $context );
   }
 
+  /**
+   * @description Render the admin Rubric page.
+   */
   public function renderRubric(){
     $context = $this->context();
     $requestedCycle = $context['requestedCycle'];
@@ -356,7 +365,12 @@ class UcdlibAwardsAdminMenu {
         $pageProps['rubricItems'] = $requestedCycle->rubric()->items();
       }
       $pageProps['scoringCalculation'] = $requestedCycle->rubric()->scoringCalculation();
-      $pageProps['uploadedFile'] = $requestedCycle->rubric()->uploadedFile();
+      
+      $rubricReferenceObject = $requestedCycle->rubric()->referenceLinkObject();
+      $pageProps['uploadedFile'] = $rubricReferenceObject['rubric_file'];
+      $pageProps['useRubricLink'] = $rubricReferenceObject['use_rubric_link'];
+      $pageProps['rubricLink'] = $rubricReferenceObject['rubric_link'];
+
       $cyclesWithRubric = $this->plugin->cycles->filterByRubric();
       foreach ($cyclesWithRubric as $c) {
         if ( $c->cycleId == $requestedCycle->cycleId ) continue;
@@ -399,6 +413,8 @@ class UcdlibAwardsAdminMenu {
         'cyclesLink' => $links['cycles'],
         'cycleQueryParam' => $cycleQueryParam,
         'requestedCycle' => null,
+        'applicationFormPage' => null,
+        'supporterFormPage' => null,
         'wpAjax' => $this->ajaxUtils->getAjaxElementProperty('adminGeneral')
       ],
       'award' => $this->award,
@@ -408,6 +424,7 @@ class UcdlibAwardsAdminMenu {
     if ( $currentUser->isAdmin() ){
       $this->context['pageContainerProps']['cycles'] = $this->plugin->cycles->getRecordArrays();
 
+      // get requested cycle from query param if set, otherwise use active cycle
       $requestedCycleId = !empty($_GET[$cycleQueryParam]) ? intval($_GET[$cycleQueryParam]) : 0;
       $requestedCycle = null;
       if ( $requestedCycleId ) {
@@ -423,6 +440,28 @@ class UcdlibAwardsAdminMenu {
         $requestedCycle = $requestedCycle->recordArray(['applicantCount' => true]);
       }
       $this->context['pageContainerProps']['requestedCycle'] = $requestedCycle;
+
+      // get application and supporter form pages for requested cycle if set
+      if ( $this->context['requestedCycle'] && $this->context['requestedCycle']->applicationFormId() ){
+        $pages = $this->plugin->forms->getPostsWithForm( $this->context['requestedCycle']->applicationFormId() );
+        if ( isset($pages[0]) ){
+          $this->context['pageContainerProps']['applicationFormPage'] = [
+            'id' => $pages[0]->id,
+            'title' => $pages[0]->title(),
+            'link' => $pages[0]->link()
+          ];
+        }
+      }
+      if ( $this->context['requestedCycle'] && $this->context['requestedCycle']->supportFormId() ){
+        $pages = $this->plugin->forms->getPostsWithForm( $this->context['requestedCycle']->supportFormId() );
+        if ( isset($pages[0]) ){
+          $this->context['pageContainerProps']['supporterFormPage'] = [
+            'id' => $pages[0]->id,
+            'title' => $pages[0]->title(),
+            'link' => $pages[0]->link()
+          ];
+        }
+      }
     }
     return $this->context;
   }

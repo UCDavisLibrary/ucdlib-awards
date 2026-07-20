@@ -17,13 +17,16 @@ export default class UcdlibAwardsPage extends LitElement {
       cycles: {type: Array},
       cyclesLink: {type: String},
       isAdminPage: {type: Boolean},
+      applicationFormPage: {type: Object},
+      supporterFormPage: {type: Object},
       notAuthorized: {state: true},
       propsParsed: {state: true},
       hideCycleNotification: {state: true},
       isCyclesAdminPage: {state: true},
       selectedCycle: {state: true},
       activeCycle: {state: true},
-      toastState: {state: true}
+      toastState: {state: true},
+      selectedIsActive: {state: true}
     }
   }
 
@@ -45,6 +48,10 @@ export default class UcdlibAwardsPage extends LitElement {
     this.activeCycle = {};
     this.toastState = {};
     this.siteTimeOffset = '';
+    this.selectedIsActive = false;
+
+    this.applicationFormPage = null;
+    this.supporterFormPage = null;
 
     this.mutationObserver = new MutationObserverController(this);
     this.wait = new WaitController(this);
@@ -96,6 +103,10 @@ export default class UcdlibAwardsPage extends LitElement {
       if ( !selectedCycleSet ) this.selectedCycle = {...this.activeCycle};
       this.updateAdminLinks();
       this.previousSelectedCycleId = null;
+
+      if ( props.has('selectedCycle') ) {
+        this.selectedIsActive = parseInt(this.selectedCycle?.is_active) === 1;
+      }
     }
   }
 
@@ -289,6 +300,12 @@ export default class UcdlibAwardsPage extends LitElement {
     if ( data.cycles ) this.cycles = data.cycles;
     if ( data.isAdminPage ) this.isAdminPage = data.isAdminPage;
     if ( data.cyclesLink ) this.cyclesLink = data.cyclesLink;
+    if ( data.supporterFormPage ) this.supporterFormPage = data.supporterFormPage;
+    if ( data.applicationFormPage ) this.applicationFormPage = data.applicationFormPage;
+  }
+
+  wpBool(val){
+    return parseInt(val) >= 1;
   }
 
 }

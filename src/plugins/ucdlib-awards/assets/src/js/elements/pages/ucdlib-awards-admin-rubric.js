@@ -26,7 +26,9 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
       scoringCalculation: { type: String },
       uploadedFile: { type: String},
       uploadedFileName: { state: true},
-      hideFileUploadInput: { type: Boolean }
+      hideFileUploadInput: { type: Boolean },
+      useRubricLink: { type: Boolean },
+      rubricLink: { type: String }
     }
   }
 
@@ -56,9 +58,20 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
     this.uploadedFile = '';
     this.hideFileUploadInput = false;
     this.uploadedFileName = '';
+    this.useRubricLink = false;
+    this.rubricLink = '';
 
     this.mutationObserver = new MutationObserverController(this);
     this.wpAjax = new wpAjaxController(this);
+  }
+
+  get defaultRubricItem(){
+    return {
+      weight: 1,
+      range_min: 1,
+      range_max: 5,
+      range_step: 1
+    }
   }
 
   willUpdate(props){
@@ -89,7 +102,7 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
 
   _onFormInput(itemIndex, prop, value){
     if ( itemIndex == 0 && !this.editedRubricItems.length ) {
-      this.editedRubricItems.push({});
+      this.editedRubricItems.push(this.defaultRubricItem);
     }
 
     if ( this.fieldsWithErrors[prop] && Array.isArray(this.fieldsWithErrors[prop]) ) {
@@ -97,7 +110,7 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
     }
 
     const ints = ['range_min', 'range_max', 'range_step', 'weight'];
-    if ( ints.includes(prop) ) value = parseInt(value);
+    if ( ints.includes(prop) && value !== '' ) value = parseInt(value);
 
     this.editedRubricItems[itemIndex][prop] = value;
     this.requestUpdate();
@@ -126,6 +139,35 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
         composed: true,
         detail: {
           message: 'Error removing file',
+          type: 'error'
+        }
+      }));
+    }
+  }
+
+  async _onUpdateRubricReference(){
+    const payload = {
+      cycle_id: this.cycleId,
+      use_rubric_link: this.useRubricLink,
+      rubric_link: this.rubricLink
+    }
+    const response = await this.wpAjax.request('updateRubricReference', payload);
+    if ( response.success ) {
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: 'Rubric reference updated',
+          type: 'success'
+        }
+      }));
+    } else {
+      console.error('Error updating rubric reference', response);
+      this.dispatchEvent(new CustomEvent('toast-request', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          message: 'Error updating rubric reference',
           type: 'error'
         }
       }));
@@ -278,7 +320,7 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
   }
 
   _onInsertItem(index){
-    this.editedRubricItems.splice(index, 0, {});
+    this.editedRubricItems.splice(index, 0, this.defaultRubricItem);
     const expandedItems = this.expandedItems.map(i => {
       if ( i >= index ) return i+1;
       return i;
@@ -355,6 +397,8 @@ export default class UcdlibAwardsAdminRubric extends Mixin(LitElement)
     if ( data.cycleId ) this.cycleId = parseInt(data.cycleId);
     if ( data.scoringCalculation ) this.scoringCalculation = data.scoringCalculation;
     if ( data.uploadedFile ) this.uploadedFile = data.uploadedFile;
+    if ( data.rubricLink ) this.rubricLink = data.rubricLink;
+    this.useRubricLink = !!data.useRubricLink;
     if ( data.rubricItems ) {
       this.rubricItems = data.rubricItems
     }

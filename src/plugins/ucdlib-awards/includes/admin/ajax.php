@@ -284,7 +284,8 @@ class UcdlibAwardsAdminAjax {
         $args = [
           'applicationEntryBrief' => $cycle->cycleId,
           'applicationCategory' => $cycle->cycleId,
-          'applicationStatus' => $cycle->cycleId
+          'applicationStatus' => $cycle->cycleId,
+          'uploadedFieldIds' => $cycle->cycleId
         ];
         $response['data'] = ['applicants' => $this->plugin->users->toArrays($applicants, $args)];
         $response['success'] = true;
@@ -379,7 +380,8 @@ class UcdlibAwardsAdminAjax {
         $args = [
           'applicationEntryBrief' => $cycle->cycleId,
           'applicationCategory' => $cycle->cycleId,
-          'applicationStatus' => $cycle->cycleId
+          'applicationStatus' => $cycle->cycleId,
+          'uploadedFieldIds' => $cycle->cycleId
         ];
         $response['data'] = ['applicants' => $this->plugin->users->toArrays($applicants, $args)];
         $response['success'] = true;
@@ -422,10 +424,55 @@ class UcdlibAwardsAdminAjax {
         $args = [
           'applicationEntryBrief' => $cycle->cycleId,
           'applicationCategory' => $cycle->cycleId,
-          'applicationStatus' => $cycle->cycleId
+          'applicationStatus' => $cycle->cycleId,
+          'uploadedFieldIds' => $cycle->cycleId
         ];
         $response['data'] = ['applicants' => $this->plugin->users->toArrays($applicants, $args)];
         $response['success'] = true;
+
+      } else if ( $action === 'updateUploadField' ) {
+        $cycle = $this->plugin->cycles->getById($_POST['cycle_id']);
+        if ( !$cycle ){
+          $response['messages'][] = 'Cycle not found.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+        $applicant = $this->plugin->users->getByUserId($_POST['applicant_id']);
+        if ( !$applicant ){
+          $response['messages'][] = 'Applicant not found.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+        $uploadFieldId = $_POST['upload_field_id'] ?? '';
+        if ( empty($uploadFieldId) ){
+          $response['messages'][] = 'No upload field specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+        if ( empty($_FILES['file']) ){
+          $response['messages'][] = 'No file uploaded.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        if ( ! function_exists( 'wp_handle_upload' ) ) {
+          require_once( ABSPATH . 'wp-admin/includes/file.php' );
+        }
+        $movefile = wp_handle_upload($_FILES['file'], ['test_form' => false]);
+        if ( !$movefile || isset( $movefile['error'] ) ) {
+          $response['messages'][] = 'Error uploading file.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        $r = $cycle->updateUploadField($applicant->record()->email, $uploadFieldId, $movefile['url'], '');
+        if ( $r['success'] ) {
+          $this->logger->logUploadFieldUpdate($cycle->cycleId, $applicant->record()->user_id, $uploadFieldId);
+          $response['messages'][] = 'File updated successfully.';
+          $response['success'] = true;
+        } else {
+          $response['messages'][] = $r['message'];
+        }
 
       }
     } catch (\Throwable $th) {
@@ -461,17 +508,60 @@ class UcdlibAwardsAdminAjax {
             'last_name' => isset($payload['judge']['last_name']) ? $payload['judge']['last_name'] : ''
           ]);
         }
-        if ( $user->cycleMetaItem('isJudge', $cycleId) ){
-          $response['messages'][] = 'User is already a reviewer for this cycle.';
+
+        $category = !empty($payload['judge']['category']) ? $payload['judge']['category'] : null;
+        $result = $this->addJudgeToCycle($user, $cycle, $category);
+        if ( $result !== true ){
+          $response['messages'][] = $result;
           $this->utils->sendResponse($response);
           return;
         }
-        $user->updateMeta('isJudge', true, $cycleId);
-        if ( !empty($payload['judge']['category']) ){
-          $user->updateMeta('judgeCategory', $payload['judge']['category'], $cycleId);
-        }
-        $this->logger->logJudgeAddition($cycleId, $user->id);
+
         $response['messages'][] = 'Reviewer added successfully.';
+        $response['data'] = ['judges' => $cycle->judges(true, ['assignments' => true, 'conflictsOfInterest' => true, 'completedEvaluations' => true])];
+        $response['success'] = true;
+      } else if ( $action === 'copy') {
+        $payload = json_decode( stripslashes($_POST['data']), true );
+        $cycle = $this->getCycle($payload, $response);
+        $cycleId = $cycle->cycleId;
+
+        if ( empty($payload['judges']) || !is_array($payload['judges']) ){
+          $response['messages'][] = 'No reviewers specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        $resolved = [];
+        foreach ($payload['judges'] as $judgeData) {
+          if ( empty($judgeData['user_id']) ) continue;
+          $user = $this->plugin->users->getByUserId($judgeData['user_id']);
+          if ( !$user || !$user->record() ){
+            $response['messages'][] = 'One or more reviewers could not be found.';
+            $this->utils->sendResponse($response);
+            return;
+          }
+          $category = !empty($judgeData['category']) ? $judgeData['category'] : null;
+          $check = $this->addJudgeToCycle($user, $cycle, $category, true);
+          if ( $check !== true ){
+            $response['messages'][] = $check;
+            $this->utils->sendResponse($response);
+            return;
+          }
+          $resolved[] = ['user' => $user, 'category' => $category];
+        }
+
+        if ( empty($resolved) ){
+          $response['messages'][] = 'No reviewers were added.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        foreach ($resolved as $item) {
+          $this->addJudgeToCycle($item['user'], $cycle, $item['category']);
+        }
+
+        $ct = count($resolved);
+        $response['messages'][] = $ct . ' reviewer' . ($ct > 1 ? 's' : '') . ' added successfully.';
         $response['data'] = ['judges' => $cycle->judges(true, ['assignments' => true, 'conflictsOfInterest' => true, 'completedEvaluations' => true])];
         $response['success'] = true;
       } else if ($action == 'delete'){
@@ -597,12 +687,109 @@ class UcdlibAwardsAdminAjax {
         $response['messages'][] = 'Email' . (count($completed) > 1 ? 's' : '') . ' sent successfully.';
         $response['success'] = true;
 
+      } else if ( $action === 'update-category'){
+        $payload = json_decode( stripslashes($_POST['data']), true );
+        $cycle = $this->getCycle($payload, $response);
+        $cycleId = $cycle->cycleId;
+
+        if ( empty($payload['judge_ids']) ){
+          $response['messages'][] = 'No reviewer ids specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        if ( empty($payload['category']) ){
+          $response['messages'][] = 'No category specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        $categories = $cycle->categories();
+        if ( empty($categories) ){
+          $response['messages'][] = 'This cycle does not have categories configured.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+        $validCategoryValues = array_column($categories, 'value');
+        if ( !in_array($payload['category'], $validCategoryValues) ){
+          $response['messages'][] = 'Invalid category specified.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        $userIds = is_array($payload['judge_ids']) ? $payload['judge_ids'] : [$payload['judge_ids']];
+        $existingJudgeIds = $cycle->judgeIds();
+        $missingJudgeIds = array_diff($userIds, $existingJudgeIds);
+        if ( count($missingJudgeIds) ){
+          $response['messages'][] = 'One or more reviewers could not be found.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+
+        $judges = $this->plugin->users->getByUserIds($userIds);
+        foreach ($judges as $judge) {
+          $judge->updateMeta('judgeCategory', $payload['category'], $cycleId);
+          $this->logger->logJudgeCategoryUpdate($cycleId, $judge->id);
+        }
+
+        $ct = count($userIds);
+        $response['messages'][] = 'Reviewer categor' . ($ct > 1 ? 'ies' : 'y') . ' updated successfully.';
+        $response['data'] = ['judges' => $cycle->judges(true, ['assignments' => true, 'conflictsOfInterest' => true, 'completedEvaluations' => true])];
+        $response['success'] = true;
+      } else if ( $action === 'get-all-judges') {
+        $payload = json_decode( stripslashes($_POST['data']), true );
+
+        $opts = [];
+        if ( !empty($payload['exclude_current_cycle']) ){
+          $opts['exclude_cycle_id'] = intval($payload['exclude_current_cycle']);
+        }
+
+        $response['data'] = ['judges' => $this->plugin->users->getAllJudges($opts)];
+        $response['success'] = true;
       }
     } catch (\Throwable $th) {
       error_log('Error in UcdlibAwardsAdminAjax::cycles(): ' . $th->getMessage());
     }
     $this->utils->sendResponse($response);
 
+  }
+
+  /**
+   * @description Add a user as a judge to a cycle. Returns true on success or an error message string on failure.
+   * @param UcdlibAwardsUser $user
+   * @param object $cycle
+   * @param string|null $category - category value to assign; required and validated when the cycle has categories configured
+   * @param bool $validateOnly - if true, run all checks but do not write anything
+   * @returns bool|string - true on success, error message on failure
+   */
+  protected function addJudgeToCycle($user, $cycle, $category = null, $validateOnly = false){
+    $cycleId = $cycle->cycleId;
+
+    if ( $user->cycleMetaItem('isJudge', $cycleId) ){
+      return 'User is already a reviewer for this cycle.';
+    }
+
+    $categories = $cycle->categories();
+    if ( !empty($categories) ){
+      if ( empty($category) ){
+        return 'A category is required for this cycle.';
+      }
+      $validValues = array_column($categories, 'value');
+      if ( !in_array($category, $validValues) ){
+        return 'Invalid category specified.';
+      }
+    }
+
+    if ( $validateOnly ) return true;
+
+    $user->updateMeta('isJudge', true, $cycleId);
+
+    if ( !empty($category) ){
+      $user->updateMeta('judgeCategory', $category, $cycleId);
+    }
+
+    $this->logger->logJudgeAddition($cycleId, $user->id);
+    return true;
   }
 
   public function getCycle($payload, $response){
@@ -760,7 +947,7 @@ class UcdlibAwardsAdminAjax {
         }
         $movefile = wp_handle_upload($file, ['test_form' => false]);
         if ( $movefile && !isset( $movefile['error'] ) ) {
-          $cycle->updateMeta(['rubric_file' => $movefile['url']]);
+          $cycle->updateMeta(['rubric_file' => $movefile['url'], 'use_rubric_link' => false]);
           $this->logger->logRubricEvent($cycle->cycleId, 'update');
           $response['messages'][] = 'Rubric file uploaded successfully.';
           $response['data'] = ['rubricFile' => $movefile['url']];
@@ -779,6 +966,23 @@ class UcdlibAwardsAdminAjax {
         $cycle->updateMeta(['rubric_file' => '']);
         $this->logger->logRubricEvent($cycle->cycleId, 'update');
         $response['messages'][] = 'Rubric file deleted successfully.';
+        $response['success'] = true;
+      } else if ( $action === 'updateRubricReference' ){
+        $payload = json_decode( stripslashes($_POST['data']), true );
+        $cycle = $this->plugin->cycles->getById($payload['cycle_id']);
+        if ( !$cycle ){
+          $response['messages'][] = 'Cycle not found.';
+          $this->utils->sendResponse($response);
+          return;
+        }
+        $meta = ['use_rubric_link' => !!$payload['use_rubric_link']];
+        if ( isset($payload['rubric_link']) ){
+          $meta['rubric_link'] = $payload['rubric_link'];
+        }
+        $cycle->updateMeta($meta);
+        $this->logger->logRubricEvent($cycle->cycleId, 'update');
+        $response['messages'][] = 'Rubric reference updated successfully.';
+        $response['data'] = ['rubricLink' => $payload['rubric_link']];
         $response['success'] = true;
       }
     } catch (\Throwable $th) {

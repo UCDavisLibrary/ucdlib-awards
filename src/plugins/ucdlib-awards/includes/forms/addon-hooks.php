@@ -36,9 +36,9 @@ class Forminator_Ucdlibawards_Form_Hooks extends Forminator_Integration_Form_Hoo
     // Check that form is active
     $formWindowStatus = '';
     if ( $isApplicationForm ) {
-      $formWindowStatus = $activeCycle->applicationWindowStatus();
+      $formWindowStatus = $activeCycle->applicationWindowStatus()['status'];
     } else if ( $isSupportForm ) {
-      $formWindowStatus = $activeCycle->supportWindowStatus();
+      $formWindowStatus = $activeCycle->supportWindowStatus()['status'];
     }
     if ( !$formWindowStatus ){
       return "Submission failed! Could not determine application window status.";
@@ -143,6 +143,10 @@ class Forminator_Ucdlibawards_Form_Hooks extends Forminator_Integration_Form_Hoo
         foreach ($cycle->supporterFields() as $fields) {
           if ( empty($fields['email']) || empty($submitted_data[$fields['email']]) ) continue;
           $email = $submitted_data[$fields['email']];
+
+          // CAS still uses @ucdavis as login for health emails, so we need to convert those to match the email field in our users table
+          $email = str_replace('@health.ucdavis.edu', '@ucdavis.edu', $email);
+
           if (in_array( $email, $supporterEmailsFromForm )) continue;
           $supporterEmailsFromForm[] = $email;
 
