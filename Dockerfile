@@ -1,5 +1,5 @@
 # Multistage build args
-ARG WP_CORE_VERSION="6.9.4"
+ARG WP_CORE_VERSION="7.0.2"
 ARG NODE_VERSION="20"
 ARG THEME_TAG="v4.5.0"
 ARG REDIRECTION_ZIP_FILE="redirection-5.7.5.zip"
