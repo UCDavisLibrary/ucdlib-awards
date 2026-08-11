@@ -7,6 +7,7 @@ ARG SMTP_MAILER_ZIP_FILE="smtp-mailer-1.1.25.zip"
 ARG FORMINATOR_ZIP_FILE="forminator-pro-1.53.1.zip"
 ARG OPENID_CONNECT_GENERIC_DIR="openid-connect-generic-3.10.0"
 ARG OPENID_CONNECT_GENERIC_ZIP_FILE="${OPENID_CONNECT_GENERIC_DIR}.zip"
+ARG DEFENDER_PRO_ZIP_FILE="defender-pro-5.11.zip"
 
 # Download plugins from Google Cloud Storage
 FROM google/cloud-sdk:alpine AS gcloud
@@ -17,10 +18,12 @@ ARG REDIRECTION_ZIP_FILE
 ARG OPENID_CONNECT_GENERIC_ZIP_FILE
 ARG SMTP_MAILER_ZIP_FILE
 ARG FORMINATOR_ZIP_FILE
+ARG DEFENDER_PRO_ZIP_FILE
 
 RUN --mount=type=secret,id=google_key gcloud auth activate-service-account --key-file=/run/secrets/google_key
 RUN gsutil cp gs://${GC_BUCKET_PLUGINS}/openid-connect-generic/${OPENID_CONNECT_GENERIC_ZIP_FILE} . \
 && gsutil cp gs://${GC_BUCKET_PLUGINS}/smtp-mailer/${SMTP_MAILER_ZIP_FILE} . \
+&& gsutil cp gs://${GC_BUCKET_PLUGINS}/defender-pro/${DEFENDER_PRO_ZIP_FILE} . \
 && gsutil cp gs://${GC_BUCKET_PLUGINS}/forminator-pro/${FORMINATOR_ZIP_FILE} . \
 && gsutil cp gs://${GC_BUCKET_PLUGINS}/redirection/${REDIRECTION_ZIP_FILE} .
 
@@ -92,6 +95,7 @@ ARG OPENID_CONNECT_GENERIC_ZIP_FILE
 ARG REDIRECTION_ZIP_FILE
 ARG SMTP_MAILER_ZIP_FILE
 ARG FORMINATOR_ZIP_FILE
+ARG DEFENDER_PRO_ZIP_FILE
 WORKDIR $WP_PLUGIN_DIR
 RUN rm -rf */ && rm -f hello.php
 COPY src/plugins .
@@ -99,8 +103,10 @@ COPY --from=gcloud /cache/${OPENID_CONNECT_GENERIC_ZIP_FILE} .
 COPY --from=gcloud /cache/${REDIRECTION_ZIP_FILE} .
 COPY --from=gcloud /cache/${SMTP_MAILER_ZIP_FILE} .
 COPY --from=gcloud /cache/${FORMINATOR_ZIP_FILE} .
+COPY --from=gcloud /cache/${DEFENDER_PRO_ZIP_FILE} .
 RUN unzip ${OPENID_CONNECT_GENERIC_ZIP_FILE} && rm ${OPENID_CONNECT_GENERIC_ZIP_FILE} \
 && unzip ${SMTP_MAILER_ZIP_FILE} && rm ${SMTP_MAILER_ZIP_FILE} \
+&& unzip ${DEFENDER_PRO_ZIP_FILE} && rm ${DEFENDER_PRO_ZIP_FILE} \
 && unzip ${FORMINATOR_ZIP_FILE} && rm ${FORMINATOR_ZIP_FILE} \
 && unzip ${REDIRECTION_ZIP_FILE} && rm ${REDIRECTION_ZIP_FILE}
 RUN mv $OPENID_CONNECT_GENERIC_DIR openid-connect-generic
