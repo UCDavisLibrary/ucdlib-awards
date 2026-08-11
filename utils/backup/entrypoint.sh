@@ -18,7 +18,7 @@ if [[ -f $BACKUP_PROFILE ]]; then
 fi
 
 # cron tab runs in a blank enviornment, create a backup profile cron can load
-echo "export NIGHTLY_BACKUPS=$RUN_BACKUP" >> $RUN_BACKUP
+echo "export NIGHTLY_BACKUPS=$RUN_BACKUP" >> $BACKUP_PROFILE
 echo "export GC_BUCKET_BACKUPS=$GC_BUCKET_BACKUPS" >> $BACKUP_PROFILE
 echo "export GC_PROJECT=$GC_PROJECT" >> $BACKUP_PROFILE
 echo "export GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS" >> $BACKUP_PROFILE
