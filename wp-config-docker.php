@@ -137,6 +137,8 @@ define( 'OIDC_ENDPOINT_LOGIN_URL', getenv_docker('OIDC_ENDPOINT_LOGIN_URL', '') 
 define( 'OIDC_ENDPOINT_TOKEN_URL', getenv_docker('OIDC_ENDPOINT_TOKEN_URL', '') );
 define( 'OIDC_ENDPOINT_USERINFO_URL', getenv_docker('OIDC_ENDPOINT_USERINFO_URL', '') );
 define( 'OIDC_ENDPOINT_LOGOUT_URL', getenv_docker('OIDC_ENDPOINT_LOGOUT_URL', '') );
+define( 'OIDC_ISSUER', getenv_docker('OIDC_ISSUER', '') );
+define( 'OIDC_ENDPOINT_JWKS_URL', getenv_docker('OIDC_ENDPOINT_JWKS_URL', '') );
 define( 'OIDC_CLIENT_SCOPE', getenv_docker('OIDC_CLIENT_SCOPE', '') );
 define( 'OIDC_LOGIN_TYPE', getenv_docker('OIDC_LOGIN_TYPE', '') );
 define( 'OIDC_CREATE_IF_DOES_NOT_EXIST', !!getenv_docker('OIDC_CREATE_IF_DOES_NOT_EXIST', true) );

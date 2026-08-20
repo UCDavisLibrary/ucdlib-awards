@@ -31,6 +31,8 @@ services:
       OIDC_ENDPOINT_USERINFO_URL: ${OIDC_ENDPOINT_USERINFO_URL:-}
       OIDC_ENDPOINT_TOKEN_URL: ${OIDC_ENDPOINT_TOKEN_URL:-https://auth.library.ucdavis.edu/realms/ucdlib-awards/protocol/openid-connect/token}
       OIDC_ENDPOINT_LOGOUT_URL: ${OIDC_ENDPOINT_LOGOUT_URL:-https://auth.library.ucdavis.edu/realms/ucdlib-awards/protocol/openid-connect/logout}
+      OIDC_ISSUER: ${OIDC_ISSUER:-https://auth.library.ucdavis.edu/realms/ucdlib-awards}
+      OIDC_ENDPOINT_JWKS_URL: ${OIDC_ENDPOINT_JWKS_URL:-https://auth.library.ucdavis.edu/realms/ucdlib-awards/protocol/openid-connect/certs}
       OIDC_CLIENT_SCOPE: ${OIDC_CLIENT_SCOPE:-openid profile email roles}
       OIDC_LOGIN_TYPE: ${OIDC_LOGIN_TYPE:-auto}
       OIDC_CREATE_IF_DOES_NOT_EXIST: ${OIDC_CREATE_IF_DOES_NOT_EXIST:-true}
