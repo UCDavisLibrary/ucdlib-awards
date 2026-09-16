@@ -8,11 +8,11 @@ RUN mkdir -p /usr/share/keyrings \
     && curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg \
        | gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
 RUN echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" \
-    > /etc/apt/sources.list.d/google-cloud-sdk.list
+    > /etc/apt/sources.list.d/google-cloud-cli.list
 
 # Install gcloud/gsutils
 RUN apt-get update && apt-get install -y mariadb-client \
-  wait-for-it google-cloud-sdk
+  wait-for-it google-cloud-cli
 
 RUN mkdir -p /deploy-utils/data
 WORKDIR /deploy-utils
