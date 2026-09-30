@@ -163,7 +163,17 @@ class UcdlibAwardsRubric {
     return false;
   }
 
+  /**
+   * Check if a score is valid for a rubric item.
+   * The score must be numeric and fall on a step within the item's range.
+   * Non-numeric values (e.g. an empty string) are rejected so they are not coerced to 0.
+   *
+   * @param int $itemId - The rubric item id
+   * @param mixed $score - The submitted score
+   * @return bool
+   */
   public function isValidScore($itemId, $score){
+    if ( !is_numeric($score) ) return false;
     $item = $this->getItemById( $itemId );
     if ( !$item ) return false;
     $validScores = [];

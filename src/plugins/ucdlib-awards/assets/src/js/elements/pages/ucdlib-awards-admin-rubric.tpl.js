@@ -101,7 +101,7 @@ export function renderFormItem(item, index, args={}) {
   const title = item.title || '';
   const description = item.description || '';
   const weight = item.weight || '';
-  const rangeMin = item.range_min || '';
+  const rangeMin = item.range_min ?? '';
   const rangeMax = item.range_max || '';
   const rangeStep = item.range_step || '';
   const noActions = args.noActions || false;
@@ -141,7 +141,7 @@ export function renderFormItem(item, index, args={}) {
           </div>
           <div class='l-second field-container ${errors.range_min ? 'error' : ''}'>
             <label class='overflow-elipsis'>Range Min</label>
-            <input type="number" min="1" max="100" .value=${rangeMin} @input=${(e) => this._onFormInput(index, 'range_min', e.target.value)}>
+            <input type="number" min="0" max="100" .value=${rangeMin} @input=${(e) => this._onFormInput(index, 'range_min', e.target.value)}>
           </div>
           <div class='l-third field-container ${errors.range_max ? 'error' : ''}'>
             <label class='overflow-elipsis'>Range Max</label>

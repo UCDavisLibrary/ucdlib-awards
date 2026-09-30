@@ -101,7 +101,7 @@ class UcdlibAwardsRubrics {
       }
     }
 
-    // integers are positive
+    // integers are positive (range_min may also be zero)
     $integerFields = [
       'range_min',
       'range_max',
@@ -112,6 +112,13 @@ class UcdlibAwardsRubrics {
       if ( isset($rubric[$field]) && !is_numeric($rubric[$field]) ){
         $out[1]['errorMessages'][] = "The '$fieldLabels[$field]' field must be a number.";
         $out[1]['errorFields'][$field] = true;
+      }
+      if ( $field === 'range_min' ){
+        if ( isset($rubric[$field]) && $rubric[$field] < 0 ){
+          $out[1]['errorMessages'][] = "The '$fieldLabels[$field]' field must be zero or a positive number.";
+          $out[1]['errorFields'][$field] = true;
+        }
+        continue;
       }
       if ( isset($rubric[$field]) && $rubric[$field] <= 0 ){
         $out[1]['errorMessages'][] = "The '$fieldLabels[$field]' field must be a positive number.";
