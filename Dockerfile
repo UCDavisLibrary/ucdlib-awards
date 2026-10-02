@@ -4,12 +4,12 @@ ARG NODE_VERSION="20"
 ARG THEME_TAG="v4.6.0"
 ARG REDIRECTION_ZIP_FILE="redirection-5.10.1.zip"
 ARG SMTP_MAILER_ZIP_FILE="smtp-mailer-1.1.28.zip"
-ARG FORMINATOR_ZIP_FILE="forminator-pro-1.57.3.zip"
+ARG FORMINATOR_ZIP_FILE="forminator-pro-1.58.0.zip"
 ARG OPENID_CONNECT_GENERIC_DIR="daggerhart-openid-connect-generic"
 ARG OPENID_CONNECT_GENERIC_VERSION="3.11.3"
 ARG OPENID_CONNECT_GENERIC_ZIP_FILE="${OPENID_CONNECT_GENERIC_DIR}-${OPENID_CONNECT_GENERIC_VERSION}.zip"
 ARG DEFENDER_PRO_ZIP_FILE="defender-pro-6.3.0.zip"
-ARG WPMU_DEV_DASHBOARD_ZIP_FILE="wpmu-dev-dashboard-5.0.2.zip"
+ARG WPMU_DEV_DASHBOARD_ZIP_FILE="wpmu-dev-dashboard-5.0.3.zip"
 
 # Download plugins from Google Cloud Storage
 FROM google/cloud-sdk:alpine AS gcloud
